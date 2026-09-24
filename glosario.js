@@ -1,0 +1,33 @@
+// Glosario de siglas y términos (pestaña "Glosario"). BORRADOR: son expansiones y definiciones de manual, para orientar
+// a quien recién empieza; revisalas y corregí lo que haga falta. Formato: sigla, término completo, definición corta,
+// "buscar" (opcional: palabra que usa el botón "Ver casos del banco" para buscar en la pestaña Casos).
+window.GLOSARIO = [
+  { sigla: 'TSV', termino: 'Taquicardia supraventricular', definicion: 'Término general para las taquicardias que se originan por encima de los ventrículos (aurícula, nodo AV o una vía accesoria).', buscar: 'taquicardia supraventricular' },
+  { sigla: 'TRAV', termino: 'Taquicardia por reentrada auriculoventricular', definicion: 'Taquicardia mediada por una vía accesoria que arma un circuito con el nodo AV. Ortodrómica: baja por el nodo AV y sube por la vía. Antidrómica: al revés.', buscar: 'reentrada AV' },
+  { sigla: 'TRNAV', termino: 'Taquicardia por reentrada nodal auriculoventricular', definicion: 'Taquicardia por un circuito de reentrada dentro del nodo AV, formado por una vía rápida y una vía lenta.', buscar: 'reentrada nodal' },
+  { sigla: 'JET', termino: 'Taquicardia ectópica de la unión (Junctional Ectopic Tachycardia)', definicion: 'Taquicardia por automatismo anormal originada en el nodo AV o el haz de His, con el QRS habitualmente disociado de la actividad auricular.', buscar: 'JET' },
+  { sigla: 'TAE', termino: 'Taquicardia auricular ectópica', definicion: 'Taquicardia originada en un foco auricular distinto del nodo sinusal, con onda P de morfología diferente a la sinusal.', buscar: 'taquicardia auricular' },
+  { sigla: 'Coumel', termino: 'Taquicardia de Coumel (PJRT)', definicion: 'Taquicardia por reentrada mediada por una vía accesoria de conducción decremental que solo retroconduce, con intervalo RP largo; suele ser incesante.', buscar: 'Coumel' },
+  { sigla: 'FA', termino: 'Fibrilación auricular', definicion: 'Ritmo auricular caótico y desorganizado, con respuesta ventricular irregularmente irregular.', buscar: 'fibrilación auricular' },
+  { sigla: 'TV', termino: 'Taquicardia ventricular', definicion: 'Taquicardia de QRS ancho originada en el miocardio ventricular o el sistema de conducción distal al haz de His.', buscar: 'taquicardia ventricular' },
+  { sigla: 'CPVT', termino: 'Taquicardia ventricular polimorfa catecolaminérgica', definicion: 'Arritmia ventricular gatillada por el esfuerzo o las emociones en corazones sin cardiopatía estructural, asociada a mutaciones de canales que manejan el calcio (por ejemplo RYR2).', buscar: 'catecolaminérgica' },
+  { sigla: 'NSVT / TVNS', termino: 'Taquicardia ventricular no sostenida', definicion: 'Tres o más latidos ventriculares consecutivos que terminan solos, habitualmente en menos de 30 segundos.', buscar: 'no sostenida' },
+  { sigla: 'RIVA', termino: 'Ritmo idioventricular acelerado', definicion: 'Ritmo ventricular ectópico con una frecuencia parecida a la sinusal (no muy por encima de ella), en general benigno.', buscar: 'idioventricular' },
+  { sigla: 'WPW', termino: 'Síndrome de Wolff-Parkinson-White', definicion: 'Preexcitación ventricular por una vía accesoria, asociada a taquicardias (sobre todo TRAV) o riesgo de FA preexcitada.', buscar: 'WPW' },
+  { sigla: 'Onda delta', termino: 'Onda delta', definicion: 'Empastamiento en el comienzo del QRS producido por la activación ventricular precoz a través de una vía accesoria.', buscar: 'onda delta' },
+  { sigla: 'BAVC', termino: 'Bloqueo auriculoventricular completo (de tercer grado)', definicion: 'Ninguna onda P conduce a los ventrículos: hay disociación AV completa y un ritmo de escape (nodal o ventricular).', buscar: 'bloqueo AV completo' },
+  { sigla: 'Disociación VA', termino: 'Disociación auriculoventricular', definicion: 'Las aurículas y los ventrículos laten cada uno con su propio ritmo, sin una relación fija entre ellos.', buscar: 'disociación VA' },
+  { sigla: 'BRD', termino: 'Bloqueo de rama derecha', definicion: 'Retraso o interrupción de la conducción por la rama derecha del haz de His.', buscar: 'bloqueo de rama derecha' },
+  { sigla: 'BRI', termino: 'Bloqueo de rama izquierda', definicion: 'Retraso o interrupción de la conducción por la rama izquierda del haz de His.', buscar: 'bloqueo de rama izquierda' },
+  { sigla: 'HBA', termino: 'Hemibloqueo anterior', definicion: 'Bloqueo del fascículo anterior de la rama izquierda del haz de His; desvía el eje del QRS hacia la izquierda.', buscar: 'hemibloqueo anterior' },
+  { sigla: 'HBP', termino: 'Hemibloqueo posterior', definicion: 'Bloqueo del fascículo posterior de la rama izquierda del haz de His; desvía el eje del QRS hacia la derecha.', buscar: 'hemibloqueo posterior' },
+  { sigla: 'Ashman', termino: 'Fenómeno de Ashman', definicion: 'Aberrancia de conducción (QRS ancho) en el latido que sigue a un ciclo largo seguido de uno corto; frecuente en FA, aleteo o taquicardia auricular con pasaje variable.', buscar: 'Ashman' },
+  { sigla: 'Conducción decremental', termino: 'Conducción decremental', definicion: 'Enlentecimiento progresivo de la conducción a medida que aumenta la frecuencia del estímulo; es una propiedad normal del nodo AV, y algunas vías accesorias también la tienen.', buscar: '' },
+  { sigla: 'ESV', termino: 'Extrasístole ventricular', definicion: 'Latido ventricular anticipado, originado fuera del sistema de conducción normal.', buscar: 'extrasístole ventricular' },
+  { sigla: 'QTc', termino: 'Intervalo QT corregido', definicion: 'Intervalo QT ajustado por la frecuencia cardíaca (habitualmente con la fórmula de Bazett), para poder comparar entre distintas frecuencias.', buscar: '' },
+  { sigla: 'POP', termino: 'Posoperatorio (de cirugía cardíaca)', definicion: 'Período posterior a una cirugía cardíaca; muchas arritmias del banco ocurren en ese contexto.', buscar: 'posoperatorio' },
+  { sigla: 'PEG', termino: 'Prueba ergométrica graduada (ergometría)', definicion: 'Estudio que evalúa el comportamiento del ritmo y de una arritmia durante el esfuerzo físico.', buscar: '' },
+  { sigla: 'CDI', termino: 'Cardiodesfibrilador implantable', definicion: 'Dispositivo implantado que detecta arritmias ventriculares potencialmente letales y las trata con una descarga.', buscar: 'CDI' },
+  { sigla: 'VD / VI', termino: 'Ventrículo derecho / Ventrículo izquierdo', definicion: '', buscar: '' },
+  { sigla: 'AD / AI', termino: 'Aurícula derecha / Aurícula izquierda', definicion: '', buscar: '' }
+];

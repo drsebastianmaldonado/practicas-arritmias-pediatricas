@@ -1,0 +1,1 @@
+window.SEMANA_ARCHIVO = [];

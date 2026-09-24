@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banco de casos de arritmias</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="iconos/icon-192.png">
+<link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
+<meta name="theme-color" content="#b3261e">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec}
+@media (prefers-color-scheme:dark){:root{--bg:#12161b;--card:#1a2027;--ink:#e6ebf1;--mute:#93a0b1;--line:#2c3541;--acc:#ff8a80;--acc2:#7db7f5;--chip:#252d37;--ok:#1d2b22}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:20px 16px 8px;max-width:1000px;margin:0 auto}
+header h1{margin:0;font-size:1.35rem}
+header p{margin:2px 0 0;color:var(--mute);font-size:.92rem}
+main{max-width:1000px;margin:0 auto;padding:8px 16px 60px}
+a{color:var(--acc2)}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line)}
+input[type=search],input[type=number],select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+.row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.row select,.row input{flex:1;min-width:140px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:5px 11px;border-radius:99px;font-size:.85rem;cursor:pointer}
+.chip.on{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+.count{color:var(--mute);font-size:.88rem;margin:12px 0 6px}
+.list{display:grid;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;display:block;text-decoration:none;color:inherit}
+.card:hover{border-color:var(--acc2)}
+.card h3{margin:0 0 3px;font-size:1.02rem}
+.meta{color:var(--mute);font-size:.82rem}
+.snip{margin:5px 0 0;color:var(--mute);font-size:.9rem}
+.badge{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:99px;background:var(--acc);color:#fff;margin-left:6px;vertical-align:middle}
+.done{background:var(--ok)}
+.case h2{margin:6px 0 2px}
+.vineta{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+.ctx{color:var(--mute);font-style:italic;margin:14px 0 6px}
+.imgs{display:grid;gap:10px;margin:10px 0}
+.imgs img{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:zoom-in;display:block}
+.q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+.q h4{margin:0 0 8px;font-size:1rem}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:9px;margin:6px 0;cursor:pointer}
+.opt input{margin-top:5px}
+.opt.sel{border-color:var(--acc2);background:var(--chip)}
+.hint{color:var(--mute);font-size:.82rem}
+button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer}
+.primary{background:var(--acc2);color:#fff}
+.ghost{background:var(--chip);color:var(--ink)}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.dev{border-left:4px solid var(--acc);padding:4px 0 4px 14px;margin:18px 0}
+.dev p{margin:.5em 0}
+.dev .rh{font-weight:700;margin-top:1.1em}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:20;padding:10px}
+#lb img{max-width:100%;max-height:100%;background:#fff;border-radius:6px}
+.opt.ok{border-color:#2e7d32;background:var(--ok)}
+.opt.bad{border-color:var(--acc)}
+.opt.miss{border-style:dashed;border-color:#2e7d32}
+.fb{margin-top:8px;font-size:.9rem;color:var(--mute)}
+.fb b.g{color:#2e7d32}.fb b.r{color:var(--acc)}
+.score{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:12px 0;display:none}
+.semana{border:2px solid var(--acc);margin:6px 0 14px}
+.semana img{width:100%;max-height:340px;object-fit:contain;background:#fff;border-radius:8px;margin-bottom:8px;display:block}
+.warn{background:#fff3cd;color:#5c4400;border-radius:10px;padding:8px 12px;margin:10px 0;font-size:.9rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>Prácticas en arritmias en pacientes pediátricos · Banco de casos</h1>
+  <p>Dr. Sebastián Maldonado · Electrofisiólogo infantil</p>
+  <div class="chips" id="tabs"><a class="chip" href="#" data-t="casos">Casos</a><a class="chip" href="#diagnosticos" data-t="diagnosticos">Diagnósticos</a><a class="chip" href="#patrones" data-t="patrones">Patrones</a><a class="chip" href="#examen" data-t="examen">Examen</a><a class="chip" href="#valores" data-t="valores">QTc y valores por edad</a><a class="chip" href="#scores" data-t="scores">Scores</a><a class="chip" href="#parametrosZ" data-t="parametrosZ">Parámetros Z</a><a class="chip" href="#progreso" data-t="progreso">Mi progreso</a><a class="chip" href="#glosario" data-t="glosario">Glosario</a><a class="chip" href="#recursos" data-t="recursos">Recursos: simulador y algoritmos</a></div>
+</header>
+<main id="app"></main>
+<div id="lb" onclick="this.style.display='none'"><img alt=""></div>
+<script src="casos.js"></script>
+<script src="recursos.js"></script>
+<script src="valores.js"></script>
+<script src="scores.js"></script>
+<script src="parametros_z.js"></script>
+<script src="glosario.js"></script>
+<script src="registro.js"></script>
+<script src="diagnosticos.js"></script>
+<script src="patrones.js"></script>
+<script src="semana.js"></script>
+<script src="semana_archivo.js"></script>
+<script>
+const C = window.CASOS;
+// Caso de la semana (semana.js) y casos de semanas anteriores (semana_archivo.js): ambos los genera publicar_semana.ps1
+const mkSemana = w => ({ semana: true, f: 'Semana', n: 0, id: w.id || ('semana-' + w.fecha), titulo: w.titulo, fecha: w.fecha, devFecha: w.devFecha, vineta: w.vineta, borrador: false,
+  preguntas: w.preguntas.map(p => ({ ctx: '', enun: p.enun, multi: p.multi, opc: p.opc, k: { r: p.r, c: 't' } })),
+  imgs: w.imgs.map(a => ({ a, p: 0 })), dev: w.dev, devimgs: w.devimgs });
+const S = window.SEMANA ? mkSemana(window.SEMANA) : null;
+(window.SEMANA_ARCHIVO || []).forEach(w => C.push(mkSemana(w)));
+const TAGS = [
+  ['QRS ancho', /qrs ancho/i], ['QRS angosto', /qrs angosto|supraventricular/i],
+  ['Posoperatorio', /posoperatorio|\bpop\b/i], ['Bloqueo AV', /bloqueo|bradicardia/i],
+  ['Marcapasos / CDI', /marcapasos|cdi\b/i], ['Neonato / fetal', /neonat|fetal/i],
+  ['Apto físico', /apto|predeportivo|deport/i], ['Síncope', /s[ií]ncope/i],
+  ['Cardiopatía congénita', /cardiopat[ií]as? cong[eé]nitas?|cong[eé]nit/i],
+  ['Repolarización / QT', /repolariz|isquemia|\bqt/i], ['Quimioterapia / tóxicos', /quimio|intoxic|medio interno/i],
+  ['Preexcitación / WPW', /preexcit|wpw/i]
+];
+C.forEach(c => { const s = c.titulo + ' ' + c.vineta; c.tags = TAGS.filter(t => t[1].test(s)).map(t => t[0]); c.id = c.id || 'f' + c.f + 'c' + c.n;
+  c.blob = (c.titulo + ' ' + c.vineta + ' ' + c.preguntas.map(q => q.enun + ' ' + q.opc.map(o => o.t).join(' ')).join(' ') + ' ' + c.dev.join(' ')).toLowerCase(); });
+const fechaCorta = s => s ? s.split('-').reverse().join('/') : '';
+const devBloqueada = c => !!(c.devFecha && new Date() < new Date(c.devFecha + 'T00:00:00'));
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+C.forEach(c => c.blobN = norm(c.blob));
+
+let seen = {};
+try { seen = JSON.parse(localStorage.getItem('bc_seen') || '{}'); } catch (e) {}
+let seenScore = {};
+try { seenScore = JSON.parse(localStorage.getItem('bc_score') || '{}'); } catch (e) {}
+const saveSeen = () => { try { localStorage.setItem('bc_seen', JSON.stringify(seen)); } catch (e) {} };
+let seenFecha = {};
+try { seenFecha = JSON.parse(localStorage.getItem('bc_seen_fecha') || '{}'); } catch (e) {}
+const marcarFechaRepaso = id => { seenFecha[id] = new Date().toISOString().slice(0, 10); try { localStorage.setItem('bc_seen_fecha', JSON.stringify(seenFecha)); } catch (e) {} };
+const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const app = document.getElementById('app');
+const state = { q: '', f: '', tag: '', solo: false };
+
+function list() {
+  const nq = norm(state.q.trim());
+  const res = C.filter(c => (!state.f || c.f == state.f) && (!state.tag || c.tags.includes(state.tag)) &&
+    (!nq || nq.split(/\s+/).every(w => c.blobN.includes(w))) && (!state.solo || !seen[c.id]));
+  const fas = [...new Set(C.map(c => c.f))];
+  app.innerHTML = (S ? `<a class="card semana" href="#semana">
+    ${S.imgs.length ? `<img src="imagenes_web/${S.imgs[0].a}" alt="Trazado del caso de la semana">` : ''}
+    <div class="meta">CASO DE LA SEMANA${S.fecha ? ' · ' + fechaCorta(S.fecha) : ''}${seen[S.id] ? ' · ✓ repasado' : ''}</div>
+    <h3>${esc(S.titulo)}</h3>
+    <p class="snip">${esc(S.vineta.slice(0, 200))}${S.vineta.length > 200 ? '…' : ''}</p>
+    <div class="meta">${devBloqueada(S) ? 'Devolución disponible el ' + fechaCorta(S.devFecha) : 'Devolución disponible'} · <b>Resolver el caso →</b></div></a>` : '') + `
+  <div class="bar">
+    <input type="search" id="q" placeholder="Buscar: diagnóstico, fármaco, palabra clave…" value="${esc(state.q)}">
+    <div class="row">
+      <select id="f"><option value="">Todos los fascículos</option>${fas.map(f => `<option value="${f}" ${state.f == f ? 'selected' : ''}>${f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f}</option>`).join('')}</select>
+      <select id="solo"><option value="">Todos los casos</option><option value="1" ${state.solo ? 'selected' : ''}>Solo los que no repasé</option></select>
+    </div>
+    <div class="chips">${TAGS.map(t => `<span class="chip ${state.tag == t[0] ? 'on' : ''}" data-tag="${t[0]}">${t[0]}</span>`).join('')}</div>
+  </div>
+  <div class="count">${res.length} de ${C.length} casos</div>
+  <div class="list">${res.map(c => `<a class="card ${seen[c.id] ? 'done' : ''}" href="#${c.id}">
+    <h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} —${esc(c.titulo)}${c.borrador ? '<span class="badge">borrador</span>' : ''}${seen[c.id] ? ' ✓' : ''}</h3>
+    <div class="meta">${c.preguntas.length} pregunta${c.preguntas.length == 1 ? '' : 's'}${seenScore[c.id] ? ` · último puntaje ${seenScore[c.id].ok}/${seenScore[c.id].tot}` : ''}${c.tags.length ? ' · ' + c.tags.join(' · ') : ''}</div>
+    <p class="snip">${esc(c.vineta.slice(0, 170))}${c.vineta.length > 170 ? '…' : ''}</p></a>`).join('')}</div>`;
+  const q = document.getElementById('q');
+  q.oninput = e => { state.q = e.target.value; const p = e.target.selectionStart; list(); const n = document.getElementById('q'); n.focus(); n.setSelectionRange(p, p); };
+  document.getElementById('f').onchange = e => { state.f = e.target.value; list(); };
+  document.getElementById('solo').onchange = e => { state.solo = !!e.target.value; list(); };
+  document.querySelectorAll('.chip').forEach(el => el.onclick = () => { state.tag = state.tag == el.dataset.tag ? '' : el.dataset.tag; list(); });
+}
+
+const imgs = (arr) => arr.length ? `<div class="imgs">${arr.map(i => `<img src="${i.includes('/') ? i : 'imagenes_web/' + i}" loading="lazy" alt="Trazado" onclick="zoom(this)">`).join('')}</div>` : '';
+window.zoom = el => { const lb = document.getElementById('lb'); lb.querySelector('img').src = el.src; lb.style.display = 'flex'; };
+
+function detail(id) {
+  const esS = id === 'semana' && S;
+  const i = esS ? -1 : C.findIndex(c => c.id == id); if (i < 0 && !esS) return list();
+  const c = esS ? S : C[i], prev = esS ? null : C[i - 1], next = esS ? null : C[i + 1];
+  const mismo = x => x && x.f === c.f;
+  const n = c.preguntas.length;
+  let body = imgs(c.imgs.filter(m => m.p == 0).map(m => m.a));
+  c.preguntas.forEach((q, k) => {
+    if (k > 0) body += (q.ctx ? `<p class="ctx">${esc(q.ctx)}</p>` : '') + imgs(c.imgs.filter(m => m.p == k).map(m => m.a));
+    body += `<div class="q"><h4>Pregunta ${k + 1}${q.enun ? ' · ' + esc(q.enun) : ''}</h4>
+      ${q.multi ? '<div class="hint">Se puede elegir más de una opción.</div>' : ''}
+      ${q.opc.length ? q.opc.map(o => `<label class="opt"><input type="${q.multi ? 'checkbox' : 'radio'}" name="q${k}" data-l="${o.l}"><span><b>${o.l}.</b> ${esc(o.t)}</span></label>`).join('') : '<div class="hint">Las opciones están en la imagen.</div>'}<div class="fb" id="fb${k}"></div></div>`;
+  });
+  body += imgs(c.imgs.filter(m => m.p >= n && n > 0).map(m => m.a));
+  const dev = c.dev.map(p => /^respuestas?\s*n/i.test(p) ? `<p class="rh">${esc(p)}</p>` : `<p>${esc(p)}</p>`).join('');
+  app.innerHTML = `<div class="case">
+    <p><a href="#">← Volver al banco</a></p>
+    <div class="meta">${c.semana ? 'Caso de la semana' + (c.fecha ? ' · ' + fechaCorta(c.fecha) : '') : `Fascículo ${c.f} · Caso ${c.n}`}</div><h2>${esc(c.titulo)}</h2>
+    ${c.borrador ? '<div class="warn">Este fascículo todavía es un borrador: el contenido puede cambiar.</div>' : ''}
+    <div class="vineta">${esc(c.vineta) || '<i>Ver imágenes.</i>'}</div>
+    ${body}
+    <div class="score" id="score"></div>
+    <div class="nav"><button class="primary" id="chk">Comprobar mis respuestas</button><button class="primary" id="rev">Ver devolución del caso</button>
+      <button class="ghost" id="mk">${seen[c.id] ? 'Marcado como repasado ✓' : 'Marcar como repasado'}</button>
+      <button class="ghost" id="wa">Compartir por WhatsApp</button></div>
+    <div id="dev" hidden><div class="dev"><h3>Devolución</h3>${dev}${imgs(c.devimgs)}</div></div>
+    <div class="nav">${mismo(prev) ? `<a href="#${prev.id}"><button class="ghost">← Anterior</button></a>` : ''}${mismo(next) ? `<a href="#${next.id}"><button class="ghost">Siguiente →</button></a>` : ''}</div></div>`;
+  app.querySelectorAll('.opt input').forEach(inp => inp.onchange = () => app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked)));
+  document.getElementById('chk').onclick = () => {
+    let ok = 0, tot = 0, sinClave = 0;
+    c.preguntas.forEach((q, k) => {
+      const box = document.getElementById('fb' + k), inputs = [...app.querySelectorAll(`input[name="q${k}"]`)];
+      const sel = inputs.filter(i => i.checked).map(i => i.dataset.l);
+      inputs.forEach(i => i.closest('.opt').classList.remove('ok', 'bad', 'miss'));
+      if (!q.opc.length) { box.textContent = ''; return; }
+      if (!q.k.r.length) { sinClave++; box.innerHTML = 'Todavía no hay respuesta cargada para esta pregunta.'; return; }
+      const right = q.k.r;
+      const good = sel.length && (q.multi ? sel.length === right.length && right.every(l => sel.includes(l)) : right.includes(sel[0]));
+      tot++; if (good) ok++;
+      inputs.forEach(i => { const l = i.dataset.l, on = i.checked, isR = right.includes(l), row = i.closest('.opt');
+        if (on && isR) row.classList.add('ok'); else if (on && !isR) row.classList.add('bad'); else if (!on && isR && (q.multi || !good)) row.classList.add('miss'); });
+      const nota = q.k.c === 'i' ? ' <i>(respuesta deducida del material: pendiente de confirmar)</i>' : '';
+      box.innerHTML = good ? `<b class="g">✓ Correcto.</b>${nota}` : `<b class="r">✗ Respuesta correcta: ${right.join(' + ')}.</b>${q.multi ? '' : (right.length > 1 ? ' (cualquiera de esas es válida)' : '')}${nota}`;
+    });
+    const s = document.getElementById('score'); s.style.display = 'block';
+    s.innerHTML = tot ? `<b>${ok} de ${tot}</b> correctas${sinClave ? ` · ${sinClave} sin respuesta cargada` : ''}` : 'Este caso todavía no tiene respuestas cargadas.';
+    if (tot) { seenScore[c.id] = { ok, tot }; try { localStorage.setItem('bc_score', JSON.stringify(seenScore)); } catch (e) {} }
+    s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+  if (c.semana && devBloqueada(c)) { const b = document.getElementById('rev'); b.textContent = 'Devolución disponible el ' + fechaCorta(c.devFecha); b.disabled = true; b.style.opacity = .6; b.style.cursor = 'default'; }
+  document.getElementById('rev').onclick = e => { const d = document.getElementById('dev'); d.hidden = !d.hidden; e.target.textContent = d.hidden ? 'Ver devolución del caso' : 'Ocultar devolución'; if (!d.hidden) d.scrollIntoView({behavior:'smooth'}); };
+  document.getElementById('mk').onclick = e => { seen[c.id] = !seen[c.id]; if (!seen[c.id]) delete seen[c.id]; else marcarFechaRepaso(c.id); saveSeen(); e.target.textContent = seen[c.id] ? 'Marcado como repasado ✓' : 'Marcar como repasado'; };
+  document.getElementById('wa').onclick = () => {
+    const url = location.href; const titulo = c.semana ? 'Caso de la semana' : `Fascículo ${c.f} · Caso ${c.n}`;
+    const texto = `${titulo} — ${c.titulo}\n${url}`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank', 'noopener');
+  };
+  window.scrollTo(0, 0);
+}
+
+const SECCIONES = ['Simulador de arritmias', 'Algoritmo de TSV', 'Algoritmo de disociación VA', 'Localizador de arritmia ventricular', 'Bibliotecas de imágenes (externas)'];
+function recursos() {
+  const R = window.RECURSOS || [];
+  const item = r => /\.(jpe?g|png|gif|webp)$/i.test(r.u)
+    ? `<div class="q"><h4>${esc(r.t)}</h4>${r.d ? `<p class="hint">${esc(r.d)}</p>` : ''}<div class="imgs"><img src="${esc(r.u)}" alt="${esc(r.t)}" onclick="zoom(this)"></div></div>`
+    : `<a class="card" href="${esc(r.u)}"><h3>${esc(r.t)}</h3>${r.d ? `<p class="snip">${esc(r.d)}</p>` : ''}<div class="meta">${/\.pdf$/i.test(r.u) ? 'PDF' : 'Abrir'}</div></a>`;
+  app.innerHTML = `<div class="case"><h2>Recursos</h2>` + SECCIONES.map(s => {
+    const xs = R.filter(r => r.s === s);
+    return `<h3>${esc(s)}</h3>` + (xs.length ? `<div class="list">${xs.map(item).join('')}</div>` : '<p class="hint">Todavía no se cargó nada en esta sección.</p>');
+  }).join('') + '</div>';
+}
+// ---------- Modo examen: preguntas al azar del banco, sin título ni respuesta hasta el final ----------
+const EXK = 'bc_exam';
+let EX = { fase: 'inicio', cfg: { n: 10, tag: '', f: '' }, qs: [], i: 0, ans: [], guardado: false };
+const exHist = () => { try { return JSON.parse(localStorage.getItem(EXK) || '[]'); } catch (e) { return []; } };
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const exPool = cfg => { const out = [];
+  C.forEach(c => { if (cfg.tag && !c.tags.includes(cfg.tag)) return; if (cfg.f && c.f != cfg.f) return;
+    c.preguntas.forEach((q, k) => { if (q.opc.length && q.k.r.length) out.push({ c, q, k }); }); });
+  return out; };
+const exElegir = (pool, n) => { const vistos = new Set(), a = [], resto = [];
+  shuffle(pool).forEach(x => { if (!vistos.has(x.c.id)) { vistos.add(x.c.id); a.push(x); } else resto.push(x); });   // primero casos distintos
+  const sel = a.slice(0, n); if (sel.length < n) sel.push(...resto.slice(0, n - sel.length)); return shuffle(sel); };
+const exCorrecta = (q, sel) => sel.length > 0 && (q.multi ? sel.length === q.k.r.length && q.k.r.every(l => sel.includes(l)) : q.k.r.includes(sel[0]));
+function examen() { EX.fase === 'preg' ? exPreg() : EX.fase === 'fin' ? exFin() : exInicio(); }
+function exInicio() {
+  const fas = [...new Set(C.map(c => c.f))], disp = exPool(EX.cfg).length, h = exHist().slice(-5).reverse();
+  app.innerHTML = `<div class="case"><h2>Modo examen</h2>
+    <p class="hint">Preguntas al azar de los casos del banco. No se muestra el título del caso ni la respuesta hasta el final.</p>
+    <div class="row">
+      <select id="exn">${[5, 10, 20].map(n => `<option value="${n}" ${EX.cfg.n == n ? 'selected' : ''}>${n} preguntas</option>`).join('')}</select>
+      <select id="ext"><option value="">Todos los temas</option>${TAGS.map(t => `<option ${EX.cfg.tag == t[0] ? 'selected' : ''}>${t[0]}</option>`).join('')}</select>
+      <select id="exf"><option value="">Todos los fascículos</option>${fas.map(f => `<option value="${f}" ${EX.cfg.f == f ? 'selected' : ''}>${f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f}</option>`).join('')}</select>
+    </div>
+    <p class="hint">Preguntas disponibles con esos filtros: <b>${disp}</b></p>
+    <div class="nav"><button class="primary" id="exgo" ${disp ? '' : 'disabled'}>Empezar examen</button></div>
+    ${h.length ? `<h3>Últimos exámenes</h3><div class="list">${h.map(x => `<div class="card"><b>${x.ok} de ${x.n}</b> · ${fechaCorta(x.d)}<div class="meta">${esc(x.tag || 'Todos los temas')}${x.f ? ' · ' + (x.f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + x.f) : ''}</div></div>`).join('')}</div>` : ''}</div>`;
+  const cfg = () => { EX.cfg = { n: +document.getElementById('exn').value, tag: document.getElementById('ext').value, f: document.getElementById('exf').value }; exInicio(); };
+  ['exn', 'ext', 'exf'].forEach(id => document.getElementById(id).onchange = cfg);
+  document.getElementById('exgo').onclick = () => { EX.qs = exElegir(exPool(EX.cfg), EX.cfg.n); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; exPreg(); };
+}
+function exPreg() {
+  const t = EX.qs[EX.i], c = t.c, q = t.q, k = t.k, N = EX.qs.length, sel = EX.ans[EX.i] || [];
+  const im = c.imgs.filter(m => m.p == 0 || (k > 0 && m.p == k)).map(m => m.a);
+  app.innerHTML = `<div class="case"><div class="meta">Pregunta ${EX.i + 1} de ${N}</div>
+    <div style="height:6px;background:var(--chip);border-radius:9px;margin:6px 0 12px"><div style="height:6px;width:${Math.round(EX.i / N * 100)}%;background:var(--acc2);border-radius:9px"></div></div>
+    <div class="vineta">${esc(c.vineta) || '<i>Ver imágenes.</i>'}</div>${imgs(im)}${k > 0 && q.ctx ? `<p class="ctx">${esc(q.ctx)}</p>` : ''}
+    <div class="q"><h4>${esc(q.enun)}</h4>${q.multi ? '<div class="hint">Se puede elegir más de una opción.</div>' : ''}
+      ${q.opc.map(o => `<label class="opt ${sel.includes(o.l) ? 'sel' : ''}"><input type="${q.multi ? 'checkbox' : 'radio'}" name="ex" data-l="${o.l}" ${sel.includes(o.l) ? 'checked' : ''}><span><b>${o.l}.</b> ${esc(o.t)}</span></label>`).join('')}</div>
+    <div class="nav">${EX.i > 0 ? '<button class="ghost" id="exprev">← Anterior</button>' : ''}<button class="primary" id="exnext">${EX.i == N - 1 ? 'Terminar y ver resultado' : 'Siguiente →'}</button>
+      <button class="ghost" id="exsalir">Abandonar</button></div></div>`;
+  app.querySelectorAll('.opt input').forEach(inp => inp.onchange = () => {
+    EX.ans[EX.i] = [...app.querySelectorAll('.opt input')].filter(x => x.checked).map(x => x.dataset.l);
+    app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked)); });
+  const ir = d => { EX.i += d; window.scrollTo(0, 0); exPreg(); };
+  if (EX.i > 0) document.getElementById('exprev').onclick = () => ir(-1);
+  document.getElementById('exnext').onclick = () => EX.i == N - 1 ? (EX.fase = 'fin', window.scrollTo(0, 0), exFin()) : ir(1);
+  document.getElementById('exsalir').onclick = () => { if (confirm('¿Abandonar el examen? Se pierden las respuestas.')) { EX.fase = 'inicio'; exInicio(); } };
+  window.scrollTo(0, 0);
+}
+function exFin() {
+  const res = EX.qs.map((t, i) => { const sel = EX.ans[i] || []; return { ...t, sel, ok: exCorrecta(t.q, sel) }; });
+  const ok = res.filter(r => r.ok).length, N = res.length, mal = res.filter(r => !r.ok);
+  if (!EX.guardado) { EX.guardado = true; const h = exHist(), tm = {}; res.forEach(r => r.c.tags.forEach(t => { const a = tm[t] = tm[t] || [0, 0]; a[1]++; if (r.ok) a[0]++; }));
+    h.push({ d: new Date().toISOString().slice(0, 10), ok, n: N, tag: EX.cfg.tag, f: EX.cfg.f, temas: tm }); try { localStorage.setItem(EXK, JSON.stringify(h.slice(-20))); } catch (e) {} }
+  const temas = {}; mal.forEach(r => (r.c.tags.length ? r.c.tags : ['Sin etiqueta']).forEach(t => temas[t] = (temas[t] || 0) + 1));
+  const orden = Object.entries(temas).sort((a, b) => b[1] - a[1]);
+  app.innerHTML = `<div class="case"><h2>Resultado: ${ok} de ${N} (${Math.round(ok / N * 100)} %)</h2>
+    ${orden.length ? `<div class="vineta"><b>Temas para repasar:</b> ${orden.map(([t, n]) => `${esc(t)} (${n})`).join(' · ')}</div>` : '<div class="vineta">¡Sin errores!</div>'}
+    <div class="nav"><button class="primary" id="exnuevo">Nuevo examen</button>${mal.length ? '<button class="ghost" id="exrep">Repetir solo las falladas</button>' : ''}</div>
+    <div class="list">${res.map((r, i) => `<div class="card" style="cursor:default"><h3>${r.ok ? '✓' : '✗'} ${i + 1}. ${esc(r.q.enun.slice(0, 140))}${r.q.enun.length > 140 ? '…' : ''}</h3>
+      <div class="meta">Tu respuesta: ${r.sel.length ? r.sel.join(' + ') : 'sin responder'} · Correcta: ${r.q.k.r.join(r.q.multi ? ' + ' : ' o ')}${!r.q.multi && r.q.k.r.length > 1 ? ' (cualquiera vale)' : ''}</div>
+      <div class="meta"><a href="#${r.c.id}">Ver caso: ${r.c.semana ? 'Semana ' + fechaCorta(r.c.fecha) : 'Fasc. ' + r.c.f + ' · Caso ' + r.c.n} — ${esc(r.c.titulo)}</a></div></div>`).join('')}</div></div>`;
+  document.getElementById('exnuevo').onclick = () => { EX.fase = 'inicio'; window.scrollTo(0, 0); exInicio(); };
+  if (mal.length) document.getElementById('exrep').onclick = () => { EX.qs = shuffle(mal.map(r => ({ c: r.c, q: r.q, k: r.k }))); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; exPreg(); };
+}
+// ---------- Valores por edad (valores.js, lo completa el autor) y calculador de QTc ----------
+function valores() {
+  const V = window.VALORES || { filas: [], columnas: [] };
+  app.innerHTML = `<div class="case"><h2>Calculador de QTc</h2>
+    <div class="q"><div class="row"><input type="number" id="qt" placeholder="QT medido (ms)" min="1" inputmode="decimal"><input type="number" id="fc" placeholder="Frecuencia cardíaca (lpm)" min="1" inputmode="decimal"><input type="number" id="rr" placeholder="o intervalo RR (ms)" min="1" inputmode="decimal"></div>
+      <div id="qtres" class="hint" style="margin-top:10px">Ingresá el QT y la frecuencia cardíaca (o el intervalo RR).</div></div>
+    <p class="hint">Herramienta de apoyo: no reemplaza el juicio clínico. Bazett tiende a sobrecorregir con frecuencias altas, por eso conviene compararlo con las otras fórmulas.</p>
+    ${V.tablas && V.tablas.length ? `<h2>Valores normales por edad</h2>${V.fuente ? `<p class="hint">Fuente: ${esc(V.fuente)}</p>` : ''}
+      ${V.tablas.map(t => `<h3>${esc(t.titulo)}</h3><div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%;background:var(--card)"><thead><tr>${t.columnas.map(c => `<th style="text-align:left;padding:8px;border:1px solid var(--line);white-space:nowrap">${esc(c[1])}</th>`).join('')}</tr></thead>
+      <tbody>${t.filas.map(f => `<tr>${t.columnas.map(c => `<td style="padding:8px;border:1px solid var(--line);white-space:nowrap">${esc(f[c[0]] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>${t.nota ? `<p class="hint">${esc(t.nota)}</p>` : ''}`).join('')}` : ''}</div>`;
+  const $ = id => document.getElementById(id);
+  const calc = () => { const qt = +$('qt').value, fc = +$('fc').value, rrms = +$('rr').value;
+    const rr = rrms > 0 ? rrms / 1000 : fc > 0 ? 60 / fc : 0;
+    if (!(qt > 0) || !(rr > 0)) { $('qtres').textContent = 'Ingresá el QT y la frecuencia cardíaca (o el intervalo RR).'; return; }
+    const f = 60 / rr, r = x => Math.round(x);
+    $('qtres').innerHTML = `FC ${r(f)} lpm · RR ${r(rr * 1000)} ms
+      <table style="border-collapse:collapse;margin-top:8px"><tbody>
+      <tr><td style="padding:4px 14px 4px 0">Bazett</td><td><b>${r(qt / Math.sqrt(rr))} ms</b></td></tr>
+      <tr><td style="padding:4px 14px 4px 0">Fridericia</td><td><b>${r(qt / Math.cbrt(rr))} ms</b></td></tr>
+      <tr><td style="padding:4px 14px 4px 0">Framingham</td><td><b>${r(qt + 154 * (1 - rr))} ms</b></td></tr>
+      <tr><td style="padding:4px 14px 4px 0">Hodges</td><td><b>${r(qt + 1.75 * (f - 60))} ms</b></td></tr></tbody></table>`; };
+  $('fc').oninput = () => { $('rr').value = ''; calc(); }; $('rr').oninput = () => { $('fc').value = ''; calc(); }; $('qt').oninput = calc;
+}
+// ---------- Patrones de referencia (patrones.js, generado por publicar_patrones.ps1) ----------
+let PT = { cat: '', q: '' };
+function patrones() {
+  const P = window.PATRONES || [], cats = [...new Set(P.map(p => p.c).filter(Boolean))], nq = norm(PT.q.trim());
+  const res = P.filter(p => (!PT.cat || p.c === PT.cat) && (!nq || nq.split(/\s+/).every(w => norm(p.t + ' ' + p.k.join(' ') + ' ' + (p.d || '')).includes(w))));
+  app.innerHTML = `<div class="case"><h2>Patrones de referencia</h2>
+    ${P.length ? `<input type="search" id="pq" placeholder="Buscar patrón…" value="${esc(PT.q)}">
+      ${cats.length > 1 ? `<div class="chips">${cats.map(c => `<span class="chip ${PT.cat === c ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</span>`).join('')}</div>` : ''}
+      <div class="count">${res.length} de ${P.length} patrones</div>` : '<p class="hint">Todavía no se cargó ningún patrón.</p>'}
+    <div class="list">${res.map(p => `<div class="card" style="cursor:default"><h3>${esc(p.t)}</h3>${p.c ? `<div class="meta">${esc(p.c)}</div>` : ''}${imgs(p.imgs)}
+      <ul>${p.k.map(k => `<li>${esc(k)}</li>`).join('')}</ul>${p.d ? `<p class="snip"><b>Diagnóstico diferencial:</b> ${esc(p.d)}</p>` : ''}
+      ${p.q ? `<button class="ghost" data-q="${esc(p.q)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></div>`;
+  const q = document.getElementById('pq');
+  if (q) q.oninput = e => { PT.q = e.target.value; const c = e.target.selectionStart; patrones(); const n = document.getElementById('pq'); n.focus(); n.setSelectionRange(c, c); };
+  app.querySelectorAll('.chip[data-c]').forEach(el => el.onclick = () => { PT.cat = PT.cat === el.dataset.c ? '' : el.dataset.c; patrones(); });
+  app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = ''; });
+}
+// ---------- Scores clínicos (scores.js): calculadoras por criterios con puntaje ----------
+// Motor genérico de calculadoras por criterios (grupos con puntaje) o por fórmula (campos + calc). Lo usan
+// tanto "Scores clínicos" (scores.js) como "Parámetros Z" (parametros_z.js): cada uno pasa su propia lista.
+function calculadoras(L, opts) {
+  const pf = n => String(n).replace('.', ',');
+  app.innerHTML = `<div class="case"><h2>${esc(opts.titulo)}</h2>
+    <p class="hint">${esc(opts.intro)}</p>
+    ${L.length ? '' : `<p class="hint">${esc(opts.vacio)}</p>`}
+    ${L.map((s, si) => `<details class="q" ${L.length === 1 ? 'open' : ''}><summary style="cursor:pointer;font-weight:700;font-size:1.05rem">${esc(s.titulo)}</summary>
+      ${s.verificado ? '' : '<div class="warn" style="margin-top:10px">Borrador: criterios y puntajes pendientes de verificación por el autor.</div>'}
+      ${s.nota ? `<p class="hint" style="margin-top:10px">${esc(s.nota)}</p>` : ''}
+      ${(s.campos || []).map(c => c.tipo === 'si'
+        ? `<label class="opt"><input type="checkbox" data-s="${si}" data-c="${c.id}"><span>${esc(c.t)}</span></label>`
+        : c.tipo === 'sel'
+        ? `<label style="display:block;margin:12px 0 2px;font-size:.92rem">${esc(c.t)}</label><select data-s="${si}" data-c="${c.id}">${c.opciones.map(o => `<option value="${esc(o[0])}">${esc(o[1])}</option>`).join('')}</select>`
+        : `<label style="display:block;margin:12px 0 2px;font-size:.92rem">${esc(c.t)}</label><input type="number" inputmode="decimal" step="${c.paso || 'any'}" ${c.min != null ? `min="${c.min}"` : ''} data-s="${si}" data-c="${c.id}">`).join('')}
+      ${(s.grupos || []).map((g, gi) => `<h4 style="margin:16px 0 4px">${esc(g.t)}</h4>${g.nota ? `<div class="hint">${esc(g.nota)}</div>` : ''}
+        ${g.opciones.map((o, oi) => `<label class="opt"><input type="${g.tipo === 'uno' ? 'radio' : 'checkbox'}" name="s${si}g${gi}" data-s="${si}" data-g="${gi}" data-o="${oi}"><span>${esc(o.t)} <b>(${pf(o.p)})</b></span></label>`).join('')}
+        ${g.tipo === 'uno' ? `<label class="opt"><input type="radio" name="s${si}g${gi}" data-s="${si}" data-g="${gi}" data-o="-1" checked><span>Ninguno</span></label>` : ''}`).join('')}
+      <div class="score" style="display:block" id="sc${si}"></div>
+      <div class="nav"><button class="ghost" data-reset="${si}">Reiniciar</button></div>
+      <p class="hint">Fuente: ${esc(s.fuente)}</p>${s.pie ? `<p class="hint">${esc(s.pie)}</p>` : ''}</details>`).join('')}</div>`;
+  const calc = si => {
+    const s = L[si], box0 = document.getElementById('sc' + si);
+    if (s.campos) {   // calculadora con formula (campos + calc)
+      const v = {}; let falta = false;
+      s.campos.forEach(c => { const i = app.querySelector(`[data-s="${si}"][data-c="${c.id}"]`);
+        if (c.tipo === 'si') v[c.id] = i.checked ? 1 : 0;
+        else if (c.tipo === 'sel') { if (i.value === '') falta = true; v[c.id] = i.value; }
+        else { if (i.value === '' || isNaN(+i.value)) falta = true; v[c.id] = +i.value; } });
+      if (falta) { box0.innerHTML = 'Completá todos los datos para calcular el resultado.'; return; }
+      const r = s.calc(v), dec = r.decimales != null ? r.decimales : 1, unidad = r.unidad != null ? r.unidad : ' %';
+      const val = typeof r.valor === 'number' ? pf(r.valor.toFixed(dec)) + unidad : esc(r.valor);
+      box0.innerHTML = `<b>${esc(r.titulo)}: ${val}</b><br>${esc(r.lectura)}${r.detalle ? `<br><span class="hint">${esc(r.detalle)}</span>` : ''}${r.aviso ? `<br><span class="hint">${esc(r.aviso)}</span>` : ''}`; return;
+    }
+    const pts = s.grupos.map((g, gi) => {
+      const on = [...app.querySelectorAll(`input[data-s="${si}"][data-g="${gi}"]`)].filter(i => i.checked && i.dataset.o !== '-1').map(i => g.opciones[+i.dataset.o].p);
+      return g.tipo === 'max' ? Math.max(0, ...on) : on.reduce((a, b) => a + b, 0); });
+    const total = pts.reduce((a, b) => a + b, 0), box = document.getElementById('sc' + si);
+    let lectura;
+    if (s.requiereGrupo != null && pts[s.requiereGrupo] === 0) lectura = s.sinRequisito || 'Falta un criterio obligatorio.';
+    else lectura = (s.interpretacion.find(x => total >= x.desde) || {}).t || '';
+    box.innerHTML = `<b>Puntaje total: ${pf(total)}</b><br>${esc(lectura)}`;
+  };
+  app.querySelectorAll('input[type=number][data-s]').forEach(i => i.oninput = () => calc(+i.dataset.s));
+  app.querySelectorAll('select[data-s]').forEach(i => i.onchange = () => calc(+i.dataset.s));
+  app.querySelectorAll('input[data-s]').forEach(i => i.onchange = () => {
+    i.closest('details').querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked && l.querySelector('input').dataset.o !== '-1'));
+    calc(+i.dataset.s); });
+  app.querySelectorAll('button[data-reset]').forEach(b => b.onclick = () => { const si = +b.dataset.reset;
+    app.querySelectorAll(`input[data-s="${si}"]`).forEach(i => { i.checked = i.dataset.o === '-1'; if (i.type === 'number') i.value = ''; });
+    app.querySelectorAll(`select[data-s="${si}"]`).forEach(x => { x.selectedIndex = 0; }); b.closest('details').querySelectorAll('.opt').forEach(l => l.classList.remove('sel')); calc(si); });
+  L.forEach((s, si) => calc(si));
+}
+function scores() { calculadoras(window.SCORES || [], { titulo: 'Scores clínicos',
+  intro: 'Herramientas de apoyo para la práctica: no reemplazan el juicio clínico. Tildá los criterios que presenta el paciente.',
+  vacio: 'Todavía no se cargó ningún score.' }); }
+// ---------- Parámetros Z (parametros_z.js): Z-score de medidas ecocardiográficas a partir del valor medido y los datos antropométricos ----------
+function parametrosZ() { calculadoras(window.PARAMETROS_Z || [], { titulo: 'Parámetros Z',
+  intro: 'Calculan el Z-score de una medida ecocardiográfica a partir del valor medido y los datos antropométricos del paciente, según la referencia indicada en cada una. Herramienta de apoyo: no reemplaza el juicio clínico.',
+  vacio: 'Todavía no se cargó ninguna fórmula acá.' }); }
+// ---------- Índice por diagnóstico (diagnosticos.js, generado por publicar_diagnosticos.ps1 desde diagnosticos.txt) ----------
+let DG = { q: '' };
+function diagnosticos() {
+  const D = window.DIAGNOSTICOS || [], nq = norm(DG.q.trim()), byId = Object.fromEntries(C.map(c => [c.id, c]));
+  const asignados = new Set(D.flatMap(d => d.casos)), cats = [...new Set(D.map(d => d.c))];
+  const ok = d => !nq || nq.split(/\s+/).every(w => norm(d.d + ' ' + d.c).includes(w));
+  const li = id => { const c = byId[id]; return c ? `<a class="card" href="#${c.id}" style="padding:8px 12px"><b>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n}</b> — ${esc(c.titulo)}</a>` : ''; };
+  const sin = C.filter(c => !asignados.has(c.id));
+  app.innerHTML = `<div class="case"><h2>Índice por diagnóstico</h2>
+    <p class="hint">Este índice muestra el diagnóstico de cada caso: si querés practicar, resolvé el caso antes de mirarlo.</p>
+    ${D.length ? `<input type="search" id="dq" placeholder="Buscar diagnóstico…" value="${esc(DG.q)}">` : '<p class="hint">Todavía no se cargó el índice.</p>'}
+    ${cats.map(cat => { const ds = D.filter(d => d.c === cat && ok(d)); return ds.length ? `<h3>${esc(cat)}</h3>` + ds.map(d => `<details class="q"><summary style="cursor:pointer"><b>${esc(d.d)}</b> · ${d.casos.filter(id => byId[id]).length} caso(s)</summary><div class="list" style="margin-top:8px">${d.casos.map(li).join('')}</div></details>`).join('') : ''; }).join('')}
+    ${!nq && D.length && sin.length ? `<h3>Casos sin diagnóstico asignado (${sin.length})</h3><details class="q"><summary style="cursor:pointer">Ver la lista</summary><div class="list" style="margin-top:8px">${sin.map(c => li(c.id)).join('')}</div></details>` : ''}</div>`;
+  const q = document.getElementById('dq');
+  if (q) q.oninput = e => { DG.q = e.target.value; const p = e.target.selectionStart; diagnosticos(); const n = document.getElementById('dq'); n.focus(); n.setSelectionRange(p, p); };
+}
+// ---------- Mi progreso: resumen personal (se guarda solo en este navegador) ----------
+// Repaso espaciado: casos ya repasados hace 10 días o más (los más atrasados primero), completado con casos nunca vistos si faltan.
+const candidatosRepaso = () => {
+  const revisados = C.filter(c => seen[c.id]).map(c => ({ c, f: seenFecha[c.id] || '2000-01-01' })).sort((a, b) => a.f < b.f ? -1 : a.f > b.f ? 1 : 0);
+  const dias = f => (Date.now() - new Date(f + 'T00:00:00').getTime()) / 86400000;
+  let out = revisados.filter(x => dias(x.f) >= 10).slice(0, 5).map(x => x.c);
+  if (out.length < 5) { const usados = new Set(out.map(c => c.id)); out = out.concat(shuffle(C.filter(c => !seen[c.id] && !usados.has(c.id))).slice(0, 5 - out.length)); }
+  return out;
+};
+function progreso() {
+  const ids = new Set(C.map(c => c.id)), rev = Object.keys(seen).filter(k => ids.has(k) && seen[k]).length, pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const bar = p => `<div style="height:8px;background:var(--chip);border-radius:9px"><div style="height:8px;width:${p}%;background:var(--acc2);border-radius:9px"></div></div>`;
+  const porF = {}; C.forEach(c => { const f = porF[c.f] = porF[c.f] || { t: 0, r: 0 }; f.t++; if (seen[c.id]) f.r++; });
+  const sc = C.filter(c => seenScore[c.id]), okT = sc.reduce((a, c) => a + seenScore[c.id].ok, 0), totT = sc.reduce((a, c) => a + seenScore[c.id].tot, 0);
+  const tema = {}; TAGS.forEach(t => tema[t[0]] = { ok: 0, tot: 0 });
+  sc.forEach(c => c.tags.forEach(t => { tema[t].ok += seenScore[c.id].ok; tema[t].tot += seenScore[c.id].tot; }));
+  const H = exHist(); H.forEach(h => Object.entries(h.temas || {}).forEach(([t, v]) => { if (tema[t]) { tema[t].ok += v[0]; tema[t].tot += v[1]; } }));
+  const temas = Object.entries(tema).filter(([, v]) => v.tot).sort((a, b) => pct(a[1].ok, a[1].tot) - pct(b[1].ok, b[1].tot));
+  const nombreF = f => f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f;
+  const repaso = candidatosRepaso();
+  app.innerHTML = `<div class="case"><h2>Mi progreso</h2>
+    <p class="hint">Se guarda solo en este navegador y en este dispositivo: no lo ve nadie más.</p>
+    <div class="vineta"><b>${rev} de ${C.length}</b> casos repasados (${pct(rev, C.length)} %)${bar(pct(rev, C.length))}
+      <div style="margin-top:10px"><b>${totT ? pct(okT, totT) + ' %' : '—'}</b> de respuestas correctas en los casos resueltos${totT ? ` (${okT} de ${totT})` : ' (todavía no resolviste ninguno con "Comprobar mis respuestas")'}</div></div>
+    <h3>Para repasar hoy</h3>
+    ${repaso.length ? `<p class="hint">Casos que repasaste hace más de 10 días, o que todavía no viste.</p><div class="list">${repaso.map(c => `<a class="card" href="#${c.id}"><h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} — ${esc(c.titulo)}</h3><div class="meta">${seenFecha[c.id] ? 'Repasado por última vez el ' + fechaCorta(seenFecha[c.id]) : 'Todavía no lo repasaste'}</div></a>`).join('')}</div>` : `<p class="hint">${C.length ? '¡Estás al día! No hay casos pendientes de repaso por ahora.' : ''}</p>`}
+    <h3>Por fascículo</h3><div class="list">${Object.entries(porF).map(([f, v]) => `<div class="card" style="cursor:default;padding:8px 12px">${nombreF(f)} · ${v.r} de ${v.t}${bar(pct(v.r, v.t))}</div>`).join('')}</div>
+    <h3>Temas para reforzar</h3>${temas.length ? '<p class="hint">Ordenados del más flojo al más firme, con tus respuestas de casos y exámenes.</p>' : '<p class="hint">Resolvé casos o exámenes para ver acá tus temas más flojos.</p>'}
+    <div class="list">${temas.map(([t, v]) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(t)}</b> · ${pct(v.ok, v.tot)} % correctas (${v.ok} de ${v.tot})${bar(pct(v.ok, v.tot))}<div style="margin-top:6px"><button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div></div>`).join('')}</div>
+    <h3>Exámenes</h3>${H.length ? `<div class="list">${H.slice(-10).reverse().map(h => `<div class="card" style="cursor:default;padding:8px 12px">${fechaCorta(h.d)} · <b>${h.ok} de ${h.n}</b> (${pct(h.ok, h.n)} %)${bar(pct(h.ok, h.n))}<div class="meta">${esc(h.tag || 'Todos los temas')}${h.f ? ' · ' + nombreF(h.f) : ''}</div></div>`).join('')}</div>` : '<p class="hint">Todavía no hiciste ningún examen.</p>'}
+    <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div></div>`;
+  app.querySelectorAll('button[data-tag]').forEach(b => b.onclick = () => { state.tag = b.dataset.tag; state.q = ''; state.f = ''; state.solo = false; location.hash = ''; });
+  document.getElementById('pborrar').onclick = () => { if (confirm('¿Borrar tus casos repasados, puntajes y exámenes de este navegador?')) { seen = {}; seenScore = {}; seenFecha = {}; try { ['bc_seen', 'bc_score', 'bc_seen_fecha', EXK].forEach(k => localStorage.removeItem(k)); } catch (e) {} progreso(); } };
+}
+// ---------- Glosario (glosario.js) ----------
+let GL = { q: '' };
+function glosario() {
+  const G = window.GLOSARIO || [], nq = norm(GL.q.trim());
+  const res = G.filter(x => !nq || nq.split(/\s+/).every(w => norm(x.sigla + ' ' + x.termino + ' ' + x.definicion).includes(w)));
+  app.innerHTML = `<div class="case"><h2>Glosario</h2>
+    <p class="hint">Siglas y términos que aparecen en los casos del banco.</p>
+    ${G.length ? `<input type="search" id="glq" placeholder="Buscar sigla o término…" value="${esc(GL.q)}"><div class="count">${res.length} de ${G.length} términos</div>` : '<p class="hint">Todavía no se cargó el glosario.</p>'}
+    <div class="list">${res.map(x => `<div class="card" style="cursor:default"><h3>${esc(x.sigla)}${x.termino ? ' — ' + esc(x.termino) : ''}</h3>${x.definicion ? `<p class="snip">${esc(x.definicion)}</p>` : ''}${x.buscar ? `<button class="ghost" data-q="${esc(x.buscar)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></div>`;
+  const q = document.getElementById('glq');
+  if (q) q.oninput = e => { GL.q = e.target.value; const p = e.target.selectionStart; glosario(); const n = document.getElementById('glq'); n.focus(); n.setSelectionRange(p, p); };
+  app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = ''; });
+}
+// ---------- Estadísticas del autor: SOLO números agregados (nunca nombres/mails/ciudades individuales). ----------
+// A propósito no tiene pestaña en el menú: se llega escribiendo #estadisticas. Lee del mismo Apps Script que registro.js,
+// con JSONP (una etiqueta <script>) porque los navegadores no dejan leer la respuesta de otra manera sin configurar CORS.
+function estadisticas() {
+  app.innerHTML = `<div class="case"><h2>Estadísticas del banco</h2>
+    <p class="hint">Página privada: no está en el menú, solo se llega escribiendo la dirección. Muestra números agregados de toda la gente registrada; nunca nombres, mails, ciudades ni filas individuales.</p>
+    <div id="estBox"><p class="hint">Cargando…</p></div></div>`;
+  const box = document.getElementById('estBox');
+  if (!RG.activo || !RG.endpoint) { box.innerHTML = '<p class="hint">El registro de usuarios no está activo o no tiene un endpoint configurado (registro.js).</p>'; return; }
+  const cb = 'bcEstCb' + Date.now();
+  const s = document.createElement('script');
+  window[cb] = datos => { try { pintarEstadisticas(datos); } finally { delete window[cb]; s.remove(); } };
+  s.src = RG.endpoint + (RG.endpoint.includes('?') ? '&' : '?') + 'callback=' + cb;
+  s.onerror = () => { box.innerHTML = '<p class="hint">No se pudo cargar. Puede ser que el script de Google todavía no tenga la función "doGet": hay que actualizarlo y volver a implementar (ver registro/LEEME.md).</p>'; delete window[cb]; };
+  document.body.appendChild(s);
+}
+function pintarEstadisticas(d) {
+  const box = document.getElementById('estBox'); if (!box) return;
+  if (!d || !d.total_registrados) { box.innerHTML = '<p class="hint">Todavía no hay nadie registrado.</p>'; return; }
+  box.innerHTML = `<div class="vineta"><b>${d.total_registrados}</b> personas registradas · <b>${d.activos_ultimos_30_dias}</b> activas en los últimos 30 días · <b>${d.total_accesos}</b> accesos en total</div>
+    <h3>Uso del banco</h3><div class="list">
+      <div class="card" style="cursor:default">Casos repasados en promedio por persona: <b>${d.promedio_casos_repasados}</b></div>
+      <div class="card" style="cursor:default">Respuestas correctas en promedio: <b>${d.promedio_pct_correctas != null ? d.promedio_pct_correctas + ' %' : '— (nadie comprobó respuestas todavía)'}</b></div>
+      <div class="card" style="cursor:default">Autorizaron recibir novedades por mail: <b>${d.autorizan_mail}</b> de ${d.total_registrados}</div></div>
+    <h3>Por país</h3><div class="list">${d.por_pais.map(p => `<div class="card" style="cursor:default">${esc(p.pais)} · <b>${p.n}</b></div>`).join('')}</div>
+    <p class="hint">Generado el ${new Date(d.generado).toLocaleString('es-AR')}. Los datos individuales (nombre, mail, ciudad) siguen solo en tu planilla de Google.</p>`;
+}
+const VISTAS = { recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, estadisticas };
+function route() { const h = location.hash.slice(1);
+  document.querySelectorAll('#tabs .chip').forEach(a => a.classList.toggle('on', a.dataset.t === (VISTAS[h] ? h : 'casos')));
+  VISTAS[h] ? (VISTAS[h](), window.scrollTo(0, 0)) : h ? detail(h) : list(); }
+// ---------- Registro de usuarios (registro.js): formulario de primera vez ----------
+const RG = window.REGISTRO || {}, RGK = 'bc_registro', RGP = 'bc_registro_pend', RGV = 'bc_registro_visita';
+const registroPendiente = () => { if (!RG.activo || !RG.endpoint) return false; try { const r = JSON.parse(localStorage.getItem(RGK) || 'null'); return !(r && r.v === RG.version); } catch (e) { return true; } };
+const enviarRegistro = datos => fetch(RG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(datos).toString() });
+function reintentarRegistro() { let p = null; try { p = JSON.parse(localStorage.getItem(RGP) || 'null'); } catch (e) {} if (!p || !RG.endpoint) return; enviarRegistro(p).then(() => { try { localStorage.removeItem(RGP); } catch (e) {} }).catch(() => {}); }
+const nuevoId = () => { try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {} return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); };
+// Resumen del progreso de esta persona (para la planilla): casos repasados, correctas, exámenes. Nada de esto sale del navegador salvo con "enviarVisita".
+function snapshotProgreso() {
+  const ids = new Set(C.map(c => c.id)), rev = Object.keys(seen).filter(k => ids.has(k) && seen[k]).length;
+  const sc = C.filter(c => seenScore[c.id]), ok = sc.reduce((a, c) => a + seenScore[c.id].ok, 0), tot = sc.reduce((a, c) => a + seenScore[c.id].tot, 0);
+  const H = exHist(), ultimo = H[H.length - 1];
+  return { casos_repasados: rev, casos_total: C.length, respuestas_ok: ok, respuestas_tot: tot,
+    examenes_hechos: H.length, ultimo_examen_fecha: ultimo ? ultimo.d : '', ultimo_examen_puntaje: ultimo ? `${ultimo.ok}/${ultimo.n}` : '' };
+}
+// Aviso de "sigo activo" para la planilla: cuenta accesos y progreso, una vez por día como máximo. Necesita trackVisitas
+// activado en registro.js (que solo funciona una vez actualizado el script de Google; ver registro\LEEME.md).
+function enviarVisita() {
+  if (!RG.activo || !RG.trackVisitas || !RG.endpoint) return;
+  let r = null; try { r = JSON.parse(localStorage.getItem(RGK) || 'null'); } catch (e) {}
+  if (!r || !r.id) return;   // registro anterior a esta función: sin id no se puede identificar la fila a actualizar
+  const hoy = new Date().toISOString().slice(0, 10);
+  try { if (localStorage.getItem(RGV) === hoy) return; } catch (e) {}
+  const datos = Object.assign({ accion: 'visita', id: r.id, fecha: new Date().toISOString() }, snapshotProgreso());
+  fetch(RG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(datos).toString() })
+    .then(() => { try { localStorage.setItem(RGV, hoy); } catch (e) {} }).catch(() => {});
+}
+function mostrarRegistro() {
+  const paises = ['Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba', 'Ecuador', 'El Salvador', 'España', 'Estados Unidos', 'Guatemala', 'Honduras', 'México', 'Nicaragua', 'Panamá', 'Paraguay', 'Perú', 'Portugal', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela', 'Alemania', 'Canadá', 'Francia', 'Italia', 'Reino Unido'];
+  const ov = document.createElement('div'); ov.id = 'rg'; ov.style.cssText = 'position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding:20px 16px';
+  const campo = (id, t, tipo, extra) => `<label for="${id}" style="display:block;margin:12px 0 3px;font-size:.92rem">${t}</label><input id="${id}" type="${tipo || 'text'}" maxlength="100" autocomplete="off" required ${extra || ''} style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit">`;
+  ov.innerHTML = `<div style="max-width:520px;margin:0 auto"><h2 style="margin-top:8px">${esc(RG.titulo || 'Registro')}</h2><p>${esc(RG.intro || '')}</p>
+    <form id="rgf" novalidate>${campo('rg_nombre', 'Nombre', 'text')}${campo('rg_apellido', 'Apellido', 'text')}${campo('rg_ciudad', 'Ciudad', 'text')}
+      ${campo('rg_pais', 'País de origen', 'text', 'list="rg_paises"')}<datalist id="rg_paises">${paises.map(p => `<option value="${p}">`).join('')}</datalist>
+      ${campo('rg_email', 'Correo electrónico', 'email', 'inputmode="email"')}
+      <input id="rg_web" name="web" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+      <details style="margin:14px 0 6px"><summary style="cursor:pointer">Aviso de privacidad</summary><p class="hint">${esc(RG.aviso || '')}${RG.contacto ? ' Contacto: ' + esc(RG.contacto) + '.' : ''}</p></details>
+      <label class="opt" style="margin-top:8px"><input type="checkbox" id="rg_ok"><span>Leí el aviso de privacidad y acepto que se guarden mis datos para esos fines.</span></label>
+      ${RG.avisoMail ? `<details style="margin:10px 0 6px"><summary style="cursor:pointer">Recibir novedades por mail (opcional)</summary><p class="hint">${esc(RG.avisoMail)}</p></details>
+      <label class="opt"><input type="checkbox" id="rg_mail"><span>Sí, quiero recibir por mail avisos y herramientas académicas nuevas. No es obligatorio para usar el banco, y puedo darme de baja cuando quiera.</span></label>` : ''}
+      <div id="rg_err" style="color:var(--acc);margin:10px 0;min-height:1.3em"></div>
+      <button class="primary" type="submit" id="rg_btn" style="width:100%">Ingresar al banco</button></form></div>`;
+  document.body.appendChild(ov); document.body.style.overflow = 'hidden';
+  const v = id => document.getElementById(id).value.trim();
+  document.getElementById('rgf').onsubmit = ev => {
+    ev.preventDefault(); const err = document.getElementById('rg_err');
+    const rgMail = document.getElementById('rg_mail');
+    const d = { nombre: v('rg_nombre'), apellido: v('rg_apellido'), ciudad: v('rg_ciudad'), pais: v('rg_pais'), email: v('rg_email'), web: v('rg_web'), consentimiento: 'si', autoriza_mail: (rgMail && rgMail.checked) ? 'si' : 'no', version: String(RG.version), fecha: new Date().toISOString(), id: nuevoId(), accion: 'registro' };
+    if (!d.nombre || !d.apellido || !d.ciudad || !d.pais || !d.email) { err.textContent = 'Completá todos los datos.'; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)) { err.textContent = 'El correo no parece válido.'; return; }
+    if (!document.getElementById('rg_ok').checked) { err.textContent = 'Para continuar tenés que aceptar el aviso de privacidad.'; return; }
+    err.textContent = ''; const b = document.getElementById('rg_btn'); b.disabled = true; b.textContent = 'Enviando…';
+    const listo = () => { try { localStorage.setItem(RGK, JSON.stringify({ v: RG.version, f: d.fecha, id: d.id })); localStorage.setItem(RGV, d.fecha.slice(0, 10)); } catch (e) {} ov.remove(); document.body.style.overflow = ''; };
+    enviarRegistro(d).then(listo).catch(() => { try { localStorage.setItem(RGP, JSON.stringify(d)); } catch (e) {} listo(); });   // sin conexión: queda pendiente y se reintenta en la próxima visita
+  };
+}
+window.addEventListener('hashchange', route); route();
+if (registroPendiente()) mostrarRegistro(); else { reintentarRegistro(); enviarVisita(); }
+// Service worker: permite instalar el banco como app (funciona en HTTPS o en localhost; en un archivo abierto directo no hace nada).
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
