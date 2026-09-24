@@ -41,18 +41,17 @@ window.PARAMETROS_Z = [
   {
     id: 'pettersen',
     titulo: 'Z-score de estructuras cardíacas por ecocardiografía (Pettersen · Detroit)',
-    nota: 'Población: 782 pacientes sanos de 1 día a 18 años, Children\'s Hospital of Michigan (Detroit). Se excluyeron pacientes con cardiopatía, síndromes genéticos u obesidad. La superficie corporal se calcula con la fórmula de DuBois y DuBois (la que trae por defecto la calculadora de parameterz.com para este mismo estudio); el artículo no aclara cuál usó.',
+    nota: 'Población: 782 pacientes sanos de 1 día a 18 años, Children\'s Hospital of Michigan (Detroit). Se excluyeron pacientes con cardiopatía, síndromes genéticos u obesidad. El artículo no aclara qué fórmula de superficie corporal usó. A pedido del autor, acá se calcula solo a partir del peso, con la fórmula BSA (m²) = (4×peso + 7) / (peso + 90) — una estimación de superficie corporal muy usada en pediatría cuando no se dispone de la talla (por ejemplo, en el British National Formulary for Children), válida aproximadamente entre 2 y 70 kg. Al no depender de la talla, es menos precisa que DuBois y DuBois cerca de los límites de ese rango.',
     fuente: 'Pettersen MD, Du W, Skeens ME, Humes RA. Regression equations for calculation of z scores of cardiac structures in a large cohort of healthy infants, children, and adolescents: an echocardiographic study. J Am Soc Echocardiogr. 2008;21(8):922-934. Coeficientes transcritos de la Tabla 2 del artículo original.',
-    verificado: true,
+    verificado: false,
     campos: [
       { id: 'estructura', t: 'Estructura medida', tipo: 'sel', opciones: [['', 'Elegir…']].concat(Object.keys(PETTERSEN).map(k => [k, PETTERSEN[k].t])) },
       { id: 'valor', t: 'Valor medido (cm)', tipo: 'num', paso: 0.01, min: 0 },
-      { id: 'peso', t: 'Peso (kg)', tipo: 'num', paso: 0.1, min: 0 },
-      { id: 'altura', t: 'Altura (cm)', tipo: 'num', paso: 0.1, min: 0 }
+      { id: 'peso', t: 'Peso (kg)', tipo: 'num', paso: 0.1, min: 0 }
     ],
     calc: v => {
       const e = PETTERSEN[v.estructura];
-      const bsa = 0.007184 * Math.pow(v.altura, 0.725) * Math.pow(v.peso, 0.425);
+      const bsa = (4 * v.peso + 7) / (v.peso + 90);
       const meanY = e.b0 + e.b1 * bsa + e.b2 * bsa * bsa + e.b3 * bsa * bsa * bsa;
       const z = (Math.log(v.valor) - meanY) / Math.sqrt(e.mse);
       const az = Math.abs(z);
@@ -60,7 +59,7 @@ window.PARAMETROS_Z = [
         : az <= 3 ? 'Por fuera de ± 2 respecto de lo esperado para esa superficie corporal.'
         : 'Marcadamente por fuera de ± 3 respecto de lo esperado para esa superficie corporal.';
       return { titulo: 'Z-score: ' + e.t, valor: z, decimales: 2, unidad: '', lectura,
-        detalle: `Superficie corporal (DuBois): ${bsa.toFixed(2)} m² · Media esperada para esa superficie: ${Math.exp(meanY).toFixed(2)} cm · R² de esta ecuación: ${e.r2}`,
+        detalle: `Superficie corporal (estimada solo por peso): ${bsa.toFixed(2)} m² · Media esperada para esa superficie: ${Math.exp(meanY).toFixed(2)} cm · R² de esta ecuación: ${e.r2}`,
         aviso: 'Z = (ln(valor medido) − media esperada en escala logarítmica) / √MSE. Herramienta de apoyo: no reemplaza el juicio clínico. El R² varía mucho según la estructura (de 0,60 a 0,93): con R² más bajo, el Z-score es menos preciso.' };
     }
   },
