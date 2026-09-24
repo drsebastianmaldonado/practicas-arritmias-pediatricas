@@ -21,6 +21,9 @@ header h1{margin:0;font-size:1.7rem;line-height:1.25}
 .header-top{display:flex;align-items:center;gap:14px}
 .header-top img{width:52px;height:52px;border-radius:12px;flex-shrink:0}
 header p{margin:2px 0 0;color:var(--mute);font-size:.92rem}
+.header-contacto{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.wa-logo{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#25D366;color:#fff;flex-shrink:0}
+.wa-logo svg{width:20px;height:20px}
 main{max-width:1000px;margin:0 auto;padding:8px 16px 60px}
 a{color:var(--acc2)}
 .bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line)}
@@ -77,7 +80,15 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
     <img src="iconos/icon-192.png" alt="">
     <h1>Prácticas en arritmias en pacientes pediátricos · Banco de casos</h1>
   </div>
-  <p>Dr. Sebastián Maldonado · Electrofisiólogo infantil</p>
+  <div class="header-contacto">
+    <div>
+      <p>Dr. Sebastián Maldonado · Electrofisiólogo infantil</p>
+      <p><a href="mailto:drsebastian.maldonado@gmail.com">drsebastian.maldonado@gmail.com</a></p>
+    </div>
+    <a class="wa-logo" href="https://wa.me/5491131860600" target="_blank" rel="noopener noreferrer" title="WhatsApp · Para interconsultas" aria-label="WhatsApp para interconsultas">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.39a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.13.82.84-3.05-.2-.31a8.2 8.2 0 0 1-1.26-4.29c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.23 3.7 8.23 8.24 0 4.55-3.7 8.15-8.24 8.15zm4.52-6.14c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.15-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.25 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.1-.23-.16-.48-.28z"></path></svg>
+    </a>
+  </div>
   <div class="chips" id="tabs"><a class="chip" href="#" data-t="casos">Casos</a><a class="chip" href="#diagnosticos" data-t="diagnosticos">Diagnósticos</a><a class="chip" href="#patrones" data-t="patrones">Patrones</a><a class="chip" href="#examen" data-t="examen">Examen</a><a class="chip" href="#valores" data-t="valores">QTc y valores por edad</a><a class="chip" href="#scores" data-t="scores">Scores</a><a class="chip" href="#parametrosZ" data-t="parametrosZ">Parámetros Z</a><a class="chip" href="#progreso" data-t="progreso">Mi progreso</a><a class="chip" href="#glosario" data-t="glosario">Glosario</a><a class="chip" href="#recursos" data-t="recursos">Recursos: simulador y algoritmos</a></div>
 </header>
 <main id="app"></main>
