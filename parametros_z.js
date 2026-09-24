@@ -43,7 +43,7 @@ window.PARAMETROS_Z = [
     titulo: 'Z-score de estructuras cardíacas por ecocardiografía (Pettersen · Detroit)',
     nota: 'Población: 782 pacientes sanos de 1 día a 18 años, Children\'s Hospital of Michigan (Detroit). Se excluyeron pacientes con cardiopatía, síndromes genéticos u obesidad. La superficie corporal se calcula con la fórmula de DuBois y DuBois (la que trae por defecto la calculadora de parameterz.com para este mismo estudio); el artículo no aclara cuál usó.',
     fuente: 'Pettersen MD, Du W, Skeens ME, Humes RA. Regression equations for calculation of z scores of cardiac structures in a large cohort of healthy infants, children, and adolescents: an echocardiographic study. J Am Soc Echocardiogr. 2008;21(8):922-934. Coeficientes transcritos de la Tabla 2 del artículo original.',
-    verificado: false,
+    verificado: true,
     campos: [
       { id: 'estructura', t: 'Estructura medida', tipo: 'sel', opciones: [['', 'Elegir…']].concat(Object.keys(PETTERSEN).map(k => [k, PETTERSEN[k].t])) },
       { id: 'valor', t: 'Valor medido (cm)', tipo: 'num', paso: 0.01, min: 0 },
@@ -69,7 +69,7 @@ window.PARAMETROS_Z = [
     titulo: 'Z-score de arterias coronarias (Dallaire & Dahdah · Montreal)',
     nota: 'Población: 1033 niños sanos de 2 meses a 18 años evaluados en el Hospital Sainte-Justine (Montreal, Canadá) entre 2001 y 2008 por soplo, síncope o dolor torácico considerados benignos, con ecocardiograma normal. Diámetros medidos de borde interno a borde interno. La superficie corporal se calcula con la fórmula de Haycock (los autores la usaron para obtener estos coeficientes y recomiendan explícitamente usar esa misma fórmula al aplicar la ecuación).',
     fuente: 'Dallaire F, Dahdah N. New equations and a critical appraisal of coronary artery Z scores in healthy children. J Am Soc Echocardiogr. 2011;24(1):60-74. Coeficientes transcritos de la Tabla 5 del artículo original (modelo con raíz cuadrada de la superficie corporal, el que los autores recomiendan como principal). Fórmula verificada reproduciendo los valores de las Tablas A1 y A2 del anexo del artículo.',
-    verificado: false,
+    verificado: true,
     campos: [
       { id: 'segmento', t: 'Segmento coronario medido', tipo: 'sel', opciones: [['', 'Elegir…']].concat(Object.keys(DALLAIRE).map(k => [k, DALLAIRE[k].t])) },
       { id: 'valor', t: 'Diámetro medido (mm)', tipo: 'num', paso: 0.01, min: 0 },
