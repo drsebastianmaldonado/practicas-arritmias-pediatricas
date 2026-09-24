@@ -89,7 +89,7 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.39a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.13.82.84-3.05-.2-.31a8.2 8.2 0 0 1-1.26-4.29c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.23 3.7 8.23 8.24 0 4.55-3.7 8.15-8.24 8.15zm4.52-6.14c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.15-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.25 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.1-.23-.16-.48-.28z"></path></svg>
     </a>
   </div>
-  <div class="chips" id="tabs"><a class="chip" href="#" data-t="casos">Casos</a><a class="chip" href="#diagnosticos" data-t="diagnosticos">Diagnósticos</a><a class="chip" href="#patrones" data-t="patrones">Patrones</a><a class="chip" href="#examen" data-t="examen">Examen</a><a class="chip" href="#valores" data-t="valores">QTc y valores por edad</a><a class="chip" href="#scores" data-t="scores">Scores</a><a class="chip" href="#parametrosZ" data-t="parametrosZ">Parámetros Z</a><a class="chip" href="#progreso" data-t="progreso">Mi progreso</a><a class="chip" href="#glosario" data-t="glosario">Glosario</a><a class="chip" href="#recursos" data-t="recursos">Recursos: simulador y algoritmos</a></div>
+  <div class="chips" id="tabs"><a class="chip" href="#" data-t="casos">Casos</a><a class="chip" href="#diagnosticos" data-t="diagnosticos">Diagnósticos</a><a class="chip" href="#patrones" data-t="patrones">Patrones</a><a class="chip" href="#examen" data-t="examen">Examen</a><a class="chip" href="#valores" data-t="valores">QTc y valores por edad</a><a class="chip" href="#scores" data-t="scores">Scores</a><a class="chip" href="#parametrosZ" data-t="parametrosZ">Parámetros Z</a><a class="chip" href="#progreso" data-t="progreso">Mi progreso</a><a class="chip" href="#glosario" data-t="glosario">Glosario</a><a class="chip" href="#drogas" data-t="drogas">Drogas a evitar</a><a class="chip" href="#recursos" data-t="recursos">Recursos: simulador y algoritmos</a></div>
 </header>
 <main id="app"></main>
 <div id="lb" onclick="this.style.display='none'"><img alt=""></div>
@@ -99,6 +99,7 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 <script src="scores.js"></script>
 <script src="parametros_z.js"></script>
 <script src="glosario.js"></script>
+<script src="drogas.js"></script>
 <script src="registro.js"></script>
 <script src="diagnosticos.js"></script>
 <script src="patrones.js"></script>
@@ -485,6 +486,40 @@ function glosario() {
   if (q) q.oninput = e => { GL.q = e.target.value; const p = e.target.selectionStart; glosario(); const n = document.getElementById('glq'); n.focus(); n.setSelectionRange(p, p); };
   app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = ''; });
 }
+// ---------- Drogas a evitar (drogas.js): dos listas (QT largo congénito y Brugada), cada una con su propio filtro. ----------
+let DR = { tab: 'qt', q: '' };
+function drogas() {
+  const D = window.DROGAS;
+  app.innerHTML = `<div class="case"><h2>Drogas a evitar</h2>
+    <p class="hint">Listados de medicamentos a evitar según el síndrome. Herramienta de apoyo: no reemplaza el juicio clínico ni la consulta de la fuente original.</p>
+    <div class="chips"><button class="chip${DR.tab === 'qt' ? ' on' : ''}" data-tab="qt" type="button">QT largo congénito</button><button class="chip${DR.tab === 'brugada' ? ' on' : ''}" data-tab="brugada" type="button">Síndrome de Brugada</button></div>
+    <div id="drBox"></div></div>`;
+  app.querySelectorAll('button[data-tab]').forEach(b => b.onclick = () => { DR.tab = b.dataset.tab; DR.q = ''; drogas(); });
+  if (!D) { document.getElementById('drBox').innerHTML = '<p class="hint">Todavía no se cargó el listado.</p>'; return; }
+  DR.tab === 'qt' ? pintarDrogasQT() : pintarDrogasBrugada();
+}
+function pintarDrogasQT() {
+  const box = document.getElementById('drBox'), Q = window.DROGAS.qt, nq = norm(DR.q.trim());
+  const res = Q.items.filter(([g, m]) => !nq || nq.split(/\s+/).every(w => norm(g + ' ' + m).includes(w)));
+  box.innerHTML = `<p class="hint">${esc(Q.fuente)}</p>
+    <input type="search" id="drq" placeholder="Buscar droga…" value="${esc(DR.q)}"><div class="count">${res.length} de ${Q.items.length} medicamentos</div>
+    <div class="list">${res.map(([g, m, r]) => `<div class="card" style="cursor:default"><h3>${esc(g)} <span class="badge" title="${esc(Q.categorias[r])}">${r}</span></h3>${m ? `<p class="meta">${esc(m)}</p>` : ''}</div>`).join('')}</div>
+    <div class="warn" style="margin-top:14px">${esc(Q.aviso)}</div>`;
+  const q = document.getElementById('drq');
+  q.oninput = e => { DR.q = e.target.value; const p = e.target.selectionStart; pintarDrogasQT(); const n = document.getElementById('drq'); n.focus(); n.setSelectionRange(p, p); };
+}
+function pintarDrogasBrugada() {
+  const box = document.getElementById('drBox'), B = window.DROGAS.brugada, nq = norm(DR.q.trim());
+  box.innerHTML = `<p class="hint">${esc(B.fuente)}</p>
+    <input type="search" id="drq" placeholder="Buscar droga…" value="${esc(DR.q)}">
+    ${B.grupos.map(gr => {
+      const items = gr.items.filter(it => !nq || nq.split(/\s+/).every(w => norm(it.g + ' ' + (it.m || '') + ' ' + it.uso).includes(w)));
+      if (!items.length) return '';
+      return `<h3>${esc(gr.t)}</h3><div class="list">${items.map(it => `<div class="card" style="cursor:default"><h3>${esc(it.g)} <span class="badge" title="${esc(B.clases[it.clase])}">Clase ${it.clase}</span></h3>${it.m ? `<p class="meta">${esc(it.m)}</p>` : ''}<p class="snip">${esc(it.uso)}</p>${it.nota ? `<p class="hint">${esc(it.nota)}</p>` : ''}</div>`).join('')}</div>`;
+    }).join('')}`;
+  const q = document.getElementById('drq');
+  q.oninput = e => { DR.q = e.target.value; const p = e.target.selectionStart; pintarDrogasBrugada(); const n = document.getElementById('drq'); n.focus(); n.setSelectionRange(p, p); };
+}
 // ---------- Estadísticas del autor: SOLO números agregados (nunca nombres/mails/ciudades individuales). ----------
 // A propósito no tiene pestaña en el menú: se llega escribiendo #estadisticas. Lee del mismo Apps Script que registro.js,
 // con JSONP (una etiqueta <script>) porque los navegadores no dejan leer la respuesta de otra manera sin configurar CORS.
@@ -512,7 +547,7 @@ function pintarEstadisticas(d) {
     <h3>Por país</h3><div class="list">${d.por_pais.map(p => `<div class="card" style="cursor:default">${esc(p.pais)} · <b>${p.n}</b></div>`).join('')}</div>
     <p class="hint">Generado el ${new Date(d.generado).toLocaleString('es-AR')}. Los datos individuales (nombre, mail, ciudad) siguen solo en tu planilla de Google.</p>`;
 }
-const VISTAS = { recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, estadisticas };
+const VISTAS = { recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, drogas, estadisticas };
 function route() { const h = location.hash.slice(1);
   document.querySelectorAll('#tabs .chip').forEach(a => a.classList.toggle('on', a.dataset.t === (VISTAS[h] ? h : 'casos')));
   VISTAS[h] ? (VISTAS[h](), window.scrollTo(0, 0)) : h ? detail(h) : list(); }
