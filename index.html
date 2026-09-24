@@ -7,14 +7,16 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="iconos/icon-192.png">
 <link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
-<meta name="theme-color" content="#b3261e" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#ff8a80" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ff8a80" id="themeColorMeta">
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec}
-@media (prefers-color-scheme:dark){:root{--bg:#12161b;--card:#1a2027;--ink:#e6ebf1;--mute:#93a0b1;--line:#2c3541;--acc:#ff8a80;--acc2:#7db7f5;--chip:#252d37;--ok:#1d2b22}}
+/* Oscuro por default (no depende de que el sistema avise "modo oscuro", que en algunos navegadores no llega). Con el
+   botón de arriba a la derecha se puede pasar a claro; la elección queda guardada en este navegador. */
+:root{--bg:#12161b;--card:#1a2027;--ink:#e6ebf1;--mute:#93a0b1;--line:#2c3541;--acc:#ff8a80;--acc2:#7db7f5;--chip:#252d37;--ok:#1d2b22}
+:root[data-theme="light"]{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{padding:20px 16px 8px;max-width:1000px;margin:0 auto}
+header{padding:20px 16px 8px;max-width:1000px;margin:0 auto;position:relative}
+#themeToggle{position:absolute;top:18px;right:16px}
 header h1{margin:0;font-size:1.35rem}
 header p{margin:2px 0 0;color:var(--mute);font-size:.92rem}
 main{max-width:1000px;margin:0 auto;padding:8px 16px 60px}
@@ -68,6 +70,7 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 </head>
 <body>
 <header>
+  <button id="themeToggle" class="ghost" type="button" style="font-size:.82rem;padding:6px 12px">🌙 Oscuro</button>
   <h1>Prácticas en arritmias en pacientes pediátricos · Banco de casos</h1>
   <p>Dr. Sebastián Maldonado · Electrofisiólogo infantil</p>
   <div class="chips" id="tabs"><a class="chip" href="#" data-t="casos">Casos</a><a class="chip" href="#diagnosticos" data-t="diagnosticos">Diagnósticos</a><a class="chip" href="#patrones" data-t="patrones">Patrones</a><a class="chip" href="#examen" data-t="examen">Examen</a><a class="chip" href="#valores" data-t="valores">QTc y valores por edad</a><a class="chip" href="#scores" data-t="scores">Scores</a><a class="chip" href="#parametrosZ" data-t="parametrosZ">Parámetros Z</a><a class="chip" href="#progreso" data-t="progreso">Mi progreso</a><a class="chip" href="#glosario" data-t="glosario">Glosario</a><a class="chip" href="#recursos" data-t="recursos">Recursos: simulador y algoritmos</a></div>
@@ -118,6 +121,17 @@ let seenFecha = {};
 try { seenFecha = JSON.parse(localStorage.getItem('bc_seen_fecha') || '{}'); } catch (e) {}
 const marcarFechaRepaso = id => { seenFecha[id] = new Date().toISOString().slice(0, 10); try { localStorage.setItem('bc_seen_fecha', JSON.stringify(seenFecha)); } catch (e) {} };
 const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+// Tema claro/oscuro: oscuro por default (no depende de que el navegador avise el modo del sistema). Se guarda en este navegador.
+(function () {
+  const TK = 'bc_theme'; let t = 'dark'; try { t = localStorage.getItem(TK) || 'dark'; } catch (e) {}
+  const aplicar = tema => {
+    document.documentElement.dataset.theme = tema;
+    const btn = document.getElementById('themeToggle'); if (btn) btn.textContent = tema === 'light' ? '🌙 Oscuro' : '☀️ Claro';
+    const mc = document.getElementById('themeColorMeta'); if (mc) mc.content = tema === 'light' ? '#b3261e' : '#ff8a80';
+  };
+  aplicar(t);
+  document.getElementById('themeToggle').onclick = () => { t = t === 'light' ? 'dark' : 'light'; try { localStorage.setItem(TK, t); } catch (e) {} aplicar(t); };
+})();
 const app = document.getElementById('app');
 const state = { q: '', f: '', tag: '', solo: false };
 
