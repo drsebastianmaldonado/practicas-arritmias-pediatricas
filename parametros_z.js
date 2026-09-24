@@ -66,18 +66,17 @@ window.PARAMETROS_Z = [
   {
     id: 'dallaire',
     titulo: 'Z-score de arterias coronarias (Dallaire & Dahdah · Montreal)',
-    nota: 'Población: 1033 niños sanos de 2 meses a 18 años evaluados en el Hospital Sainte-Justine (Montreal, Canadá) entre 2001 y 2008 por soplo, síncope o dolor torácico considerados benignos, con ecocardiograma normal. Diámetros medidos de borde interno a borde interno. La superficie corporal se calcula con la fórmula de Haycock (los autores la usaron para obtener estos coeficientes y recomiendan explícitamente usar esa misma fórmula al aplicar la ecuación).',
-    fuente: 'Dallaire F, Dahdah N. New equations and a critical appraisal of coronary artery Z scores in healthy children. J Am Soc Echocardiogr. 2011;24(1):60-74. Coeficientes transcritos de la Tabla 5 del artículo original (modelo con raíz cuadrada de la superficie corporal, el que los autores recomiendan como principal). Fórmula verificada reproduciendo los valores de las Tablas A1 y A2 del anexo del artículo.',
-    verificado: true,
+    nota: 'Población: 1033 niños sanos de 2 meses a 18 años evaluados en el Hospital Sainte-Justine (Montreal, Canadá) entre 2001 y 2008 por soplo, síncope o dolor torácico considerados benignos, con ecocardiograma normal. Diámetros medidos de borde interno a borde interno. Los autores calcularon estos coeficientes con la fórmula de Haycock (peso + talla) y recomiendan usarla; a pedido del autor, acá se calcula en cambio solo a partir del peso, con la fórmula de Dreyer (BSA = 0,1 × peso^(2/3)) — la opción "Weight ONLY" de la calculadora oficial de este mismo estudio en parameterz.blogspot.com. Al no depender de la talla, es menos preciso que con Haycock.',
+    fuente: 'Dallaire F, Dahdah N. New equations and a critical appraisal of coronary artery Z scores in healthy children. J Am Soc Echocardiogr. 2011;24(1):60-74. Coeficientes transcritos de la Tabla 5 del artículo original (modelo con raíz cuadrada de la superficie corporal, el que los autores recomiendan como principal) y verificados contra la calculadora oficial: https://parameterz.blogspot.com/2010/11/montreal-coronary-artery-z-scores.html',
+    verificado: false,
     campos: [
       { id: 'segmento', t: 'Segmento coronario medido', tipo: 'sel', opciones: [['', 'Elegir…']].concat(Object.keys(DALLAIRE).map(k => [k, DALLAIRE[k].t])) },
       { id: 'valor', t: 'Diámetro medido (mm)', tipo: 'num', paso: 0.01, min: 0 },
-      { id: 'peso', t: 'Peso (kg)', tipo: 'num', paso: 0.1, min: 0 },
-      { id: 'altura', t: 'Altura (cm)', tipo: 'num', paso: 0.1, min: 0 }
+      { id: 'peso', t: 'Peso (kg)', tipo: 'num', paso: 0.1, min: 0 }
     ],
     calc: v => {
       const e = DALLAIRE[v.segmento];
-      const bsa = 0.024265 * Math.pow(v.peso, 0.5378) * Math.pow(v.altura, 0.3964);
+      const bsa = 0.1 * Math.pow(v.peso, 2 / 3);
       const raiz = Math.sqrt(bsa);
       const media = e.a + e.b * raiz;
       const errorEst = e.aSE + e.bSE * raiz;
@@ -87,7 +86,7 @@ window.PARAMETROS_Z = [
         : az <= 2.5 ? 'Levemente por fuera de ± 2: límite de lo esperado para esa superficie corporal.'
         : 'Marcadamente por fuera de ± 2,5 respecto de lo esperado para esa superficie corporal.';
       return { titulo: 'Z-score: ' + e.t, valor: z, decimales: 2, unidad: '', lectura,
-        detalle: `Superficie corporal (Haycock): ${bsa.toFixed(2)} m² · Diámetro medio esperado para esa superficie: ${media.toFixed(2)} mm`,
+        detalle: `Superficie corporal (fórmula de Dreyer, solo por peso): ${bsa.toFixed(2)} m² · Diámetro medio esperado para esa superficie: ${media.toFixed(2)} mm`,
         aviso: 'Z = (diámetro medido − [a + b·√BSA]) / (errorSE_a + errorSE_b·√BSA), con coeficientes propios por segmento (Tabla 5 del artículo). El uso clínico principal de este Z-score es la enfermedad de Kawasaki; la clasificación de dilatación/aneurisma según guías (ej. AHA 2017) combina el Z-score con otros criterios y no se calcula acá. Herramienta de apoyo: no reemplaza el juicio clínico.' };
     }
   }
