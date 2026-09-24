@@ -15,9 +15,11 @@
 :root[data-theme="light"]{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{padding:20px 16px 8px;max-width:1000px;margin:0 auto;position:relative}
-#themeToggle{position:absolute;top:18px;right:16px}
-header h1{margin:0;font-size:1.35rem}
+header{padding:20px 16px 8px;max-width:1000px;margin:0 auto}
+.header-fila1{display:flex;justify-content:flex-end}
+header h1{margin:0;font-size:1.7rem;line-height:1.25}
+.header-top{display:flex;align-items:center;gap:14px}
+.header-top img{width:52px;height:52px;border-radius:12px;flex-shrink:0}
 header p{margin:2px 0 0;color:var(--mute);font-size:.92rem}
 main{max-width:1000px;margin:0 auto;padding:8px 16px 60px}
 a{color:var(--acc2)}
@@ -70,8 +72,11 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 </head>
 <body>
 <header>
-  <button id="themeToggle" class="ghost" type="button" style="font-size:.82rem;padding:6px 12px">🌙 Oscuro</button>
-  <h1>Prácticas en arritmias en pacientes pediátricos · Banco de casos</h1>
+  <div class="header-fila1"><button id="themeToggle" class="ghost" type="button" style="font-size:.82rem;padding:6px 12px">🌙 Oscuro</button></div>
+  <div class="header-top">
+    <img src="iconos/icon-192.png" alt="">
+    <h1>Prácticas en arritmias en pacientes pediátricos · Banco de casos</h1>
+  </div>
   <p>Dr. Sebastián Maldonado · Electrofisiólogo infantil</p>
   <div class="chips" id="tabs"><a class="chip" href="#" data-t="casos">Casos</a><a class="chip" href="#diagnosticos" data-t="diagnosticos">Diagnósticos</a><a class="chip" href="#patrones" data-t="patrones">Patrones</a><a class="chip" href="#examen" data-t="examen">Examen</a><a class="chip" href="#valores" data-t="valores">QTc y valores por edad</a><a class="chip" href="#scores" data-t="scores">Scores</a><a class="chip" href="#parametrosZ" data-t="parametrosZ">Parámetros Z</a><a class="chip" href="#progreso" data-t="progreso">Mi progreso</a><a class="chip" href="#glosario" data-t="glosario">Glosario</a><a class="chip" href="#recursos" data-t="recursos">Recursos: simulador y algoritmos</a></div>
 </header>
