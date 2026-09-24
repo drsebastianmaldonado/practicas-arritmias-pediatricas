@@ -1,8 +1,14 @@
 // Calculadoras de Z-score (pestaña "Parámetros Z"). Usa el mismo formato que scores.js (campos + calc): documentado ahí.
-// PENDIENTE: Z-score de arterias coronarias (Dallaire & Dahdah, Montreal 2011) — el autor pasó el link de parameterz.com,
-// pero esa página tiene el certificado de seguridad roto (no cargan sus scripts) y no encontré los coeficientes exactos
-// en ninguna fuente de acceso abierto. Si el autor consigue el PDF del artículo (J Am Soc Echocardiogr. 2011;24:60-74)
-// o una fuente que reproduzca la Tabla de coeficientes, se agrega acá.
+
+// Coeficientes de la Tabla 5 de Dallaire & Dahdah (ver "dallaire" más abajo): modelo Z = (CAobs − [a + b·√BSA]) / (aSE + bSE·√BSA).
+var DALLAIRE = {
+  lmca:     { t: 'Tronco de la coronaria izquierda (LMCA)',        a: -0.1817, b: 2.9238, aSE: 0.1801, bSE: 0.2530 },
+  lad:      { t: 'Descendente anterior (LAD)',                      a: -0.1502, b: 2.2672, aSE: 0.1709, bSE: 0.2293 },
+  cx:       { t: 'Circunfleja (Cx)',                                a: -0.2716, b: 2.3458, aSE: 0.1142, bSE: 0.3423 },
+  rcaProx:  { t: 'Coronaria derecha, segmento proximal',            a: -0.3039, b: 2.7521, aSE: 0.1626, bSE: 0.2881 },
+  rcaMed:   { t: 'Coronaria derecha, segmento medio',               a: -0.3060, b: 2.4078, aSE: 0.1324, bSE: 0.3259 },
+  rcaDist:  { t: 'Coronaria derecha, segmento distal',              a: -0.3185, b: 2.3295, aSE: 0.1099, bSE: 0.3198 }
+};
 
 // Coeficientes de la Tabla 2 de Pettersen et al. (ver "pettersen" más abajo): y = ln(medida), Media(y) = b0 + b1*BSA + b2*BSA² + b3*BSA³.
 var PETTERSEN = {
@@ -56,6 +62,34 @@ window.PARAMETROS_Z = [
       return { titulo: 'Z-score: ' + e.t, valor: z, decimales: 2, unidad: '', lectura,
         detalle: `Superficie corporal (DuBois): ${bsa.toFixed(2)} m² · Media esperada para esa superficie: ${Math.exp(meanY).toFixed(2)} cm · R² de esta ecuación: ${e.r2}`,
         aviso: 'Z = (ln(valor medido) − media esperada en escala logarítmica) / √MSE. Herramienta de apoyo: no reemplaza el juicio clínico. El R² varía mucho según la estructura (de 0,60 a 0,93): con R² más bajo, el Z-score es menos preciso.' };
+    }
+  },
+  {
+    id: 'dallaire',
+    titulo: 'Z-score de arterias coronarias (Dallaire & Dahdah · Montreal)',
+    nota: 'Población: 1033 niños sanos de 2 meses a 18 años evaluados en el Hospital Sainte-Justine (Montreal, Canadá) entre 2001 y 2008 por soplo, síncope o dolor torácico considerados benignos, con ecocardiograma normal. Diámetros medidos de borde interno a borde interno. La superficie corporal se calcula con la fórmula de Haycock (los autores la usaron para obtener estos coeficientes y recomiendan explícitamente usar esa misma fórmula al aplicar la ecuación).',
+    fuente: 'Dallaire F, Dahdah N. New equations and a critical appraisal of coronary artery Z scores in healthy children. J Am Soc Echocardiogr. 2011;24(1):60-74. Coeficientes transcritos de la Tabla 5 del artículo original (modelo con raíz cuadrada de la superficie corporal, el que los autores recomiendan como principal). Fórmula verificada reproduciendo los valores de las Tablas A1 y A2 del anexo del artículo.',
+    verificado: false,
+    campos: [
+      { id: 'segmento', t: 'Segmento coronario medido', tipo: 'sel', opciones: [['', 'Elegir…']].concat(Object.keys(DALLAIRE).map(k => [k, DALLAIRE[k].t])) },
+      { id: 'valor', t: 'Diámetro medido (mm)', tipo: 'num', paso: 0.01, min: 0 },
+      { id: 'peso', t: 'Peso (kg)', tipo: 'num', paso: 0.1, min: 0 },
+      { id: 'altura', t: 'Altura (cm)', tipo: 'num', paso: 0.1, min: 0 }
+    ],
+    calc: v => {
+      const e = DALLAIRE[v.segmento];
+      const bsa = 0.024265 * Math.pow(v.peso, 0.5378) * Math.pow(v.altura, 0.3964);
+      const raiz = Math.sqrt(bsa);
+      const media = e.a + e.b * raiz;
+      const errorEst = e.aSE + e.bSE * raiz;
+      const z = (v.valor - media) / errorEst;
+      const az = Math.abs(z);
+      const lectura = az <= 2 ? 'Dentro del rango esperado para esa superficie corporal (± 2).'
+        : az <= 2.5 ? 'Levemente por fuera de ± 2: límite de lo esperado para esa superficie corporal.'
+        : 'Marcadamente por fuera de ± 2,5 respecto de lo esperado para esa superficie corporal.';
+      return { titulo: 'Z-score: ' + e.t, valor: z, decimales: 2, unidad: '', lectura,
+        detalle: `Superficie corporal (Haycock): ${bsa.toFixed(2)} m² · Diámetro medio esperado para esa superficie: ${media.toFixed(2)} mm`,
+        aviso: 'Z = (diámetro medido − [a + b·√BSA]) / (errorSE_a + errorSE_b·√BSA), con coeficientes propios por segmento (Tabla 5 del artículo). El uso clínico principal de este Z-score es la enfermedad de Kawasaki; la clasificación de dilatación/aneurisma según guías (ej. AHA 2017) combina el Z-score con otros criterios y no se calcula acá. Herramienta de apoyo: no reemplaza el juicio clínico.' };
     }
   }
 ];
