@@ -1,6 +1,6 @@
 {
-  "name": "Banco de casos de arritmias",
-  "short_name": "Banco arritmias",
+  "name": "Prácticas en arritmias pediátricas",
+  "short_name": "Practicas Arritmias",
   "description": "Prácticas en arritmias en pacientes pediátricos · Dr. Sebastián Maldonado",
   "start_url": "./index.html",
   "scope": "./",
