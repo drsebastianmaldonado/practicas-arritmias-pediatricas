@@ -25,9 +25,21 @@ header h1{margin:0;font-size:1.7rem;line-height:1.25}
 .header-top img{width:52px;height:52px;border-radius:12px;flex-shrink:0}
 header p{margin:2px 0 0;color:var(--mute);font-size:.92rem}
 .header-contacto{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.wa-logo{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#25D366;color:#fff;flex-shrink:0;border:0;cursor:pointer}
-.wa-logo svg{width:20px;height:20px}
-.header-actions{display:flex;gap:8px;flex-shrink:0}
+
+/* ---- CTA de contacto (portada): "Interconsultas por WhatsApp" y "Colaborá con el banco" ---- */
+.ctarow{display:grid;gap:10px;margin:0 0 16px}
+@media (min-width:560px){ .ctarow{grid-template-columns:1fr 1fr} }
+.wa-cta{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:11px 14px;margin:0;text-decoration:none;color:var(--ink);min-height:44px;cursor:pointer;font:inherit;
+  text-align:left;width:100%}
+.wa-cta:hover{border-color:#25D366}
+.wa-cta.coffee-cta:hover{border-color:var(--acc)}
+.wa-logo{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#25D366;color:#fff;flex-shrink:0;border:0;cursor:pointer}
+.wa-logo.coffee-logo{background:var(--acc)}
+.wa-logo svg{width:19px;height:19px}
+.wa-cta>span:last-child{display:flex;flex-direction:column;gap:1px;min-width:0}
+.wa-cta b{font-size:.88rem}
+.wa-cta small{color:var(--mute);font-size:.76rem;line-height:1.35}
 
 /* ---- nav superior: 4 pestañas, 2 con submenú ---- */
 .topnav{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;position:relative}
@@ -53,9 +65,6 @@ header p{margin:2px 0 0;color:var(--mute);font-size:.92rem}
 }
 
 /* ---- toast (confirmación breve, p. ej. "alias copiado") ---- */
-.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--card);color:var(--ink);
-  border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:.88rem;box-shadow:0 8px 24px rgba(0,0,0,.35);
-  z-index:30;max-width:92vw;text-align:center}
 
 /* ---- portada: caso de la semana + acceso a fascículos ---- */
 .hero-empty{text-align:center;padding:26px 16px}
@@ -119,14 +128,6 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
       <p>Dr. Sebastián Maldonado · Electrofisiólogo infantil</p>
       <p><a href="mailto:drsebastian.maldonado@gmail.com">drsebastian.maldonado@gmail.com</a></p>
     </div>
-    <div class="header-actions">
-      <a class="wa-logo" href="https://wa.me/5491131860600" target="_blank" rel="noopener noreferrer" title="WhatsApp · Para interconsultas" aria-label="WhatsApp para interconsultas">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.39a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.13.82.84-3.05-.2-.31a8.2 8.2 0 0 1-1.26-4.29c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.23 3.7 8.23 8.24 0 4.55-3.7 8.15-8.24 8.15zm4.52-6.14c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.15-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.25 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.1-.23-.16-.48-.28z"></path></svg>
-      </a>
-      <button id="btnColabora" class="wa-logo" type="button" style="background:#6b4226" title="Colaborá con el banco: copiar alias para transferencia" aria-label="Colaborá con el banco: copiar alias para transferencia">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-      </button>
-    </div>
   </div>
   <nav class="topnav" id="topnav">
     <div class="navgroup">
@@ -155,7 +156,6 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
   </nav>
 </header>
 <div class="navbackdrop" id="navBackdrop" hidden></div>
-<div id="toast" class="toast" hidden></div>
 <main id="app"></main>
 <div id="lb" onclick="this.style.display='none'"><img alt=""></div>
 <script src="casos.js"></script>
@@ -205,27 +205,24 @@ const marcarFechaRepaso = id => { seenFecha[id] = new Date().toISOString().slice
 const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 // Tema claro/oscuro: 100% CSS por prefers-color-scheme (ver :root arriba). Sin JS ni localStorage para esto.
 
-// ---------- Toast: confirmación breve (p. ej. "alias copiado") ----------
-function toast(msg, ms) {
-  const t = document.getElementById('toast'); if (!t) return;
-  t.textContent = msg; t.hidden = false;
-  clearTimeout(toast._tm); toast._tm = setTimeout(() => { t.hidden = true; }, ms || 3500);
-}
-
-// ---------- Colaborá con el banco: copiar alias de transferencia ----------
-document.getElementById('btnColabora').onclick = async () => {
-  const alias = 'docseba79';
-  try { await navigator.clipboard.writeText(alias); }
+// ---------- Colaborá con el banco: copiar alias de transferencia (botón vive en la portada, ver list()) ----------
+const ALIAS_COLABORA = 'docseba79';
+async function copiarAlias(btn) {
+  try { await navigator.clipboard.writeText(ALIAS_COLABORA); }
   catch (e) {
     try {
       const ta = document.createElement('textarea');
-      ta.value = alias; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      ta.value = ALIAS_COLABORA; ta.style.position = 'fixed'; ta.style.opacity = '0';
       document.body.appendChild(ta); ta.focus(); ta.select();
       document.execCommand('copy'); document.body.removeChild(ta);
     } catch (e2) {}
   }
-  toast('Alias copiado ✓ — Pegalo en tu banco o billetera → Transferir → por Alias', 4500);
-};
+  const b = btn.querySelector('b'), small = btn.querySelector('small');
+  b.textContent = 'Alias copiado ✓'; small.textContent = 'Pegalo en tu banco o billetera → Transferir → por Alias';
+  clearTimeout(btn._tm); btn._tm = setTimeout(() => {
+    b.textContent = 'Colaborá con el banco'; small.textContent = `Alias: ${ALIAS_COLABORA} — tocá para copiar`;
+  }, 4500);
+}
 
 // ---------- Nav superior: "Casos" y "Herramientas" despliegan un submenú (dropdown en escritorio, hoja inferior en celular) ----------
 function closeMenus() {
@@ -277,6 +274,16 @@ function list() {
   app.innerHTML = `<div class="case">
     <h2 style="margin:4px 0 2px">Banco de casos</h2>
     <p class="hint" style="margin:0 0 14px">El caso de la semana. Desde acá recorrés los 110 casos por fascículo, incluidos los de semanas anteriores.</p>
+    <div class="ctarow">
+      <a class="wa-cta" href="https://wa.me/5491131860600" target="_blank" rel="noopener noreferrer">
+        <span class="wa-logo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.39a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.13.82.84-3.05-.2-.31a8.2 8.2 0 0 1-1.26-4.29c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.23 3.7 8.23 8.24 0 4.55-3.7 8.15-8.24 8.15zm4.52-6.14c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.15-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.25 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.1-.23-.16-.48-.28z"></path></svg></span>
+        <span><b>Interconsultas por WhatsApp</b><small>Dr. Sebastián Maldonado</small></span>
+      </a>
+      <button class="wa-cta coffee-cta" type="button" id="btnColabora">
+        <span class="wa-logo coffee-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
+        <span><b>Colaborá con el banco</b><small>Alias: ${ALIAS_COLABORA} — tocá para copiar</small></span>
+      </button>
+    </div>
     ${heroSemana()}
     <a class="card" href="#fasciculos" style="display:flex;align-items:center;gap:14px;margin-top:12px">
       <div style="flex:1"><h3 style="margin:0 0 3px">Fascículos</h3>
@@ -284,6 +291,7 @@ function list() {
       <span style="font-size:1.4rem;color:var(--acc2)" aria-hidden="true">→</span>
     </a>
   </div>`;
+  document.getElementById('btnColabora').onclick = e => copiarAlias(e.currentTarget);
 }
 // ---------- Fascículos: buscar/filtrar casos por fascículo (incluye "Casos de la semana" = semana_archivo.js) ----------
 function fasciculos() {
