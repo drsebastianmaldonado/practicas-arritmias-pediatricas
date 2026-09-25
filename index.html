@@ -7,23 +7,58 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="iconos/icon-192.png">
 <link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
-<meta name="theme-color" content="#ff8a80" id="themeColorMeta">
+<meta name="theme-color" content="#ff8a80" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#b3261e" media="(prefers-color-scheme: light)">
 <style>
-/* Oscuro por default (no depende de que el sistema avise "modo oscuro", que en algunos navegadores no llega). Con el
-   botón de arriba a la derecha se puede pasar a claro; la elección queda guardada en este navegador. */
-:root{--bg:#12161b;--card:#1a2027;--ink:#e6ebf1;--mute:#93a0b1;--line:#2c3541;--acc:#ff8a80;--acc2:#7db7f5;--chip:#252d37;--ok:#1d2b22}
-:root[data-theme="light"]{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec}
+/* Oscuro por default; pasa a claro solo, automáticamente, si el sistema/navegador avisa "prefers-color-scheme: light"
+   (sin botón, sin JS ni localStorage para esto). Si ese aviso no llega —pasa en algunos navegadores/WebViews— se queda
+   en oscuro, que es el modo que el autor eligió como base: es el fallback más seguro, no el claro. */
+:root{--bg:#12161b;--card:#1a2027;--ink:#e6ebf1;--mute:#93a0b1;--line:#2c3541;--acc:#ff8a80;--acc2:#7db7f5;--chip:#252d37;--ok:#1d2b22;color-scheme:dark}
+@media (prefers-color-scheme: light){
+  :root{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec;color-scheme:light}
+}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 header{padding:20px 16px 8px;max-width:1000px;margin:0 auto}
-.header-fila1{display:flex;justify-content:flex-end}
 header h1{margin:0;font-size:1.7rem;line-height:1.25}
 .header-top{display:flex;align-items:center;gap:14px}
 .header-top img{width:52px;height:52px;border-radius:12px;flex-shrink:0}
 header p{margin:2px 0 0;color:var(--mute);font-size:.92rem}
 .header-contacto{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.wa-logo{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#25D366;color:#fff;flex-shrink:0}
+.wa-logo{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#25D366;color:#fff;flex-shrink:0;border:0;cursor:pointer}
 .wa-logo svg{width:20px;height:20px}
+.header-actions{display:flex;gap:8px;flex-shrink:0}
+
+/* ---- nav superior: 4 pestañas, 2 con submenú ---- */
+.topnav{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;position:relative}
+.navgroup{position:relative}
+.navbtn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:var(--chip);color:var(--ink);
+  padding:7px 13px;border-radius:99px;font:inherit;font-size:.85rem;cursor:pointer;text-decoration:none;line-height:1.3}
+.navbtn .chev{width:12px;height:12px;transition:transform .15s;flex-shrink:0}
+.navbtn.open .chev{transform:rotate(180deg)}
+#topnav>a.navlink.active{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+.navgroup>.navbtn.active{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+.navmenu{display:flex;flex-direction:column;gap:2px;position:absolute;top:calc(100% + 6px);left:0;min-width:230px;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:16}
+.navmenu[hidden]{display:none}
+.navmenu a{display:block;padding:10px 12px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:.92rem}
+.navmenu a:hover{background:var(--bg)}
+.navmenu a.active{background:var(--chip);color:var(--acc2);font-weight:600}
+.navbackdrop{position:fixed;inset:0;background:transparent;z-index:14}
+@media (max-width:759px){
+  .navmenu{position:fixed;left:0;right:0;bottom:0;top:auto;border-radius:16px 16px 0 0;max-height:72vh;overflow:auto;
+    padding:14px 12px calc(14px + env(safe-area-inset-bottom,0px));min-width:0}
+  .navmenu a{padding:13px 14px;font-size:1rem;min-height:44px}
+  .navbackdrop{background:rgba(0,0,0,.45)}
+}
+
+/* ---- toast (confirmación breve, p. ej. "alias copiado") ---- */
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--card);color:var(--ink);
+  border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:.88rem;box-shadow:0 8px 24px rgba(0,0,0,.35);
+  z-index:30;max-width:92vw;text-align:center}
+
+/* ---- portada: caso de la semana + acceso a fascículos ---- */
+.hero-empty{text-align:center;padding:26px 16px}
 main{max-width:1000px;margin:0 auto;padding:8px 16px 60px}
 a{color:var(--acc2)}
 .bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line)}
@@ -75,7 +110,6 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 </head>
 <body>
 <header>
-  <div class="header-fila1"><button id="themeToggle" class="ghost" type="button" style="font-size:.82rem;padding:6px 12px">🌙 Oscuro</button></div>
   <div class="header-top">
     <img src="iconos/icon-192.png" alt="">
     <h1>Prácticas en arritmias en pacientes pediátricos · Banco de casos</h1>
@@ -85,12 +119,43 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
       <p>Dr. Sebastián Maldonado · Electrofisiólogo infantil</p>
       <p><a href="mailto:drsebastian.maldonado@gmail.com">drsebastian.maldonado@gmail.com</a></p>
     </div>
-    <a class="wa-logo" href="https://wa.me/5491131860600" target="_blank" rel="noopener noreferrer" title="WhatsApp · Para interconsultas" aria-label="WhatsApp para interconsultas">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.39a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.13.82.84-3.05-.2-.31a8.2 8.2 0 0 1-1.26-4.29c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.23 3.7 8.23 8.24 0 4.55-3.7 8.15-8.24 8.15zm4.52-6.14c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.15-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.25 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.1-.23-.16-.48-.28z"></path></svg>
-    </a>
+    <div class="header-actions">
+      <a class="wa-logo" href="https://wa.me/5491131860600" target="_blank" rel="noopener noreferrer" title="WhatsApp · Para interconsultas" aria-label="WhatsApp para interconsultas">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.39a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.13.82.84-3.05-.2-.31a8.2 8.2 0 0 1-1.26-4.29c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.23 3.7 8.23 8.24 0 4.55-3.7 8.15-8.24 8.15zm4.52-6.14c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.15-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.25 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.1-.23-.16-.48-.28z"></path></svg>
+      </a>
+      <button id="btnColabora" class="wa-logo" type="button" style="background:#6b4226" title="Colaborá con el banco: copiar alias para transferencia" aria-label="Colaborá con el banco: copiar alias para transferencia">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      </button>
+    </div>
   </div>
-  <div class="chips" id="tabs"><a class="chip" href="#" data-t="casos">Casos</a><a class="chip" href="#diagnosticos" data-t="diagnosticos">Diagnósticos</a><a class="chip" href="#patrones" data-t="patrones">Patrones</a><a class="chip" href="#examen" data-t="examen">Examen</a><a class="chip" href="#valores" data-t="valores">QTc y valores por edad</a><a class="chip" href="#scores" data-t="scores">Scores</a><a class="chip" href="#parametrosZ" data-t="parametrosZ">Parámetros Z</a><a class="chip" href="#progreso" data-t="progreso">Mi progreso</a><a class="chip" href="#glosario" data-t="glosario">Glosario</a><a class="chip" href="#drogas" data-t="drogas">Drogas a evitar</a><a class="chip" href="#recursos" data-t="recursos">Recursos: simulador y algoritmos</a></div>
+  <nav class="topnav" id="topnav">
+    <div class="navgroup">
+      <button class="navbtn" id="navCasos" type="button">Casos
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="navmenu" id="menuCasos" hidden>
+        <a class="navlink" href="#fasciculos" data-t="fasciculos">Fascículos</a>
+        <a class="navlink" href="#diagnosticos" data-t="diagnosticos">Diagnósticos</a>
+        <a class="navlink" href="#patrones" data-t="patrones">Patrones</a>
+        <a class="navlink" href="#examen" data-t="examen">Examen</a>
+        <a class="navlink" href="#progreso" data-t="progreso">Mi progreso</a>
+      </div>
+    </div>
+    <div class="navgroup">
+      <button class="navbtn" id="navHerramientas" type="button">Herramientas
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="navmenu" id="menuHerramientas" hidden>
+        <a class="navlink" href="#scores" data-t="scores">Scores</a>
+        <a class="navlink" href="#parametrosZ" data-t="parametrosZ">Parámetros Z</a>
+        <a class="navlink" href="#drogas" data-t="drogas">Drogas a evitar</a>
+        <a class="navlink" href="#valores" data-t="valores">QTc y valores por edad</a>
+      </div>
+    </div>
+    <a class="navbtn navlink" href="#recursos" data-t="recursos">Recursos</a>
+    <a class="navbtn navlink" href="#glosario" data-t="glosario">Glosario</a>
+  </nav>
 </header>
+<div class="navbackdrop" id="navBackdrop" hidden></div>
+<div id="toast" class="toast" hidden></div>
 <main id="app"></main>
 <div id="lb" onclick="this.style.display='none'"><img alt=""></div>
 <script src="casos.js"></script>
@@ -138,49 +203,116 @@ let seenFecha = {};
 try { seenFecha = JSON.parse(localStorage.getItem('bc_seen_fecha') || '{}'); } catch (e) {}
 const marcarFechaRepaso = id => { seenFecha[id] = new Date().toISOString().slice(0, 10); try { localStorage.setItem('bc_seen_fecha', JSON.stringify(seenFecha)); } catch (e) {} };
 const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-// Tema claro/oscuro: oscuro por default (no depende de que el navegador avise el modo del sistema). Se guarda en este navegador.
-(function () {
-  const TK = 'bc_theme'; let t = 'dark'; try { t = localStorage.getItem(TK) || 'dark'; } catch (e) {}
-  const aplicar = tema => {
-    document.documentElement.dataset.theme = tema;
-    const btn = document.getElementById('themeToggle'); if (btn) btn.textContent = tema === 'light' ? '🌙 Oscuro' : '☀️ Claro';
-    const mc = document.getElementById('themeColorMeta'); if (mc) mc.content = tema === 'light' ? '#b3261e' : '#ff8a80';
-  };
-  aplicar(t);
-  document.getElementById('themeToggle').onclick = () => { t = t === 'light' ? 'dark' : 'light'; try { localStorage.setItem(TK, t); } catch (e) {} aplicar(t); };
-})();
+// Tema claro/oscuro: 100% CSS por prefers-color-scheme (ver :root arriba). Sin JS ni localStorage para esto.
+
+// ---------- Toast: confirmación breve (p. ej. "alias copiado") ----------
+function toast(msg, ms) {
+  const t = document.getElementById('toast'); if (!t) return;
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toast._tm); toast._tm = setTimeout(() => { t.hidden = true; }, ms || 3500);
+}
+
+// ---------- Colaborá con el banco: copiar alias de transferencia ----------
+document.getElementById('btnColabora').onclick = async () => {
+  const alias = 'docseba79';
+  try { await navigator.clipboard.writeText(alias); }
+  catch (e) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = alias; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    } catch (e2) {}
+  }
+  toast('Alias copiado ✓ — Pegalo en tu banco o billetera → Transferir → por Alias', 4500);
+};
+
+// ---------- Nav superior: "Casos" y "Herramientas" despliegan un submenú (dropdown en escritorio, hoja inferior en celular) ----------
+function closeMenus() {
+  document.querySelectorAll('.navmenu').forEach(m => m.hidden = true);
+  document.querySelectorAll('.navbtn').forEach(b => b.classList.remove('open'));
+  const bd = document.getElementById('navBackdrop'); if (bd) bd.hidden = true;
+}
+function toggleMenu(key) {
+  const menu = document.getElementById('menu' + key), btn = document.getElementById('nav' + key);
+  const abrir = menu.hidden;
+  closeMenus();
+  if (abrir) { menu.hidden = false; btn.classList.add('open'); document.getElementById('navBackdrop').hidden = false; }
+}
+document.getElementById('navCasos').onclick = () => { toggleMenu('Casos'); if (location.hash !== '') location.hash = ''; };
+document.getElementById('navHerramientas').onclick = () => toggleMenu('Herramientas');
+document.getElementById('navBackdrop').onclick = closeMenus;
+document.querySelectorAll('.navmenu').forEach(m => m.addEventListener('click', e => { if (e.target.closest('a')) closeMenus(); }));
+document.addEventListener('click', e => { if (!e.target.closest('.navgroup')) closeMenus(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenus(); });
+
 const app = document.getElementById('app');
 const state = { q: '', f: '', tag: '', solo: false };
 
-function list() {
-  const nq = norm(state.q.trim());
-  const res = C.filter(c => (!state.f || c.f == state.f) && (!state.tag || c.tags.includes(state.tag)) &&
-    (!nq || nq.split(/\s+/).every(w => c.blobN.includes(w))) && (!state.solo || !seen[c.id]));
-  const fas = [...new Set(C.map(c => c.f))];
-  app.innerHTML = (S ? `<a class="card semana" href="#semana">
+// ---------- Portada ("Casos"): destaca el caso de la semana; browsear/filtrar vive en "Fascículos" ----------
+function heroSemana() {
+  if (S) return `<a class="card semana" href="#semana">
     ${S.imgs.length ? `<img src="imagenes_web/${S.imgs[0].a}" alt="Trazado del caso de la semana">` : ''}
     <div class="meta">CASO DE LA SEMANA${S.fecha ? ' · ' + fechaCorta(S.fecha) : ''}${seen[S.id] ? ' · ✓ repasado' : ''}</div>
     <h3>${esc(S.titulo)}</h3>
     <p class="snip">${esc(S.vineta.slice(0, 200))}${S.vineta.length > 200 ? '…' : ''}</p>
-    <div class="meta">${devBloqueada(S) ? 'Devolución disponible el ' + fechaCorta(S.devFecha) : 'Devolución disponible'} · <b>Resolver el caso →</b></div></a>` : '') + `
-  <div class="bar">
-    <input type="search" id="q" placeholder="Buscar: diagnóstico, fármaco, palabra clave…" value="${esc(state.q)}">
-    <div class="row">
-      <select id="f"><option value="">Todos los fascículos</option>${fas.map(f => `<option value="${f}" ${state.f == f ? 'selected' : ''}>${f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f}</option>`).join('')}</select>
-      <select id="solo"><option value="">Todos los casos</option><option value="1" ${state.solo ? 'selected' : ''}>Solo los que no repasé</option></select>
+    <div class="meta">${devBloqueada(S) ? 'Devolución disponible el ' + fechaCorta(S.devFecha) : 'Devolución disponible'} · <b>Resolver el caso →</b></div></a>`;
+  // Sin caso activo: si hay archivo de semanas anteriores, mostramos el más reciente como fallback.
+  const archivo = window.SEMANA_ARCHIVO || [];
+  if (archivo.length) {
+    const w = archivo[archivo.length - 1], c = C.find(x => x.id === (w.id || ('semana-' + w.fecha)));
+    if (c) return `<a class="card semana" href="#${c.id}">
+      ${c.imgs.length ? `<img src="imagenes_web/${c.imgs[0].a}" alt="Trazado del último caso de la semana">` : ''}
+      <div class="meta">ÚLTIMO CASO DE LA SEMANA${c.fecha ? ' · ' + fechaCorta(c.fecha) : ''}${seen[c.id] ? ' · ✓ repasado' : ''}</div>
+      <h3>${esc(c.titulo)}</h3>
+      <p class="snip">${esc(c.vineta.slice(0, 200))}${c.vineta.length > 200 ? '…' : ''}</p>
+      <div class="meta"><b>Resolver el caso →</b></div></a>`;
+  }
+  // Ni caso activo ni archivo: estado vacío prolijo, invita a explorar por fascículo.
+  return `<div class="card hero-empty">
+    <p class="hint" style="margin:0 0 14px">Todavía no hay un caso de la semana cargado.</p>
+    <a href="#fasciculos"><button class="primary" type="button">Explorar por fascículo →</button></a></div>`;
+}
+function list() {
+  app.innerHTML = `<div class="case">
+    <h2 style="margin:4px 0 2px">Banco de casos</h2>
+    <p class="hint" style="margin:0 0 14px">El caso de la semana. Desde acá recorrés los 110 casos por fascículo, incluidos los de semanas anteriores.</p>
+    ${heroSemana()}
+    <a class="card" href="#fasciculos" style="display:flex;align-items:center;gap:14px;margin-top:12px">
+      <div style="flex:1"><h3 style="margin:0 0 3px">Fascículos</h3>
+        <p class="snip" style="margin:0">Buscar y filtrar los 110 casos por fascículo o palabra clave.</p></div>
+      <span style="font-size:1.4rem;color:var(--acc2)" aria-hidden="true">→</span>
+    </a>
+  </div>`;
+}
+// ---------- Fascículos: buscar/filtrar casos por fascículo (incluye "Casos de la semana" = semana_archivo.js) ----------
+function fasciculos() {
+  const nq = norm(state.q.trim());
+  const res = C.filter(c => (!state.f || c.f == state.f) && (!state.tag || c.tags.includes(state.tag)) &&
+    (!nq || nq.split(/\s+/).every(w => c.blobN.includes(w))) && (!state.solo || !seen[c.id]));
+  const fas = [...new Set(C.map(c => c.f))];
+  app.innerHTML = `<div class="case">
+    <h2 style="margin:4px 0 2px">Fascículos</h2>
+    <p class="hint" style="margin:0 0 14px">Los 110 casos organizados por fascículo, incluidos los de semanas anteriores.</p>
+    <div class="bar" style="position:static;border-bottom:0;padding:0">
+      <input type="search" id="q" placeholder="Buscar: diagnóstico, fármaco, palabra clave…" value="${esc(state.q)}">
+      <div class="row">
+        <select id="f"><option value="">Todos los fascículos</option>${fas.map(f => `<option value="${f}" ${state.f == f ? 'selected' : ''}>${f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f}</option>`).join('')}</select>
+        <select id="solo"><option value="">Todos los casos</option><option value="1" ${state.solo ? 'selected' : ''}>Solo los que no repasé</option></select>
+      </div>
+      ${state.tag ? `<div class="chips"><span class="chip on">Tema: ${esc(state.tag)}</span><span class="chip" id="clearTag">Quitar filtro ✕</span></div>` : ''}
     </div>
-    <div class="chips">${TAGS.map(t => `<span class="chip ${state.tag == t[0] ? 'on' : ''}" data-tag="${t[0]}">${t[0]}</span>`).join('')}</div>
-  </div>
-  <div class="count">${res.length} de ${C.length} casos</div>
-  <div class="list">${res.map(c => `<a class="card ${seen[c.id] ? 'done' : ''}" href="#${c.id}">
-    <h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} —${esc(c.titulo)}${c.borrador ? '<span class="badge">borrador</span>' : ''}${seen[c.id] ? ' ✓' : ''}</h3>
-    <div class="meta">${c.preguntas.length} pregunta${c.preguntas.length == 1 ? '' : 's'}${seenScore[c.id] ? ` · último puntaje ${seenScore[c.id].ok}/${seenScore[c.id].tot}` : ''}${c.tags.length ? ' · ' + c.tags.join(' · ') : ''}</div>
-    <p class="snip">${esc(c.vineta.slice(0, 170))}${c.vineta.length > 170 ? '…' : ''}</p></a>`).join('')}</div>`;
+    <div class="count">${res.length} de ${C.length} casos</div>
+    <div class="list">${res.map(c => `<a class="card ${seen[c.id] ? 'done' : ''}" href="#${c.id}">
+      <h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} —${esc(c.titulo)}${c.borrador ? '<span class="badge">borrador</span>' : ''}${seen[c.id] ? ' ✓' : ''}</h3>
+      <div class="meta">${c.preguntas.length} pregunta${c.preguntas.length == 1 ? '' : 's'}${seenScore[c.id] ? ` · último puntaje ${seenScore[c.id].ok}/${seenScore[c.id].tot}` : ''}${c.tags.length ? ' · ' + c.tags.join(' · ') : ''}</div>
+      <p class="snip">${esc(c.vineta.slice(0, 170))}${c.vineta.length > 170 ? '…' : ''}</p></a>`).join('')}</div>
+  </div>`;
   const q = document.getElementById('q');
-  q.oninput = e => { state.q = e.target.value; const p = e.target.selectionStart; list(); const n = document.getElementById('q'); n.focus(); n.setSelectionRange(p, p); };
-  document.getElementById('f').onchange = e => { state.f = e.target.value; list(); };
-  document.getElementById('solo').onchange = e => { state.solo = !!e.target.value; list(); };
-  document.querySelectorAll('.chip').forEach(el => el.onclick = () => { state.tag = state.tag == el.dataset.tag ? '' : el.dataset.tag; list(); });
+  q.oninput = e => { state.q = e.target.value; const p = e.target.selectionStart; fasciculos(); const n = document.getElementById('q'); n.focus(); n.setSelectionRange(p, p); };
+  document.getElementById('f').onchange = e => { state.f = e.target.value; fasciculos(); };
+  document.getElementById('solo').onchange = e => { state.solo = !!e.target.value; fasciculos(); };
+  const ct = document.getElementById('clearTag'); if (ct) ct.onclick = () => { state.tag = ''; fasciculos(); };
 }
 
 const imgs = (arr) => arr.length ? `<div class="imgs">${arr.map(i => `<img src="${i.includes('/') ? i : 'imagenes_web/' + i}" loading="lazy" alt="Trazado" onclick="zoom(this)">`).join('')}</div>` : '';
@@ -360,7 +492,7 @@ function patrones() {
   const q = document.getElementById('pq');
   if (q) q.oninput = e => { PT.q = e.target.value; const c = e.target.selectionStart; patrones(); const n = document.getElementById('pq'); n.focus(); n.setSelectionRange(c, c); };
   app.querySelectorAll('.chip[data-c]').forEach(el => el.onclick = () => { PT.cat = PT.cat === el.dataset.c ? '' : el.dataset.c; patrones(); });
-  app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = ''; });
+  app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = 'fasciculos'; });
 }
 // ---------- Scores clínicos (scores.js): calculadoras por criterios con puntaje ----------
 // Motor genérico de calculadoras por criterios (grupos con puntaje) o por fórmula (campos + calc). Lo usan
@@ -470,7 +602,7 @@ function progreso() {
     <div class="list">${temas.map(([t, v]) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(t)}</b> · ${pct(v.ok, v.tot)} % correctas (${v.ok} de ${v.tot})${bar(pct(v.ok, v.tot))}<div style="margin-top:6px"><button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div></div>`).join('')}</div>
     <h3>Exámenes</h3>${H.length ? `<div class="list">${H.slice(-10).reverse().map(h => `<div class="card" style="cursor:default;padding:8px 12px">${fechaCorta(h.d)} · <b>${h.ok} de ${h.n}</b> (${pct(h.ok, h.n)} %)${bar(pct(h.ok, h.n))}<div class="meta">${esc(h.tag || 'Todos los temas')}${h.f ? ' · ' + nombreF(h.f) : ''}</div></div>`).join('')}</div>` : '<p class="hint">Todavía no hiciste ningún examen.</p>'}
     <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div></div>`;
-  app.querySelectorAll('button[data-tag]').forEach(b => b.onclick = () => { state.tag = b.dataset.tag; state.q = ''; state.f = ''; state.solo = false; location.hash = ''; });
+  app.querySelectorAll('button[data-tag]').forEach(b => b.onclick = () => { state.tag = b.dataset.tag; state.q = ''; state.f = ''; state.solo = false; location.hash = 'fasciculos'; });
   document.getElementById('pborrar').onclick = () => { if (confirm('¿Borrar tus casos repasados, puntajes y exámenes de este navegador?')) { seen = {}; seenScore = {}; seenFecha = {}; try { ['bc_seen', 'bc_score', 'bc_seen_fecha', EXK].forEach(k => localStorage.removeItem(k)); } catch (e) {} progreso(); } };
 }
 // ---------- Glosario (glosario.js) ----------
@@ -484,7 +616,7 @@ function glosario() {
     <div class="list">${res.map(x => `<div class="card" style="cursor:default"><h3>${esc(x.sigla)}${x.termino ? ' — ' + esc(x.termino) : ''}</h3>${x.definicion ? `<p class="snip">${esc(x.definicion)}</p>` : ''}${x.buscar ? `<button class="ghost" data-q="${esc(x.buscar)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></div>`;
   const q = document.getElementById('glq');
   if (q) q.oninput = e => { GL.q = e.target.value; const p = e.target.selectionStart; glosario(); const n = document.getElementById('glq'); n.focus(); n.setSelectionRange(p, p); };
-  app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = ''; });
+  app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = 'fasciculos'; });
 }
 // ---------- Drogas a evitar (drogas.js): dos listas (QT largo congénito y Brugada), cada una con su propio filtro. ----------
 let DR = { tab: 'qt', q: '' };
@@ -547,9 +679,14 @@ function pintarEstadisticas(d) {
     <h3>Por país</h3><div class="list">${d.por_pais.map(p => `<div class="card" style="cursor:default">${esc(p.pais)} · <b>${p.n}</b></div>`).join('')}</div>
     <p class="hint">Generado el ${new Date(d.generado).toLocaleString('es-AR')}. Los datos individuales (nombre, mail, ciudad) siguen solo en tu planilla de Google.</p>`;
 }
-const VISTAS = { recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, drogas, estadisticas };
+const VISTAS = { recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, drogas, estadisticas, fasciculos };
+// Grupos de la nav de arriba, para resaltar "Casos"/"Herramientas" cuando la vista activa es una de las suyas.
+const NAV_GRUPOS = { Casos: ['fasciculos', 'diagnosticos', 'patrones', 'examen', 'progreso'], Herramientas: ['scores', 'parametrosZ', 'drogas', 'valores'] };
 function route() { const h = location.hash.slice(1);
-  document.querySelectorAll('#tabs .chip').forEach(a => a.classList.toggle('on', a.dataset.t === (VISTAS[h] ? h : 'casos')));
+  const enCasos = h === '' || NAV_GRUPOS.Casos.includes(h) || (h && !VISTAS[h] && h !== 'estadisticas');   // '' o un caso (#f1c2, #semana…) cuentan como "Casos"
+  document.getElementById('navCasos').classList.toggle('active', enCasos);
+  document.getElementById('navHerramientas').classList.toggle('active', NAV_GRUPOS.Herramientas.includes(h));
+  document.querySelectorAll('.navlink').forEach(a => a.classList.toggle('active', a.dataset.t === h));
   VISTAS[h] ? (VISTAS[h](), window.scrollTo(0, 0)) : h ? detail(h) : list(); }
 // ---------- Registro de usuarios (registro.js): formulario de primera vez ----------
 const RG = window.REGISTRO || {}, RGK = 'bc_registro', RGP = 'bc_registro_pend', RGV = 'bc_registro_visita';
