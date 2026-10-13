@@ -642,6 +642,7 @@ function pintarDrogasQT() {
   const box = document.getElementById('drBox'), Q = window.DROGAS.qt, nq = norm(DR.q.trim());
   const res = Q.items.filter(([g, m]) => !nq || nq.split(/\s+/).every(w => norm(g + ' ' + m).includes(w)));
   box.innerHTML = `<p class="hint">${esc(Q.fuente)}</p>
+    <p><a href="recursos/drogas_qt_largo_crediblemeds.pdf"><button class="ghost" type="button">Descargar PDF original (CredibleMeds)</button></a></p>
     <input type="search" id="drq" placeholder="Buscar droga…" value="${esc(DR.q)}"><div class="count">${res.length} de ${Q.items.length} medicamentos</div>
     <div class="list">${res.map(([g, m, r]) => `<div class="card" style="cursor:default"><h3>${esc(g)} <span class="badge" title="${esc(Q.categorias[r])}">${r}</span></h3>${m ? `<p class="meta">${esc(m)}</p>` : ''}</div>`).join('')}</div>
     <div class="warn" style="margin-top:14px">${esc(Q.aviso)}</div>`;
@@ -651,6 +652,7 @@ function pintarDrogasQT() {
 function pintarDrogasBrugada() {
   const box = document.getElementById('drBox'), B = window.DROGAS.brugada, nq = norm(DR.q.trim());
   box.innerHTML = `<p class="hint">${esc(B.fuente)}</p>
+    <p><a href="recursos/drogas_brugada.pdf"><button class="ghost" type="button">Descargar PDF original</button></a></p>
     <input type="search" id="drq" placeholder="Buscar droga…" value="${esc(DR.q)}">
     ${B.grupos.map(gr => {
       const items = gr.items.filter(it => !nq || nq.split(/\s+/).every(w => norm(it.g + ' ' + (it.m || '') + ' ' + it.uso).includes(w)));
