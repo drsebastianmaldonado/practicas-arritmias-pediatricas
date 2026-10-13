@@ -1,0 +1,561 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Fallas del Marcapasos Transitorio</title>
+<style>
+/* Layout: columna única tipo iOS (inset grouped), título grande, tarjeta de contacto y control segmentado AAI / DDD / VVI */
+:root{
+  --bg:#f2f2f7;
+  --card:#ffffff;
+  --ink:#0b0b10;
+  --ink2:#6c6c74;
+  --line:#e3e3e8;
+  --blue:#0a74f0;
+  --blue-soft:#e4f0ff;
+  --green:#1faa4a;
+  --green-ink:#ffffff;
+  --orange:#d97a00;
+  --orange-soft:#fff1de;
+  --red:#e0352b;
+  --grid:#f6d3d3;
+  --gridM:#eeb4b4;
+  --violet:#7a3fd0;
+  --grid2:#fbe9e9;
+  --seg:#e4e4ea;
+  --seg-on:#ffffff;
+  --shadow:0 1px 2px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.05);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#9c9ca4;--line:#2e2e32;--blue:#4aa3ff;--blue-soft:#10263d;
+  --green:#30d158;--green-ink:#05220f;--orange:#ffa733;--orange-soft:#33240c;--red:#ff6259;--grid:#3a2224;--gridM:#5c3438;--violet:#a98bff;--grid2:#2b1c1e;
+  --seg:#1c1c1e;--seg-on:#3a3a3e;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#9c9ca4;--line:#2e2e32;--blue:#4aa3ff;--blue-soft:#10263d;
+  --green:#30d158;--green-ink:#05220f;--orange:#ffa733;--orange-soft:#33240c;--red:#ff6259;--grid:#3a2224;--gridM:#5c3438;--violet:#a98bff;--grid2:#2b1c1e;
+  --seg:#1c1c1e;--seg-on:#3a3a3e;--shadow:none;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:flex;flex-direction:column;gap:18px}
+h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margin:0;font-weight:800;text-wrap:balance}
+.eyebrow{font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px}
+.card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);min-width:0}
+
+
+/* encabezado: banda con degradé suave, ícono, título grande y datos del médico (mismo formato que Manejo de arritmias en el POP) */
+.hero{--hc:var(--blue);margin:-20px -16px 0;padding:44px 20px 26px;border-radius:0 0 32px 32px;background:linear-gradient(165deg,color-mix(in srgb,var(--hc) 30%,var(--bg)),color-mix(in srgb,var(--hc) 6%,var(--bg)))}
+.hicon{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;color:#fff;background:linear-gradient(135deg,var(--hc),color-mix(in srgb,var(--hc) 62%,#000));box-shadow:0 6px 16px color-mix(in srgb,var(--hc) 35%,transparent)}
+.hicon svg{width:26px;height:26px}
+.hero h1{margin:16px 0 6px;font-size:clamp(32px,9.4vw,40px);font-weight:800;letter-spacing:-.035em;line-height:1.06}
+.hero .sub{margin:0;color:var(--ink2);font-size:16px;max-width:44ch}
+.prof{margin:0;padding:11px 0 13px;border-top:.5px solid var(--line);border-bottom:.5px solid var(--line)}
+.pname{font-size:15px;font-weight:600}
+.prole{font-size:12px;line-height:1.35;color:var(--ink2);margin-top:1px;max-width:44ch}
+.pact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:9px}
+.wa{display:inline-flex;align-items:center;gap:8px;background:#1f9d55;color:#fff;border-radius:99px;padding:7px 13px;min-height:0;font-size:13px;font-weight:600;text-decoration:none}
+.wa svg{width:15px;height:15px}
+.wa:active{opacity:.75}
+.mailbtn{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);min-width:0;appearance:none;border:0;background:none;font-family:inherit;padding:0;cursor:pointer;text-align:left}
+.mailtxt{user-select:all;overflow-wrap:anywhere}
+.mailcp{color:var(--blue);flex:none;display:grid;place-items:center;width:24px;height:24px}
+.mailcp svg{width:15px;height:15px}
+
+.btn{appearance:none;border:0;background:var(--blue-soft);color:var(--blue);font:inherit;font-weight:600;font-size:14px;border-radius:999px;padding:8px 14px;cursor:pointer;min-height:36px}
+.btn:active{opacity:.6}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+/* control segmentado */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--seg);border-radius:12px;padding:3px;gap:2px}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink);font:inherit;font-weight:700;font-size:17px;padding:10px 0;border-radius:9px;cursor:pointer;letter-spacing:.02em;transition:background .2s,box-shadow .2s}
+.seg button[aria-selected="true"]{background:var(--seg-on);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.modeinfo{margin:0;color:var(--ink2);font-size:14px;padding-inline:4px}
+
+/* modo práctica */
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+.row b{display:block;font-size:16px}
+.row small{color:var(--ink2);font-size:13px}
+.sw{position:relative;flex:none;width:51px;height:31px;border-radius:999px;background:var(--seg);border:0;cursor:pointer;transition:background .2s;padding:0}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:transform .2s}
+.sw[aria-checked="true"]{background:var(--green)}
+.sw[aria-checked="true"]::after{transform:translateX(20px)}
+
+
+/* acordeón de modos */
+.modes{display:flex;flex-direction:column;gap:12px}
+.modelabel{margin:4px 4px -2px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.modewrap{overflow:hidden}
+.acc{width:100%;display:flex;align-items:center;gap:14px;padding:16px;text-align:left;appearance:none;border:0;background:none;font:inherit;color:inherit;cursor:pointer}
+.acc:active{opacity:.6}
+.acc .ab{flex:none;min-width:54px;text-align:center;padding:7px 10px;border-radius:11px;color:#fff;font-weight:700;font-size:15px;letter-spacing:.05em;background:linear-gradient(135deg,var(--blue),color-mix(in srgb,var(--blue) 62%,#000))}
+.acc .rt{flex:1;min-width:0}
+.acc .rt b{display:block;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.acc .rt small{display:block;color:var(--ink2);font-size:14px;margin-top:1px}
+.accchev{width:13px;height:9px;color:var(--ink2);flex:none;transition:transform .28s ease}
+.accchev.open{transform:rotate(180deg)}
+.panel{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .3s ease,visibility 0s .3s}
+.panel.open{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .3s ease,visibility 0s}
+.pin{overflow:hidden;min-height:0}
+.pbody{padding:2px 12px 14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel .card{background:var(--bg);box-shadow:none}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--bg);border-radius:14px}
+.prow b{display:block;font-size:15px}
+.prow small{color:var(--ink2);font-size:13px}
+@media(prefers-reduced-motion:reduce){.panel,.accchev{transition:none!important}}
+
+/* modo práctica */
+.practice{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;text-align:left;appearance:none;border:0;font:inherit;color:inherit;cursor:pointer;border-radius:16px;background:linear-gradient(145deg,color-mix(in srgb,var(--violet) 24%,var(--card)),color-mix(in srgb,var(--violet) 6%,var(--card)))}
+.practice:active{opacity:.7}
+.practice .pico{flex:none;width:36px;height:36px;border-radius:11px;--hc:var(--violet)}
+.practice .pico svg{width:20px;height:20px}
+.practice .rt{flex:1;min-width:0}
+.practice .rt b{display:block;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.practice .rt small{display:block;color:var(--ink2);font-size:13px;line-height:1.3;margin-top:1px}
+.practice .go{flex:none;color:var(--violet);font-weight:700;font-size:13px}
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 0}
+.qcount{font-size:14px;font-weight:600;color:var(--ink2);font-variant-numeric:tabular-nums}
+.qbar{height:5px;border-radius:99px;background:var(--seg);margin:12px 16px 4px;overflow:hidden}
+.qbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--violet),color-mix(in srgb,var(--violet) 60%,#e04aa0));transition:width .3s ease}
+.q-opts{display:flex;flex-direction:column;gap:8px;padding:14px 16px 4px}
+.qopt{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;appearance:none;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:16px;font-weight:600;border-radius:14px;padding:13px 14px;min-height:48px;cursor:pointer;transition:border-color .15s,background .15s,opacity .15s}
+.qopt:active:not(:disabled){opacity:.6}
+.qopt:disabled{cursor:default}
+.qopt i{font-style:normal;font-weight:800;flex:none}
+.qopt.good{border-color:var(--green);background:color-mix(in srgb,var(--green) 16%,var(--bg))}
+.qopt.good i{color:var(--green)}
+.qopt.bad{border-color:var(--red);background:color-mix(in srgb,var(--red) 14%,var(--bg))}
+.qopt.bad i{color:var(--red)}
+.qopt.dim{opacity:.5}
+.fb{margin:12px 16px 0;padding:14px;border-radius:14px;font-size:14px;line-height:1.45}
+.fb.ok{background:color-mix(in srgb,var(--green) 14%,var(--bg))}
+.fb.bad{background:color-mix(in srgb,var(--orange) 16%,var(--bg))}
+.fb p{margin:6px 0 0;color:var(--ink2)}
+.fb .fbt{font-weight:800;font-size:16px;color:var(--ink)}
+.fb b{color:var(--ink)}
+.fb .fbd{font-size:13px}
+.nxt{display:block;width:calc(100% - 32px);margin:12px 16px 16px;appearance:none;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--violet),color-mix(in srgb,var(--violet) 62%,#000));cursor:pointer}
+.nxt:active{opacity:.8}
+.q .case-h h2{font-size:19px}
+.result .score{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:22px 16px 0}
+.result .score b{font-size:76px;line-height:1;font-weight:800;letter-spacing:-.04em;background:linear-gradient(135deg,var(--violet),color-mix(in srgb,var(--violet) 55%,#e04aa0));-webkit-background-clip:text;background-clip:text;color:transparent}
+.result .score span{font-size:24px;font-weight:700;color:var(--ink2)}
+.result .pct{text-align:center;color:var(--ink2);font-size:14px;margin-top:2px}
+.result h2{margin:14px 16px 0;text-align:center;font-size:22px;letter-spacing:-.015em;text-wrap:balance}
+.result .rtext{margin:8px 20px 0;text-align:center;color:var(--ink2);font-size:15px}
+.rlist{list-style:none;margin:16px 16px 0;padding:0;display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line)}
+.rlist li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rlist .mk{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800}
+.rlist .ok .mk{background:var(--green)}
+.rlist .bad .mk{background:var(--red)}
+.rlist small{color:var(--ink2)}
+.result .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+@media (max-width:420px){.result .two{grid-template-columns:1fr}}
+.result .two .btn{border-radius:12px;padding:12px}
+
+.dxchip{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:12px 16px 0;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--orange) 14%,var(--bg))}
+.dxchip span{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
+.dxchip b{font-size:16px;font-weight:700}
+.rleg{margin:16px 16px 0;font-size:13px;color:var(--ink2)}
+.rleg span{display:inline-flex;align-items:center;gap:8px}
+.rlist li{align-items:flex-start}
+.rlist .mks{flex:none;display:flex;gap:4px}
+.rlist .mk.ok{background:var(--green)}
+.rlist .mk.bad{background:var(--red)}
+.rleg .mk{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-size:11px;font-weight:800;background:var(--green)}
+
+/* casos */
+.cases{display:flex;flex-direction:column;gap:14px}
+.case{overflow:hidden}
+.case-h{padding:14px 16px 4px}
+.case-h .tag{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
+.case-h h2{margin:2px 0 0;font-size:20px;letter-spacing:-.01em;line-height:1.2;text-wrap:balance}
+.ecg{margin:10px 16px 0;border-radius:12px;overflow:hidden;border:1px solid var(--line);
+  background-color:var(--grid2)}
+.ecg .gm,.ecg .gM{fill:none;vector-effect:non-scaling-stroke}
+.ecg .gm{stroke:var(--grid);stroke-width:.6}
+.ecg .gM{stroke:var(--gridM);stroke-width:1.1}
+.ecg svg{display:block;width:100%;height:auto}
+.ecg .tr{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ecg .sp{stroke:var(--red);stroke-width:1.8;stroke-linecap:round}
+.ecg .br{fill:none;stroke:var(--ink2);stroke-width:1}
+.ecg .tx{fill:var(--ink2);font-size:9px;font-family:var(--font)}
+.cap{margin:8px 16px 0;font-size:13px;color:var(--ink2)}
+.chain{display:flex;flex-direction:column;margin-top:12px;border-top:1px solid var(--line)}
+.step{display:flex;gap:12px;padding:12px 16px;align-items:flex-start}
+.step+.step{border-top:1px solid var(--line)}
+.ico{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700}
+.ico.dx{background:var(--orange)}
+.ico.ac{background:var(--blue)}
+.step .lbl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.step .val{font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.step .why{font-size:14px;color:var(--ink2);margin-top:2px}
+.step > div{min-width:0}
+.hide{width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cross{padding:16px;display:flex;flex-direction:column;gap:12px}
+.cross p{margin:0;color:var(--ink2);font-size:14px}
+.cross .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.cross .two{grid-template-columns:1fr}}
+.cross .btn{border-radius:12px;padding:12px;text-align:center}
+.foot{font-size:12px;color:var(--ink2);text-align:center;padding-inline:8px;display:flex;flex-direction:column;gap:6px}
+.foot a{color:var(--blue)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main class="wrap">
+  <header class="hero">
+    <span class="hicon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13h5l2.5-7 4 14 2.5-7h8"/></svg></span>
+    <h1>Interpretando fallas en el marcapasos transitorio</h1>
+    <p class="sub">Modos AAI, DDD y VVI: qué se ve en el ECG, qué falla y qué hacer</p>
+  </header>
+
+  <section class="prof" aria-label="Contacto"><div class="pname">Dr. Sebastián Maldonado</div><div class="prole">Electrofisiólogo infantil · Htal. JP Garrahan y Hospital Italiano de Buenos Aires</div>
+    <div class="pact"><a class="wa" href="https://wa.me/5491131860600?text=Hola%20Dr.%20Maldonado%2C%20te%20escribo%20por%20una%20interconsulta%20sobre%20un%20paciente%20con%20marcapasos%20transitorio." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.700 6.700 0 0 1-3.300-2.900c-.2-.4.2-.4.700-1.300.1-.2 0-.3 0-.4l-.8-1.800c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.300-.9.900-.9 2.200s.9 2.500 1 2.700c.1.2 1.800 2.800 4.400 3.900 1.600.7 2.300.800 3.100.700.5-.1 1.500-.6 1.700-1.200.2-.6.2-1.100.2-1.200-.1-.1-.3-.2-.5-.3z"/></svg>Interconsulta por WhatsApp</a>
+    <button class="mailbtn" id="copy" type="button" aria-label="Copiar mail"><span class="mailtxt" id="mailtxt">drsebastian.maldonado@gmail.com</span><span class="mailcp" id="mailcp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.500 2.500 0 0 1 7.500 4H15"/></svg></span></button></div></section>
+
+  <section class="modes" id="modes" aria-label="Modo de marcapasos"></section>
+
+  <footer class="foot">
+    <span>Material didáctico con esquemas ilustrativos. No representa trazados reales ni reemplaza el criterio clínico.</span>
+    <span>Interconsultas: <a href="https://wa.me/5491131860600" target="_blank" rel="noopener">WhatsApp del Dr. Maldonado</a></span>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var B = 44; // línea de base del trazado
+
+  /* ---------- primitivas de trazado ---------- */
+  function spike(x){return {c:'sp',d:'M'+x+','+(B+3)+' V'+(B-14)};}
+  // Las ondas se guardan como tramos (a = inicio, d = trazo desde (a, línea de base)).
+  // compose() las une en UN solo trazo: la línea de base solo existe entre ondas.
+  function narrow(x){return {c:'w',a:x-6,d:'L'+(x-3)+','+(B+3)+' L'+x+','+(B-30)+' L'+(x+3)+','+(B+12)+' L'+(x+6)+','+B+' H'+(x+11)+' q6,-9 12,0'};}
+  function wide(x){return {c:'w',a:x,d:'L'+(x+3)+','+(B-26)+' Q'+(x+10)+','+(B+16)+' '+(x+16)+','+B+' H'+(x+20)+' q6,9 12,0'};}
+  function pw(x){return {c:'w',a:x-5,d:'q5,-8 10,0'};}
+  function rp(x){return {c:'w',a:x-5,d:'q5,7 10,0'};}
+  // QRS estimulado ancho seguido de una sola onda negativa: la P retrógrada fundida con la T
+  function pmtBeat(x){return {c:'w',a:x,d:'L'+(x+3)+','+(B-26)+
+    ' C'+(x+6)+','+(B-10)+' '+(x+8)+','+(B+5)+' '+(x+11)+','+(B+8)+
+    ' Q'+(x+15)+','+(B+17)+' '+(x+19)+','+(B+9)+
+    ' C'+(x+22)+','+(B+12)+' '+(x+25)+','+(B+22)+' '+(x+29)+','+(B+20)+
+    ' C'+(x+33)+','+(B+18)+' '+(x+37)+','+(B+6)+' '+(x+40)+','+B};}
+  function compose(el,w){
+    var waves=el.filter(function(e){return e.c==='w';}).sort(function(m,n){return m.a-n.a;});
+    var d='M0,'+B;
+    waves.forEach(function(w){d+=' H'+w.a+' '+w.d;});
+    d+=' H'+(w||W);
+    return [{c:'tr',d:d}].concat(el.filter(function(e){return e.c!=='w';}));
+  }
+  var W=320;
+
+  function build(kind){
+    var el=[], X=function(c){return 28+76*c;}, i, x;
+    if(kind==='A-sub'){
+      for(i=0;i<2;i++){x=X(i); el.push(pw(x+12),narrow(x+36));}
+      for(i=2;i<4;i++){x=X(i); el.push(pw(x+12),spike(x+12),narrow(x+36));}
+    } else if(kind==='A-over'){
+      var T=56, miss=14+2*T;               // espiga que no sale (sobresensado)
+      [14,14+T,215,215+T,215+2*T,215+3*T].forEach(function(x){el.push(spike(x),pw(x+10),narrow(x+30));});
+      // escape nodal unos 100 ms (12,5 unidades) después de donde habría caído el QRS: ciclo más lento que el estimulado
+      el.push(narrow(miss+30+12));
+    } else if(kind==='A-cap'){
+      for(i=0;i<4;i++){el.push(spike(X(i)));}
+      el.push(narrow(62),narrow(212));
+    } else if(kind==='V-sub'){
+      x=X(0); el.push(spike(x),wide(x+2));
+      for(i=1;i<4;i++){x=X(i); el.push(narrow(x+14),spike(x+14));}
+    } else if(kind==='V-over'){
+      [0,3].forEach(function(i){x=X(i); el.push(spike(x),wide(x+2));});
+    } else if(kind==='V-cap'){
+      for(i=0;i<5;i++){el.push(spike(20+56*i));}
+      el.push(narrow(104),narrow(216));
+    } else if(kind==='D-asub'){
+      x=18; el.push(spike(x),pw(x+5),spike(x+30),wide(x+32));
+      for(i=1;i<3;i++){x=18+100*i; el.push(pw(x+5),spike(x+5),spike(x+30),wide(x+32));}
+    } else if(kind==='D-aover'){
+      x=18; el.push(spike(x),pw(x+5),spike(x+30),wide(x+32));
+      for(i=1;i<3;i++){x=18+100*i; el.push(spike(x+30),wide(x+32));}
+    } else if(kind==='D-acap'){
+      for(i=0;i<3;i++){x=14+115*i; el.push(spike(x),spike(x+30),wide(x+32));}
+    } else if(kind==='D-sub'){
+      var D0=function(c){return 18+100*c;};
+      x=D0(0); el.push(spike(x),pw(x+5),narrow(x+34));
+      for(i=1;i<3;i++){x=D0(i); el.push(spike(x),pw(x+5),narrow(x+34),spike(x+34));}
+    } else if(kind==='D-over'){
+      x=18; el.push(spike(x),pw(x+5),spike(x+30),wide(x+32));
+      for(i=1;i<3;i++){x=18+100*i; el.push(spike(x),pw(x+5));}
+    } else if(kind==='D-cap'){
+      for(i=0;i<4;i++){x=10+90*i; el.push(spike(x),pw(x+5),spike(x+30));}
+      for(i=0;i<3;i++){el.push(narrow(30+110*i));}
+    } else if(kind==='cross'){
+      for(i=0;i<3;i++){x=20+106*i; el.push(spike(x),wide(x+2),spike(x+44));}
+    } else if(kind==='pmt'){
+      for(i=0;i<6;i++){x=16+48*i; el.push(spike(x),pmtBeat(x+2));}
+    }
+    return compose(el,wOf(kind));
+  }
+  function wOf(kind){return kind==='A-over'?440:W;}
+  function svg(kind){
+    var h=kind==='pmt'?85:80, gw=wOf(kind), gm='', gM='', i;
+    for(i=0;i<=gw;i+=5){var t='M'+i+',0V'+h; if(i%25===0){gM+=t;}else{gm+=t;}}
+    for(i=0;i<=h;i+=5){var u='M0,'+i+'H'+gw; if(i%25===0){gM+=u;}else{gm+=u;}}
+    var p='<path class="gm" d="'+gm+'"/><path class="gM" d="'+gM+'"/>'+
+      build(kind).map(function(e){return '<path class="'+e.c+'" d="'+e.d+'"/>';}).join('');
+    if(kind==='pmt'){
+      p+='<path class="br" d="M64,64 v6 M112,64 v6 M64,67 H112"/><text class="tx" x="88" y="79" text-anchor="middle">R-R &lt; 400 ms</text>';
+    }
+    return '<svg viewBox="0 0 '+wOf(kind)+' '+h+'" role="img" aria-label="Esquema de trazado: '+kind+'">'+p+'</svg>';
+  }
+
+  /* ---------- contenido clínico ---------- */
+  var SENS='Bajar sensibilidad (más sensible)', SENS2='Subir sensibilidad (menos sensible)', OUT='Aumentar la salida';
+  var NOTE_SENS='En mV, un valor más bajo hace al generador más sensible.';
+  function trio(ch){
+    var a=ch==='A', n=a?'auricular':'ventricular', w=a?'onda P':'QRS', k=a?'A':'V';
+    return [
+      {find:'Espiga sobre '+(a?'onda P':'QRS'), dx:'Subsensado '+n, act:SENS, ico:'sens', ecg:k+'-sub',
+       cap:a?'Los primeros dos latidos tienen P y QRS propios. En los dos últimos la espiga cae sobre la onda P: no la detecta.':'Actividad propia visible y espiga que cae encima: no la detecta.',
+       why:'El generador no detecta la actividad propia y descarga igual, coincidiendo con la '+w+'. '+NOTE_SENS},
+      {find:'Ausencia de '+(a?'onda P y espiga':'QRS y espiga'), dx:'Sobresensado '+n, act:SENS2, ico:'sens', ecg:k+'-over',
+       cap:a?'Dos latidos con estimulación auricular. Donde debería caer la tercera espiga no sale nada. Aparece un escape nodal con un ciclo más lento que la estimulación previa y luego se reanuda la estimulación auricular con captura.':'Pausa sin espiga ni actividad: el generador se inhibe.',
+       why:'Detecta señales que no corresponden a la '+(a?'P':'despolarización ventricular')+' (artefactos, miopotenciales, ondas T o R) y se inhibe. Subir el valor en mV lo hace menos sensible.'},
+      {find:'Presencia de espiga sin '+w, dx:'Falla de captura '+n, act:OUT, ico:'out', ecg:k+'-cap',
+       cap:a?'Espigas auriculares regulares sin onda P y escape nodal lento (QRS angosto).':'Espigas regulares sin captura y dos escapes nodales (QRS angosto) que aparecen entre ellas.',
+       why:'La espiga sale pero la energía no alcanza para despolarizar '+(a?'la aurícula. Sin P no hay conducción al ventrículo y aparece un escape nodal lento':'el ventrículo')+'. Subir los mA de salida.'}
+    ];
+  }
+  function dddA(){
+    return [
+      {find:'Espiga sobre onda P', dx:'Subsensado auricular', act:SENS, ico:'sens', ecg:'D-asub',
+       cap:'Primer latido con estimulación AV secuencial. Luego aparece la P propia con la espiga auricular en medio, seguida de estimulación ventricular (QRS ancho).',
+       why:'El canal auricular no detecta la P propia y la espiga auricular cae sobre ella. El generador sigue su secuencia y estimula el ventrículo tras el intervalo AV. '+NOTE_SENS},
+      {find:'Ausencia de onda P y espiga auricular', dx:'Sobresensado auricular', act:SENS2, ico:'sens', ecg:'D-aover',
+       cap:'Falta la espiga auricular y la P. Se ven espigas ventriculares con QRS ancho.',
+       why:'El canal auricular detecta señales que no son P (artefactos, miopotenciales), inhibe la espiga auricular y dispara la estimulación ventricular tras el intervalo AV. Subir el valor en mV lo hace menos sensible.'},
+      {find:'Presencia de espiga auricular sin onda P', dx:'Falla de captura auricular', act:OUT, ico:'out', ecg:'D-acap',
+       cap:'Espigas auriculares sin onda P, seguidas de estimulación ventricular (QRS ancho) a frecuencia baja.',
+       why:'La espiga auricular no despolariza la aurícula. Sin P propia, el generador estimula el ventrículo tras el intervalo AV, a la frecuencia mínima programada. Subir los mA de salida.'}
+    ];
+  }
+  function dddV(){
+    return [
+      {find:'Espiga sobre QRS', dx:'Subsensado ventricular', act:SENS, ico:'sens', ecg:'D-sub',
+       cap:'Primer latido: estimulación auricular con conducción AV conservada (QRS propio). Luego la espiga ventricular cae sobre el QRS.',
+       why:'El canal ventricular no detecta el QRS propio y descarga igual. '+NOTE_SENS},
+      {find:'Ausencia de QRS y espiga ventricular', dx:'Sobresensado ventricular', act:SENS2, ico:'sens', ecg:'D-over',
+       cap:'Espiga auricular y P, seguidas de una pausa sin espiga ni QRS ventricular.',
+       why:'El canal ventricular detecta señales que no son QRS (artefactos, miopotenciales, la espiga auricular) y se inhibe. Subir el valor en mV lo hace menos sensible.'},
+      {find:'Presencia de espiga ventricular sin QRS', dx:'Falla de captura ventricular', act:OUT, ico:'out', ecg:'D-cap',
+       cap:'Espiga auricular con P y espiga ventricular sin QRS. Escape nodal regular (QRS angosto) durante todo el trazado.',
+       why:'La aurícula captura, pero la espiga ventricular no despolariza el ventrículo. Subir los mA de salida.'}
+    ];
+  }
+  var DATA={
+    DDDA:{info:'Modo DDD con falla en el cable auricular. Cada ciclo tiene espiga auricular, onda P y espiga ventricular.', back:true, title:'DDD · Falla en cable auricular', cases:dddA()},
+    DDDV:{info:'Modo DDD con falla en el cable ventricular. Cada ciclo tiene espiga auricular, onda P y espiga ventricular.', back:true, title:'DDD · Falla en cable ventricular', cases:dddV()},
+    AAI:{info:'Estimula y sensa en la aurícula. Una falla en el cable auricular se interpreta con estas tres situaciones.', cases:trio('A')},
+    VVI:{info:'Estimula y sensa en el ventrículo. Una falla en el cable ventricular se interpreta con estas tres situaciones.', cases:trio('V')},
+    DDD:{info:'Estimula y sensa en ambas cámaras. Cada cable se interpreta como en AAI o VVI, y además hay dos problemas propios del modo DDD.',
+      go:true,
+      cases:[
+        {find:'Doble espiga, siendo la primera con captura de QRS', dx:'Entrecruzamiento de cables', act:'Invertir conexión de cables', ico:'cab', ecg:'cross',
+         cap:'Espiga 1 con captura. Espiga 2 sin captura. QRS ancho tras la 1ª espiga.',
+         why:'Los cables auricular y ventricular están conectados al revés en el generador.'},
+        {find:'Taquicardia solo con estimulación ventricular', dx:'Taquicardia mediada por marcapasos', act:'Aumentar el PVARP', ico:'pv', ecg:'pmt',
+         cap:'Espiga V y QRS ancho estimulado. Dentro del segmento ST negativo se ve la P retrógrada (VA corto), que deforma la onda T. R-R < 400 ms, frecuencia cercana a 150 lpm, en el límite superior (URL).',
+         why:'La P retrógrada es sensada y dispara un nuevo estímulo ventricular. Con un PVARP más largo, esa P cae en período refractario.'}
+      ]}
+  };
+
+  /* ---------- estado ---------- */
+  var ddView='', open={AAI:false,DDD:false,VVI:false};
+  var quiz=null; // null = pantalla inicial; objeto = modo práctica en curso
+  var META={
+    AAI:{t:'Marcapasos auricular',s:'Estimula y sensa en la aurícula'},
+    DDD:{t:'Marcapasos secuencial AV',s:'Estimula y sensa en ambas cámaras'},
+    VVI:{t:'Marcapasos ventricular',s:'Estimula y sensa en el ventrículo'}
+  };
+  var CHEV='<svg class="accchev#OPEN#" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1.5l5 5 5-5"/></svg>';
+  var CAPT='font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)';
+
+  /* ---------- modo estudio ---------- */
+  function stepHtml(cls,sym,lbl,val,why){
+    return '<div class="step"><div class="ico '+cls+'" aria-hidden="true">'+sym+'</div><div><div class="lbl">'+lbl+'</div><div class="val">'+val+'</div><div class="why">'+why+'</div></div></div>';
+  }
+  function casesHtml(D){
+    return D.cases.map(function(c){
+      return '<article class="card case"><div class="case-h"><div class="tag">Hallazgo en el ECG</div><h2>'+c.find+'</h2></div>'+
+        '<div class="ecg">'+svg(c.ecg)+'</div><p class="cap">'+c.cap+'</p>'+
+        '<div class="chain">'+stepHtml('dx','!','Diagnóstico',c.dx,c.why)+stepHtml('ac','✓','Conducta',c.act,'')+'</div></article>';
+    }).join('');
+  }
+  function panelHtml(m){
+    var D=(m==='DDD'&&ddView)?DATA['DDD'+ddView]:DATA[m], h='';
+    h+='<p class="modeinfo">'+D.info+'</p>';
+    if(D.go){
+      h+='<article class="card cross"><div style="'+CAPT+'">Falla en cada cable</div>'+
+        '<p>Cada falla se muestra con la secuencia propia del modo DDD.</p>'+
+        '<div class="two"><button class="btn" data-go="DDDA" type="button">Falla en cable auricular</button><button class="btn" data-go="DDDV" type="button">Falla en cable ventricular</button></div></article>';
+    }
+    if(D.back){
+      h+='<article class="card cross"><div style="'+CAPT+'">'+D.title+'</div>'+
+        '<div class="two" style="grid-template-columns:1fr"><button class="btn" data-go="DDD" type="button">‹ Volver a DDD</button></div></article>';
+    }
+    return h+casesHtml(D);
+  }
+  function homeHtml(){
+    var h='<button class="card practice" type="button" data-start="1"><span class="hicon pico"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3.5l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L13 17.7l-5.6 3 1.1-6.2L4 10.1l6.2-.9z"/></svg></span>'+
+      '<span class="rt"><b>Modo práctica</b><small>5 casos al azar, 10 preguntas. Al final, tu puntuación.</small></span><span class="go" aria-hidden="true">Empezar ›</span></button>';
+    h+='<div class="modelabel">O estudiá por modo de marcapasos</div>';
+    ['AAI','DDD','VVI'].forEach(function(m){
+      var o=open[m];
+      h+='<div class="card modewrap" id="m-'+m+'"><button class="acc" type="button" data-acc="'+m+'" aria-expanded="'+(o?'true':'false')+'"><span class="ab">'+m+'</span><span class="rt"><b>'+META[m].t+'</b><small>'+META[m].s+'</small></span>'+CHEV.replace('#OPEN#',o?' open':'')+'</button>'+
+        '<div class="panel'+(o?' open':'')+'"><div class="pin"><div class="pbody">'+panelHtml(m)+'</div></div></div></div>';
+    });
+    return h;
+  }
+
+  /* ---------- modo práctica ---------- */
+  function allCases(){
+    var out=[];
+    function add(list,mode){list.forEach(function(c){out.push({mode:mode,c:c});});}
+    add(DATA.AAI.cases,'AAI'); add(DATA.VVI.cases,'VVI');
+    add(DATA.DDD.cases,'DDD'); add(DATA.DDDA.cases,'DDD'); add(DATA.DDDV.cases,'DDD');
+    return out;
+  }
+  function shuffle(a){a=a.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;} return a;}
+  var DX_ALL=['Subsensado auricular','Sobresensado auricular','Falla de captura auricular','Subsensado ventricular','Sobresensado ventricular','Falla de captura ventricular','Entrecruzamiento de cables','Taquicardia mediada por marcapasos'];
+  function optionsFor(dx){
+    var group=DX_ALL.filter(function(d){return d!==dx;});
+    var same=(dx.indexOf('auricular')>-1)?group.filter(function(d){return d.indexOf('auricular')>-1;}):
+             (dx.indexOf('ventricular')>-1)?group.filter(function(d){return d.indexOf('ventricular')>-1;}):
+             ['Entrecruzamiento de cables','Taquicardia mediada por marcapasos'].filter(function(d){return d!==dx;});
+    var rest=shuffle(group.filter(function(d){return same.indexOf(d)<0;}));
+    var opts=same.concat(rest.slice(0,3-same.length)); // 3 distractores
+    return shuffle(opts.concat([dx]));
+  }
+  var ACT_ALL=[SENS,SENS2,OUT,'Invertir conexión de cables','Aumentar el PVARP'];
+  function actOptionsFor(act){
+    var others=shuffle(ACT_ALL.filter(function(x){return x!==act;})).slice(0,3);
+    return shuffle(others.concat([act]));
+  }
+  function startQuiz(){
+    var items=shuffle(allCases()).slice(0,5).map(function(it){
+      return {mode:it.mode,c:it.c,opts:optionsFor(it.c.dx),pick:null,aopts:actOptionsFor(it.c.act),apick:null};
+    });
+    quiz={items:items,i:0,stage:0,done:false};
+    renderQuiz();
+    var el=document.getElementById('modes'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function score(){
+    return quiz.items.reduce(function(t,it){return t+(it.pick===it.c.dx?1:0)+(it.apick===it.c.act?1:0);},0);
+  }
+  function optsHtml(list,pick,correct,answered){
+    return '<div class="opts q-opts" role="group" aria-label="Opciones">'+list.map(function(o,k){
+      var cls='qopt';
+      if(answered){ if(o===correct) cls+=' good'; else if(o===pick) cls+=' bad'; else cls+=' dim'; }
+      return '<button type="button" class="'+cls+'" data-pick="'+k+'"'+(answered?' disabled':'')+'><span>'+o+'</span>'+(answered&&o===correct?'<i aria-hidden="true">✓</i>':(answered&&o===pick?'<i aria-hidden="true">✕</i>':''))+'</button>';
+    }).join('')+'</div>';
+  }
+  function renderQuiz(){
+    var h='', n=quiz.items.length, total=n*2;
+    if(quiz.done){ h=resultHtml(); }
+    else{
+      var it=quiz.items[quiz.i], st=quiz.stage, qn=quiz.i*2+st;
+      var answered=(st===0)?it.pick!==null:it.apick!==null;
+      var ok=(st===0)?(it.pick===it.c.dx):(it.apick===it.c.act);
+      var doneN=qn+(answered?1:0);
+      h+='<div class="qhead"><button class="btn" type="button" data-exit="1">‹ Salir</button><span class="qcount">Pregunta '+(qn+1)+' de '+total+'</span></div>'+
+         '<div class="qbar" role="progressbar" aria-valuemin="0" aria-valuemax="'+total+'" aria-valuenow="'+doneN+'"><i style="width:'+((doneN/total)*100)+'%"></i></div>';
+      h+='<article class="card case q"><div class="case-h"><div class="tag">Caso '+(quiz.i+1)+' · Modo '+it.mode+'</div>'+
+         '<h2>'+(st===0?'¿Qué falla ves en este trazado?':'¿Cuál es la conducta?')+'</h2></div>'+
+         '<div class="ecg">'+svg(it.c.ecg)+'</div>';
+      if(st===1){ h+='<div class="dxchip"><span>Diagnóstico</span><b>'+it.c.dx+'</b></div>'; }
+      h+= st===0 ? optsHtml(it.opts,it.pick,it.c.dx,answered) : optsHtml(it.aopts,it.apick,it.c.act,answered);
+      if(answered){
+        var last=(quiz.i===n-1&&st===1);
+        if(st===0){
+          h+='<div class="fb '+(ok?'ok':'bad')+'" role="status"><div class="fbt">'+(ok?'Correcto':'Era: '+it.c.dx)+'</div><p class="fbd">'+it.c.cap+'</p></div>';
+        } else {
+          h+='<div class="fb '+(ok?'ok':'bad')+'" role="status"><div class="fbt">'+(ok?'Correcto':'Era: '+it.c.act)+'</div><p>'+it.c.why+'</p></div>';
+        }
+        h+='<button class="nxt" type="button" data-next="1">'+(st===0?'Ahora, la conducta ›':(last?'Ver resultado':'Siguiente caso ›'))+'</button>';
+      }
+      h+='</article>';
+    }
+    document.getElementById('modes').innerHTML=h;
+  }
+  function resultHtml(){
+    var n=quiz.items.length, total=n*2, sc=score(), pct=Math.round(sc/total*100), missed=[];
+    quiz.items.forEach(function(it){
+      if(it.pick!==it.c.dx) missed.push(it.c.dx.toLowerCase());
+      if(it.apick!==it.c.act) missed.push('la conducta en '+it.c.dx.toLowerCase());
+    });
+    var short=missed.filter(function(d,i){return missed.indexOf(d)===i;}).slice(0,3).join('; ');
+    var title, text;
+    if(sc===total){ title='Excelente'; text='Acertaste todos los diagnósticos y todas las conductas. Tenés muy bien incorporada la lectura de las fallas del marcapasos transitorio.'; }
+    else if(sc===total-1){ title='Muy bien'; text='Se te escapó una sola. Repasá '+missed[0]+' en la sección de cada modo y vas por el puntaje máximo.'; }
+    else if(sc>=6){ title='Bien, con margen para mejorar'; text='Acertaste '+sc+' de '+total+'. Conviene repasar: '+short+'.'; }
+    else { title='Conviene repasar'; text='Acertaste '+sc+' de '+total+'. Mirá de nuevo los trazados y la conducta de cada modo, en especial: '+short+'. Después probá con otros casos.'; }
+    var mk=function(ok){return '<span class="mk '+(ok?'ok':'bad')+'" aria-hidden="true">'+(ok?'✓':'✕')+'</span>';};
+    var rows=quiz.items.map(function(it){
+      var d=it.pick===it.c.dx, a=it.apick===it.c.act;
+      return '<li><span class="mks">'+mk(d)+mk(a)+'</span><span><b>Modo '+it.mode+' · '+it.c.dx+'</b>'+
+        (d?'':'<br><small>Diagnóstico elegido: '+it.pick+'</small>')+
+        (a?'':'<br><small>Conducta elegida: '+it.apick+'. Correcta: '+it.c.act+'</small>')+'</span></li>';
+    }).join('');
+    return '<article class="card result"><div class="qhead"><button class="btn" type="button" data-exit="1">‹ Inicio</button><span class="qcount">Resultado</span></div>'+
+      '<div class="score"><b>'+sc+'</b><span>/ '+total+'</span></div><div class="pct">'+pct+' % de aciertos</div>'+
+      '<h2>'+title+'</h2><p class="rtext">'+text+'</p>'+
+      '<div class="rleg">En cada caso, el primer círculo es el diagnóstico y el segundo la conducta.</div><ul class="rlist">'+rows+'</ul>'+
+      '<div class="two"><button class="btn" type="button" data-start="1">Practicar otros 5</button><button class="btn" type="button" data-exit="1">Volver al inicio</button></div></article>';
+  }
+
+  function render(){
+    if(quiz){ renderQuiz(); return; }
+    document.getElementById('modes').innerHTML=homeHtml();
+  }
+
+  document.getElementById('modes').addEventListener('click',function(e){
+    var st=e.target.closest('[data-start]'); if(st){ startQuiz(); return; }
+    if(e.target.closest('[data-exit]')){ quiz=null; render(); window.scrollTo({top:0,behavior:'smooth'}); return; }
+    var pk=e.target.closest('[data-pick]');
+    if(pk && quiz){
+      var it=quiz.items[quiz.i], k=+pk.getAttribute('data-pick');
+      if(quiz.stage===0){ if(it.pick===null){ it.pick=it.opts[k]; renderQuiz(); } }
+      else { if(it.apick===null){ it.apick=it.aopts[k]; renderQuiz(); } }
+      return;
+    }
+    if(e.target.closest('[data-next]') && quiz){
+      if(quiz.stage===0){ quiz.stage=1; }
+      else if(quiz.i===quiz.items.length-1){ quiz.done=true; }
+      else { quiz.i++; quiz.stage=0; }
+      renderQuiz(); document.getElementById('modes').scrollIntoView({behavior:'smooth',block:'start'}); return;
+    }
+    var a=e.target.closest('[data-acc]');
+    if(a){
+      var m=a.getAttribute('data-acc'); open[m]=!open[m];
+      a.setAttribute('aria-expanded',open[m]?'true':'false');
+      a.querySelector('.accchev').classList.toggle('open',open[m]);
+      a.parentNode.querySelector('.panel').classList.toggle('open',open[m]);
+      return;
+    }
+    var g=e.target.closest('[data-go]');
+    if(g){
+      var t=g.getAttribute('data-go');
+      ddView=(t==='DDDA')?'A':(t==='DDDV')?'V':'';
+      open.DDD=true;
+      render();
+      var el=document.getElementById('m-DDD');
+      if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  });
+  document.getElementById('copy').addEventListener('click',function(){
+    var cp=document.getElementById('mailcp'), old=cp.innerHTML, txt=document.getElementById('mailtxt');
+    var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg>';
+    function done(){cp.innerHTML=CHECK; setTimeout(function(){cp.innerHTML=old;},1600);}
+    function sel(){var r=document.createRange(); r.selectNodeContents(txt); var s=getSelection(); s.removeAllRanges(); s.addRange(r);}
+    try{ navigator.clipboard.writeText(txt.textContent).then(done,sel); }catch(err){ sel(); }
+  });
+  render();
+})();
+</script>
+
+</body></html>

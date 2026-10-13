@@ -1,0 +1,308 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Arritmias en Esclerosis Tuberosa</title>
+<style>
+/* Sistema "Apps clínicas Maldonado": columna única estilo iOS, encabezado con banda degradé, preguntas en celeste, resultado con velo del tipo de acción. */
+:root{
+  --ground:#f2f2f7; --surface:#ffffff; --ink:#0b0b10; --ink-muted:#5f5f67; --hairline:#e3e3e8; --fill:#7878801c;
+  --accent:#0a66d6; --on-accent:#ffffff; --sky:#3db6f5; --ok:#14794a; --danger:#e0352b;
+  --act-drug:#0b8aa5; --act-dx:#8a35a8; --whatsapp:#1f9d55; --cat-sv:#2aa35f; --cat-v:#e5484d; --cat-brady:#e8820c; --violet:#7a3fd0;
+  --shadow-card:0 1px 2px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.05);
+  --shadow-icon:0 6px 16px rgba(10,102,214,.35);
+  --font-sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#000; --surface:#1c1c1e; --ink:#f5f5f7; --ink-muted:#9c9ca4; --hairline:#2e2e32; --fill:#78788033;
+    --accent:#4c9bff; --on-accent:#000; --sky:#4cc2ff; --ok:#30d158; --danger:#ff6259;
+    --act-drug:#3cc8e6; --act-dx:#cc7ae8; --cat-sv:#4cd070; --cat-v:#ff6b6f; --cat-brady:#ffa33a; --violet:#a98bff; --shadow-card:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#000; --surface:#1c1c1e; --ink:#f5f5f7; --ink-muted:#9c9ca4; --hairline:#2e2e32; --fill:#78788033;
+  --accent:#4c9bff; --on-accent:#000; --sky:#4cc2ff; --ok:#30d158; --danger:#ff6259;
+  --act-drug:#3cc8e6; --act-dx:#cc7ae8; --cat-sv:#4cd070; --cat-v:#ff6b6f; --cat-brady:#ffa33a; --violet:#a98bff; --shadow-card:none; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 16px/1.45 var(--font-sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:0 40px;display:flex;flex-direction:column;gap:18px}
+
+/* encabezado */
+.hero{--hc:var(--bc,var(--accent));transition:background .3s;margin:0 -16px;padding:44px 20px 26px;border-radius:0 0 32px 32px;background:linear-gradient(165deg,color-mix(in srgb,var(--hc) 30%,var(--ground)),color-mix(in srgb,var(--hc) 6%,var(--ground)))}
+.hicon{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;color:#fff;background:linear-gradient(135deg,var(--hc),color-mix(in srgb,var(--hc) 62%,#000));box-shadow:var(--shadow-icon)}
+.hicon svg{width:26px;height:26px}
+.hero h1{margin:16px 0 6px;font-size:clamp(32px,9.4vw,40px);font-weight:800;letter-spacing:-.035em;line-height:1.06;text-wrap:balance}
+.hero p{margin:0;color:var(--ink-muted);max-width:52ch}
+
+/* contacto */
+.prof{padding:11px 0 13px;border-top:.5px solid var(--hairline);border-bottom:.5px solid var(--hairline)}
+.pname{font-size:15px;font-weight:600}
+.prole{font-size:12px;line-height:1.35;color:var(--ink-muted);margin-top:1px;max-width:44ch}
+.pact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:9px}
+.wa{display:inline-flex;align-items:center;gap:8px;background:var(--whatsapp);color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;text-decoration:none}
+.wa svg{width:15px;height:15px}
+.mailbtn{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-muted);min-width:0;appearance:none;border:0;background:none;font-family:inherit;padding:0;cursor:pointer;text-align:left}
+.mailtxt{user-select:all;overflow-wrap:anywhere}
+.mailcp{color:var(--accent);flex:none;display:grid;place-items:center;width:24px;height:24px}
+.mailcp svg{width:15px;height:15px}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* control segmentado */
+.seg{display:grid;grid-template-columns:repeat(5,1fr);background:var(--fill);border-radius:12px;padding:3px;gap:2px}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink);font:600 14px/1.15 var(--font-sans);min-height:44px;padding:8px 2px;border-radius:9px;cursor:pointer;transition:background .2s}
+.seg button{position:relative}
+.seg button[aria-selected="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.18);font-weight:800}
+.seg button[aria-selected="true"]::after{content:"";position:absolute;left:14px;right:14px;bottom:5px;height:4px;border-radius:999px;background:var(--bc,var(--accent))}
+.seg button[aria-selected="true"]{padding-bottom:14px}
+
+#stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.banner{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;background:linear-gradient(145deg,color-mix(in srgb,var(--bc) 28%,var(--ground)),color-mix(in srgb,var(--bc) 6%,var(--ground)))}
+.banner .dot{flex:none;width:12px;height:12px;border-radius:50%;background:var(--bc)}
+.banner .lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-muted)}
+.banner h2{margin:1px 0 0;font-size:22px;line-height:1.15;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+
+/* recorrido: renglones con línea fina */
+.trail{list-style:none;margin:0;padding:0 4px;display:flex;flex-direction:column}
+.done{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:.5px solid var(--hairline);font-size:15px}
+.done .txt{min-width:0}
+.done .ans{flex:none;font-size:13px;font-weight:600;color:var(--ink-muted)}
+
+/* tarjetas de paso */
+.card{--k:var(--bc,var(--sky));padding:20px 18px 18px;border-radius:22px;background:linear-gradient(145deg,color-mix(in srgb,var(--k) 30%,var(--ground)),color-mix(in srgb,var(--k) 7%,var(--ground)));animation:rise .2s ease-out}
+.card.res{--k:var(--bc,var(--act-drug));padding:22px 20px;background:linear-gradient(145deg,color-mix(in srgb,var(--k) 34%,var(--ground)),color-mix(in srgb,var(--k) 9%,var(--ground)))}
+.card.res.dx{--k:var(--bc,var(--act-dx))}
+.card:focus{outline:none}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.kind{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600;color:var(--ink-muted);margin-bottom:10px}
+.kind::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--k);flex:none}
+.card h3{margin:0;font-size:24px;line-height:1.2;font-weight:600;letter-spacing:-.015em;text-wrap:balance}
+.card .detail{margin:8px 0 0;font-size:18px;font-weight:600;line-height:1.3}
+.card .note{margin:10px 0 0;color:var(--ink-muted)}
+.prompt{margin:16px 0 0;color:var(--ink-muted);font-size:14px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+.prompt+.opts{margin-top:10px}
+.opt{appearance:none;border:0;border-radius:14px;min-height:52px;padding:14px 12px;font:600 16px/1.2 var(--font-sans);text-align:center;cursor:pointer;background:var(--accent);color:var(--on-accent);transition:opacity .15s,transform .15s}
+.opt.no{background:var(--fill);color:var(--ink)}
+.opt:active{opacity:.7;transform:scale(.98)}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.controls{display:flex;justify-content:space-between;gap:12px}
+.link{appearance:none;border:0;background:none;color:var(--accent);font:500 14px/1 var(--font-sans);padding:12px 4px;min-height:44px;cursor:pointer}
+.link:disabled{color:var(--ink-muted);opacity:.5;cursor:default}
+
+/* mapa */
+.lane{background:var(--surface);border-radius:20px;box-shadow:var(--shadow-card);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.lane h2{margin:0;display:flex;align-items:center;gap:9px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.lane h2::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--bc);flex:none}
+.hint{margin:0 4px;color:var(--ink-muted);font-size:14px}
+.tree{overflow-x:auto;font-size:14px}
+.tree ul{list-style:none;margin:6px 0 0 6px;padding:0 0 0 14px;border-left:.5px solid var(--hairline)}
+.tree li{margin:10px 0}
+.node{display:flex;flex-direction:column;gap:1px;width:fit-content;max-width:100%;color:var(--ink-muted)}
+.node b{font-weight:600}
+.node .kd{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.node.on{color:var(--ink)}
+.node.on .txt{text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:4px;text-decoration-thickness:1.5px}
+.edge{display:inline-block;margin-bottom:4px;font-size:12px;font-weight:600;color:var(--ink-muted)}
+.edge.e-yes{color:var(--ok)}
+.edge.e-no{color:var(--danger)}
+.edge::before{content:"› "}
+
+/* fisiopatología */
+.core{position:relative;padding:20px;border-radius:22px;text-align:center;background:linear-gradient(145deg,color-mix(in srgb,var(--cat-brady) 38%,var(--ground)),color-mix(in srgb,var(--cat-brady) 12%,var(--ground)))}
+.core .lbl,.mech .lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-muted)}
+.core h2{margin:4px 0 0;font-size:26px;line-height:1.1;font-weight:800;letter-spacing:-.025em}
+.core::after{content:"";position:absolute;left:50%;bottom:-16px;width:3px;height:16px;margin-left:-1.5px;border-radius:2px;background:var(--cat-brady)}
+.mechs{display:flex;flex-direction:column;gap:12px;margin-top:2px}
+.mech{--k:var(--accent);padding:16px 16px 14px;border-radius:20px;background:linear-gradient(145deg,color-mix(in srgb,var(--k) 26%,var(--ground)),color-mix(in srgb,var(--k) 6%,var(--ground)))}
+.mech h3{margin:0;display:flex;align-items:flex-start;gap:9px;font-size:17px;line-height:1.25;font-weight:700;letter-spacing:-.01em}
+.mech h3::before{content:"";flex:none;width:10px;height:10px;margin-top:6px;border-radius:50%;background:var(--k)}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:12px}
+.chain .pill{background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:600}
+.chain .arr{color:var(--ink-muted);font-weight:700}
+.effects{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.effects li{display:flex;gap:8px;font-size:15px}
+.effects li::before{content:"→";color:var(--ink-muted);font-weight:700}
+.goto{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px}
+.goto .link{padding:6px 0;min-height:36px;font-size:14px}
+
+footer{margin:0;color:var(--ink-muted);font-size:12px;text-align:center;padding-inline:8px}
+
+@media (max-width:420px){.opts{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<main class="wrap">
+  <header class="hero">
+    <span class="hicon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13h5l2.5-7 4 14 2.5-7h8"/></svg></span>
+    <h1>Arritmias en esclerosis tuberosa</h1>
+    <p>Algoritmo de manejo</p>
+  </header>
+
+  <section class="prof" aria-label="Contacto">
+    <div class="pname">Dr. Sebastián Maldonado</div>
+    <div class="prole">Electrofisiólogo infantil · Htal. JP Garrahan y Hospital Italiano de Buenos Aires</div>
+    <div class="pact">
+      <a class="wa" href="https://wa.me/5491131860600?text=Hola%20Dr.%20Maldonado%2C%20te%20escribo%20por%20una%20interconsulta%20sobre%20un%20paciente%20con%20esclerosis%20tuberosa%20y%20arritmias." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>Interconsulta por WhatsApp</a>
+      <button class="mailbtn" id="copy" type="button" aria-label="Copiar mail"><span class="mailtxt" id="mailtxt">drsebastian.maldonado@gmail.com</span><span class="mailcp" id="mailcp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></svg></span></button>
+    </div>
+  </section>
+
+  <div class="seg" role="tablist" aria-label="Tipo de arritmia">
+    <button role="tab" id="tab-ect" data-tab="ect" aria-selected="true" aria-controls="stage">Ectopías</button>
+    <button role="tab" id="tab-wpw" data-tab="wpw" aria-selected="false" aria-controls="stage">WPW</button>
+    <button role="tab" id="tab-tv" data-tab="tv" aria-selected="false" aria-controls="stage">TV</button>
+    <button role="tab" id="tab-fis" data-tab="fis" aria-selected="false" aria-controls="stage" aria-label="Fisiopatología">Fisiopat.</button>
+    <button role="tab" id="tab-map" data-tab="map" aria-selected="false" aria-controls="stage">Mapa</button>
+  </div>
+
+  <section id="stage" role="tabpanel" aria-live="polite"></section>
+
+  <footer>Material didáctico de apoyo a la decisión clínica. No reemplaza el criterio del profesional ni las guías vigentes.</footer>
+</main>
+
+<script>
+(function(){
+  var KIND={q:'Pregunta',tx:'Fármaco',combo:'Fármaco combinado',wait:'Conducta',mtor:'Considerar'};
+  var N={
+    ect:{k:'q',t:'¿Hay compromiso hemodinámico?',o:[['Sí','ect1'],['No','wait']]},
+    ect1:{k:'tx',t:'Antiarrítmicos',d:'Propranolol',next:'ect2'},
+    ect2:{k:'combo',t:'Betabloqueante + amiodarona',next:'mtor'},
+
+    wpw:{k:'q',t:'¿Presenta TSV?',o:[['Sí','wpw2'],['No','wait']]},
+    wpw2:{k:'q',t:'¿Hay taquimiocardiopatía?',o:[['Sí','wpwAm'],['No','wpwPr']]},
+    wpwPr:{k:'tx',t:'Antiarrítmicos',d:'Propranolol',next:'wpwCombo'},
+    wpwAm:{k:'tx',t:'Antiarrítmicos',d:'Amiodarona',next:'wpwCombo'},
+    wpwCombo:{k:'combo',t:'Propranolol + amiodarona',next:'mtor'},
+
+    tv:{k:'tx',t:'Antiarrítmicos',d:'Propranolol / sotalol',next:'tv2'},
+    tv2:{k:'combo',t:'Betabloqueante + amiodarona',next:'mtor'},
+
+    wait:{k:'wait',t:'Conducta expectante',d:'Holter cada 3–6 meses'},
+    mtor:{k:'mtor',t:'Considerar inhibidor de mTOR',d:'Uso off label'},
+    ok:{k:'wait',t:'Mantener el esquema',note:'Continuar el tratamiento y reevaluar en el seguimiento.'}
+  };
+  var BR={
+    ect:{name:'Ectopías supraventriculares y ventriculares',start:'ect',c:'var(--cat-sv)'},
+    wpw:{name:'Patente de WPW',start:'wpw',c:'var(--accent)'},
+    tv:{name:'Taquicardia ventricular',start:'tv',c:'var(--cat-v)'}
+  };
+  var wrap=document.querySelector('.wrap');
+  var FIS={name:'Fisiopatología',c:'var(--cat-brady)'};
+  var MECH=[
+    {t:'Localización en unión AV',k:'var(--cat-v)',chain:['Vías accesorias','Preexcitación','TSV'],go:[['Ver WPW','wpw']]},
+    {t:'Compresión de coronarias',k:'var(--cat-v)',fx:['Alteraciones de repolarización (ST/T anormales)']},
+    {t:'Tamaño y ubicación en tracto de salida',k:'var(--cat-sv)',fx:['Obstrucción ventricular','Hipertrofia']},
+    {t:'Compresión del nodo sinusal/AV',k:'var(--accent)',fx:['Bloqueos AV','Disfunción nodal','Bradicardia']},
+    {t:'Células hamartomatosas similares a células de Purkinje',k:'var(--violet)',chain:['Focos ectópicos','Ectópicos A/V','TV'],go:[['Ver ectopías','ect'],['Ver TV','tv']]}
+  ];
+  function renderFis(){
+    var h='<div class="core"><span class="lbl">Mecanismos de arritmia por</span><h2>Rabdomioma cardíaco</h2></div><div class="mechs">';
+    MECH.forEach(function(m){
+      h+='<section class="mech" style="--k:'+m.k+'"><h3>'+m.t+'</h3>';
+      if(m.chain) h+='<div class="chain">'+m.chain.map(function(x){return '<span class="pill">'+x+'</span>';}).join('<span class="arr" aria-hidden="true">→</span>')+'</div>';
+      if(m.fx) h+='<ul class="effects">'+m.fx.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>';
+      if(m.go) h+='<div class="goto">'+m.go.map(function(g){return '<button class="link" type="button" data-goto="'+g[1]+'">'+g[0]+' ›</button>';}).join('')+'</div>';
+      h+='</section>';
+    });
+    return h+'</div>';
+  }
+  var state={ect:[],wpw:[],tv:[]}, tab='ect';
+  var stage=document.getElementById('stage');
+
+  function lab(n){ return n.d ? n.t+': <b>'+n.d+'</b>' : n.t; }
+  function curId(b){ var p=state[b]; return p.length ? p[p.length-1].next : BR[b].start; }
+
+  function card(n){
+    var final=!n.o && !n.next;
+    var cls='card'+(n.k==='q'?'':' res')+(n.k==='wait'?' dx':'');
+    var h='<div class="'+cls+'" tabindex="-1"><div class="kind">'+KIND[n.k]+'</div><h3>'+n.t+'</h3>';
+    if(n.d) h+='<p class="detail">'+n.d+'</p>';
+    if(n.note) h+='<p class="note">'+n.note+'</p>';
+    if(n.o){
+      h+='<div class="opts">'+n.o.map(function(o,i){
+        return '<button class="opt'+(i?' no':'')+'" data-a="'+o[0]+'" data-n="'+o[1]+'">'+o[0]+'</button>';
+      }).join('')+'</div>';
+    } else if(n.next){
+      h+='<p class="prompt">¿Cómo evoluciona con este esquema?</p>'+
+         '<div class="opts"><button class="opt" data-a="Respuesta adecuada" data-n="ok">Respuesta adecuada</button>'+
+         '<button class="opt no" data-a="Refractario" data-n="'+n.next+'">Refractario</button></div>';
+    }
+    return h+'</div>';
+  }
+
+  function tree(id,on){
+    var n=N[id];
+    var h='<div class="node'+(on[id]?' on':'')+'"><span class="kd">'+KIND[n.k]+'</span><span class="txt">'+lab(n)+'</span></div>';
+    var kids=n.o ? n.o : (n.next ? [['Refractario',n.next]] : []);
+    if(kids.length){
+      h+='<ul>'+kids.map(function(c){
+        var cls=c[0]==='Sí'?' e-yes':(c[0]==='No'?' e-no':'');
+        return '<li><span class="edge'+cls+'">'+c[0]+'</span><div>'+tree(c[1],on)+'</div></li>';
+      }).join('')+'</ul>';
+    }
+    return h;
+  }
+
+  function renderMap(){
+    var h='<p class="hint">Algoritmo completo. Lo que recorriste en cada pestaña aparece subrayado.</p>';
+    Object.keys(BR).forEach(function(b){
+      var on={};
+      state[b].forEach(function(e){ on[e.id]=true; });
+      if(state[b].length) on[curId(b)]=true;
+      h+='<section class="lane" style="--bc:'+BR[b].c+'"><h2>'+BR[b].name+'</h2><div class="tree">'+tree(BR[b].start,on)+'</div></section>';
+    });
+    return h;
+  }
+
+  function render(focusNow){
+    document.querySelectorAll('.seg button').forEach(function(t){
+      t.setAttribute('aria-selected', t.dataset.tab===tab ? 'true' : 'false');
+    });
+    stage.setAttribute('aria-labelledby','tab-'+tab);
+    wrap.style.setProperty('--bc', tab==='map' ? 'var(--violet)' : (tab==='fis' ? FIS.c : BR[tab].c));
+    if(tab==='fis'){ stage.innerHTML=renderFis(); return; }
+    if(tab==='map'){ stage.innerHTML=renderMap(); return; }
+    var p=state[tab], n=N[curId(tab)];
+    var h='';
+    if(p.length){
+      h+='<ol class="trail">'+p.map(function(e){
+        return '<li class="done"><span class="txt">'+lab(N[e.id])+'</span><span class="ans">'+e.ans+'</span></li>';
+      }).join('')+'</ol>';
+    }
+    h+=card(n);
+    h+='<div class="controls"><button class="link" data-act="back"'+(p.length?'':' disabled')+'>‹ Paso anterior</button>'+
+       '<button class="link" data-act="reset"'+(p.length?'':' disabled')+'>Reiniciar</button></div>';
+    stage.innerHTML=h;
+    if(focusNow){
+      var el=stage.querySelector('.card');
+      if(el){ el.focus({preventScroll:true}); el.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+    }
+  }
+
+  document.querySelector('.seg').addEventListener('click',function(e){
+    var b=e.target.closest('[data-tab]'); if(!b) return;
+    tab=b.dataset.tab; render(false);
+  });
+  stage.addEventListener('click',function(e){
+    var g=e.target.closest('[data-goto]');
+    if(g){ tab=g.dataset.goto; render(false); window.scrollTo({top:0,behavior:'smooth'}); return; }
+    var a=e.target.closest('[data-a]');
+    if(a){ state[tab].push({id:curId(tab),ans:a.dataset.a,next:a.dataset.n}); render(true); return; }
+    var c=e.target.closest('[data-act]'); if(!c) return;
+    if(c.dataset.act==='back') state[tab].pop();
+    if(c.dataset.act==='reset') state[tab]=[];
+    render(true);
+  });
+  document.getElementById('copy').addEventListener('click',function(){
+    var cp=document.getElementById('mailcp'), old=cp.innerHTML, txt=document.getElementById('mailtxt');
+    var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    function done(){cp.innerHTML=CHECK; setTimeout(function(){cp.innerHTML=old;},1600);}
+    function sel(){var r=document.createRange(); r.selectNodeContents(txt); var s=getSelection(); s.removeAllRanges(); s.addRange(r);}
+    try{ navigator.clipboard.writeText(txt.textContent).then(done,sel); }catch(err){ sel(); }
+  });
+  render(false);
+})();
+</script>
+
+</body></html>
