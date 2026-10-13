@@ -80,6 +80,9 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 .count{color:var(--mute);font-size:.88rem;margin:12px 0 6px}
 .list{display:grid;gap:10px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;display:block;text-decoration:none;color:inherit}
+.rescard{--k:var(--acc2);background:linear-gradient(145deg,color-mix(in srgb,var(--k) 22%,var(--card)),color-mix(in srgb,var(--k) 5%,var(--card)))}
+.rescard:hover{border-color:var(--k)}
+.rescard .meta{color:var(--k);font-weight:600}
 .card:hover{border-color:var(--acc2)}
 .card h3{margin:0 0 3px;font-size:1.02rem}
 .meta{color:var(--mute);font-size:.82rem}
@@ -387,11 +390,20 @@ function detail(id) {
 }
 
 const SECCIONES = ['Simulador de arritmias', 'Algoritmo de TSV', 'Algoritmo de disociación VA', 'Localizador de arritmia ventricular', 'Diagnóstico diferencial', 'Algoritmos clínicos', 'Marcapasos transitorio', 'Bibliotecas de imágenes (externas)'];
+// Un color distinto por sección, solo para el degradé de las tarjetas de Recursos (no afecta el resto del banco).
+const COLOR_SECCION = {
+  'Simulador de arritmias': '#ff6b57', 'Algoritmo de TSV': '#1faa4a', 'Algoritmo de disociación VA': '#7a3fd0',
+  'Localizador de arritmia ventricular': '#d97a00', 'Diagnóstico diferencial': '#3db6f5', 'Algoritmos clínicos': '#e0352b',
+  'Marcapasos transitorio': '#0a74f0', 'Bibliotecas de imágenes (externas)': '#5b6b8c'
+};
 function recursos() {
   const R = window.RECURSOS || [];
-  const item = r => /\.(jpe?g|png|gif|webp)$/i.test(r.u)
-    ? `<div class="q"><h4>${esc(r.t)}</h4>${r.d ? `<p class="hint">${esc(r.d)}</p>` : ''}<div class="imgs"><img src="${esc(r.u)}" alt="${esc(r.t)}" onclick="zoom(this)"></div></div>`
-    : `<a class="card" href="${esc(r.u)}"><h3>${esc(r.t)}</h3>${r.d ? `<p class="snip">${esc(r.d)}</p>` : ''}<div class="meta">${/\.pdf$/i.test(r.u) ? 'PDF' : 'Abrir'}</div></a>`;
+  const item = r => {
+    const k = COLOR_SECCION[r.s] || 'var(--acc2)';
+    return /\.(jpe?g|png|gif|webp)$/i.test(r.u)
+      ? `<div class="q"><h4>${esc(r.t)}</h4>${r.d ? `<p class="hint">${esc(r.d)}</p>` : ''}<div class="imgs"><img src="${esc(r.u)}" alt="${esc(r.t)}" onclick="zoom(this)"></div></div>`
+      : `<a class="card rescard" style="--k:${k}" href="${esc(r.u)}"><h3>${esc(r.t)}</h3>${r.d ? `<p class="snip">${esc(r.d)}</p>` : ''}<div class="meta">${/\.pdf$/i.test(r.u) ? 'PDF' : 'Abrir'}</div></a>`;
+  };
   app.innerHTML = `<div class="case"><h2>Recursos</h2>` + SECCIONES.map(s => {
     const xs = R.filter(r => r.s === s);
     return `<h3>${esc(s)}</h3>` + (xs.length ? `<div class="list">${xs.map(item).join('')}</div>` : '<p class="hint">Todavía no se cargó nada en esta sección.</p>');
