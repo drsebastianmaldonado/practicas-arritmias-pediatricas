@@ -1,11 +1,11 @@
 // Lista de recursos de la pestaña "Recursos". Se completa con agregar_recurso.ps1 (no hace falta editarla a mano).
 // s = sección · t = título · d = descripción · u = archivo (dentro de recursos\) o link
-window.RECURSOS = [{"s":"Simulador de arritmias","t":"Simulador de arritmia","d":"Simulador interactivo de arritmias cardíacas para móvil y computadora","u":"https://drsebastianmaldonado.github.io/Simulador-de-arritmia/"},
-  {"s":"Algoritmo de TSV","t":"Algoritmo de TSV","d":"","u":"https://drsebastianmaldonado.github.io/AlgoritmoTSV/"},
+window.RECURSOS = [{"s":"Algoritmo de TSV","t":"Algoritmo de TSV","d":"","u":"https://drsebastianmaldonado.github.io/AlgoritmoTSV/"},
   {"s":"Algoritmo de disociación VA","t":"Algoritmo de disociación AV","d":"","u":"https://drsebastianmaldonado.github.io/AlgoritmoDisociacionAV/"},
   {"s":"Localizador de arritmia ventricular","t":"Localizador de arritmia ventricular","d":"","u":"https://drsebastianmaldonado.github.io/LocalizadorDeArritmiaVentricular/"},
   {"s":"Bibliotecas de imágenes (externas)","t":"CHD Image Library (Texas Children\u0027s Hospital)","d":"Biblioteca de imagenes de ecocardiografia de cardiopatias congenitas, organizada por diagnostico. En ingles; sitio externo con derechos reservados.","u":"https://pedecho.org/library/chd"},
   {"s":"Diagnóstico diferencial","t":"Diferencial de MCH con WPW","d":"Herramienta interactiva: tabla comparativa, filtro de hallazgos y diferencial entre WPW verdadero y pseudo-WPW en miocardiopatía hipertrófica.","u":"recursos/Diferencial%20de%20MCH%20con%20WPW.html"},
   {"s":"Algoritmos clínicos","t":"Bradicardia en la Urgencia","d":"Algoritmo interactivo de manejo escalonado de la bradicardia sintomática en la urgencia, con modo práctica.","u":"recursos/Bradicardia%20en%20la%20Urgencia.html"},
   {"s":"Algoritmos clínicos","t":"Arritmias en Esclerosis Tuberosa","d":"Algoritmo interactivo de manejo de ectopías, WPW y TV en esclerosis tuberosa, con mapa de recorrido y fisiopatología del rabdomioma.","u":"recursos/Arritmias%20en%20Esclerosis%20Tuberosa.html"},
-  {"s":"Marcapasos transitorio","t":"Fallas del Marcapasos Transitorio","d":"Interpretación de fallas de sensado y captura en marcapasos transitorio (AAI, DDD, VVI), con esquemas de ECG y modo práctica.","u":"recursos/Fallas%20del%20Marcapasos%20Transitorio.html"}];
+  {"s":"Marcapasos transitorio","t":"Fallas del Marcapasos Transitorio","d":"Interpretación de fallas de sensado y captura en marcapasos transitorio (AAI, DDD, VVI), con esquemas de ECG y modo práctica.","u":"recursos/Fallas%20del%20Marcapasos%20Transitorio.html"},
+  {"s":"Simulador de arritmias","t":"Simulador de arritmia","d":"Simulador interactivo de arritmias cardíacas para móvil y computadora","u":"recursos/simulador-arritmias.html"}];
