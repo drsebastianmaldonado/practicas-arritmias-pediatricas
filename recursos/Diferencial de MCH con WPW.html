@@ -1,0 +1,555 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Diferencial de MCH con WPW</title>
+<style>
+/* Layout: columna única tipo iOS (inset grouped), encabezado con degradé, tarjeta de contacto, tabla comparativa con primera columna fija, filtro de hallazgos que ordena las entidades, tabla WPW vs pseudo-WPW y modo práctica (mismo formato que las otras apps clínicas) */
+:root{
+  --bg:#f2f2f7;
+  --card:#ffffff;
+  --ink:#0b0b10;
+  --ink2:#6c6c74;
+  --line:#e3e3e8;
+  --blue:#0a74f0;
+  --blue-soft:#e4f0ff;
+  --green:#1faa4a;
+  --orange:#d97a00;
+  --red:#e0352b;
+  --violet:#7a3fd0;
+  --slate:#5b6b8c;
+  --teal:#12a58f;
+  --seg:#e4e4ea;
+  --shadow:0 1px 2px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.05);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#9c9ca4;--line:#2e2e32;--blue:#4aa3ff;--blue-soft:#10263d;
+  --green:#30d158;--orange:#ffa733;--red:#ff6259;--violet:#a98bff;--slate:#9fb0d0;--teal:#2fd0b8;
+  --seg:#1c1c1e;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#9c9ca4;--line:#2e2e32;--blue:#4aa3ff;--blue-soft:#10263d;
+  --green:#30d158;--orange:#ffa733;--red:#ff6259;--violet:#a98bff;--slate:#9fb0d0;--teal:#2fd0b8;
+  --seg:#1c1c1e;--shadow:none;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:flex;flex-direction:column;gap:18px}
+h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margin:0;font-weight:800;text-wrap:balance}
+.card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);min-width:0}
+
+.hero{position:relative;--hc:var(--blue);margin:-20px -16px 0;padding:44px 20px 26px;border-radius:0 0 32px 32px;background:linear-gradient(165deg,color-mix(in srgb,var(--hc) 30%,var(--bg)),color-mix(in srgb,var(--hc) 6%,var(--bg)))}
+.hicon{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;color:#fff;background:linear-gradient(135deg,var(--hc),color-mix(in srgb,var(--hc) 62%,#000));box-shadow:0 6px 16px color-mix(in srgb,var(--hc) 35%,transparent)}
+.hicon svg{width:26px;height:26px}
+.hero h1{margin:16px 0 6px;font-size:clamp(32px,9.4vw,40px);font-weight:800;letter-spacing:-.035em;line-height:1.06}
+.hero .sub{margin:0;color:var(--ink2);font-size:16px;max-width:44ch}
+.prof{margin:0;padding:11px 0 13px;border-top:.5px solid var(--line);border-bottom:.5px solid var(--line)}
+.pname{font-size:15px;font-weight:600}
+.prole{font-size:12px;line-height:1.35;color:var(--ink2);margin-top:1px;max-width:44ch}
+.pact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:9px}
+.wa{display:inline-flex;align-items:center;gap:8px;background:#1f9d55;color:#fff;border-radius:99px;padding:7px 13px;font-size:13px;font-weight:600;text-decoration:none}
+.wa svg{width:15px;height:15px}
+.wa:active{opacity:.75}
+.mailbtn{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);min-width:0;appearance:none;border:0;background:none;font-family:inherit;padding:0;cursor:pointer;text-align:left}
+.mailtxt{user-select:all;overflow-wrap:anywhere}
+.mailcp{color:var(--blue);flex:none;display:grid;place-items:center;width:24px;height:24px}
+.mailcp svg{width:15px;height:15px}
+
+.themebtn{position:absolute;top:14px;right:16px;width:40px;height:40px;display:grid;place-items:center;border-radius:50%;border:0;appearance:none;cursor:pointer;color:var(--ink);background:color-mix(in srgb,var(--card) 70%,transparent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.themebtn:active{opacity:.6}
+.themebtn svg{width:20px;height:20px}
+.btn{appearance:none;border:0;background:var(--blue-soft);color:var(--blue);font:inherit;font-weight:600;font-size:14px;border-radius:999px;padding:8px 14px;cursor:pointer;min-height:36px}
+.btn:active{opacity:.6}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.modelabel{margin:4px 4px -6px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.hint{margin:0 4px;font-size:14px;color:var(--ink2)}
+
+/* tabla comparativa */
+.tblcard{padding:6px 0 10px;overflow:hidden}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.cmp{border-collapse:separate;border-spacing:0;min-width:560px;width:100%;font-variant-numeric:tabular-nums}
+.cmp th,.cmp td{padding:10px 8px;text-align:center;font-size:14px;border-bottom:1px solid var(--line);vertical-align:middle}
+.cmp tbody tr:last-child th,.cmp tbody tr:last-child td{border-bottom:0}
+.cmp thead th{font-size:13px;font-weight:700;line-height:1.2;padding-block:12px;vertical-align:bottom}
+.cmp th.rl{position:sticky;left:0;z-index:1;background:var(--card);text-align:left;font-weight:700;font-size:13px;padding-left:14px;min-width:96px;box-shadow:1px 0 0 var(--line)}
+.cmp thead th.rl{color:var(--ink2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:11px}
+.ehead{display:flex;flex-direction:column;align-items:center;gap:6px}
+.edot{width:10px;height:10px;border-radius:50%;background:var(--t)}
+.cv{display:inline-block;min-width:48px;border-radius:9px;padding:5px 8px;font-weight:700;font-size:14px;letter-spacing:.01em}
+.cv.l3{background:color-mix(in srgb,var(--blue) 26%,var(--card));color:var(--ink)}
+.cv.l2{background:color-mix(in srgb,var(--blue) 15%,var(--card));color:var(--ink)}
+.cv.l1{background:color-mix(in srgb,var(--blue) 8%,var(--card));color:var(--ink)}
+.cv.lv{background:color-mix(in srgb,var(--orange) 16%,var(--card));color:var(--ink)}
+.cv.l0{color:var(--ink2);font-weight:600}
+.cv.txt{background:none;font-weight:700;color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 14px 4px;font-size:12px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+
+/* filtro de hallazgos */
+.fcard{padding:14px;display:flex;flex-direction:column;gap:14px}
+.fgrp .sl,.sl{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);margin-bottom:8px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:360px){.chips{grid-template-columns:1fr}}
+.chip{appearance:none;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;border-radius:14px;padding:10px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-height:56px;min-width:0}
+.chip b{font-size:14px;font-weight:700;line-height:1.2}
+.chip small{font-size:12px;font-weight:600;color:var(--ink2)}
+.chip:active{opacity:.6}
+.chip.on{border-color:var(--green);background:color-mix(in srgb,var(--green) 14%,var(--bg))}
+.chip.on small{color:var(--green)}
+.chip.off{border-color:var(--red);background:color-mix(in srgb,var(--red) 12%,var(--bg))}
+.chip.off small{color:var(--red)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--seg);border-radius:12px;padding:3px;gap:2px}
+.seg button{appearance:none;border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--ink2);border-radius:10px;padding:9px 4px;cursor:pointer;min-height:40px}
+.fcard{background:linear-gradient(160deg,color-mix(in srgb,var(--blue) 14%,var(--card)),var(--card) 55%)}
+.frows{display:flex;flex-direction:column;gap:8px}
+.frowf{--c:var(--slate);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 8px 8px 12px;border-radius:14px;background:color-mix(in srgb,var(--c) 14%,var(--card));box-shadow:inset 4px 0 0 var(--c);transition:background .15s,box-shadow .15s}
+.frowf.s1{--c:var(--green)}
+.frowf.s2{--c:var(--red)}
+.frowf b{font-size:15px;font-weight:600;min-width:0}
+.seg.two{grid-template-columns:1fr 1fr;flex:none;width:min(210px,58%);background:color-mix(in srgb,var(--c) 10%,var(--seg))}
+.seg.two button[data-val="1"][aria-pressed="true"]{background:var(--green);color:#04210f;font-weight:800}
+.seg.two button[data-val="2"][aria-pressed="true"]{background:var(--red);color:#fff;font-weight:800}
+:root[data-theme="dark"] .seg.two button[data-val="2"][aria-pressed="true"]{color:#2a0603}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .seg.two button[data-val="2"][aria-pressed="true"]{color:#2a0603}}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.frow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.frow .small{font-size:13px;color:var(--ink2)}
+
+.elist{display:flex;flex-direction:column;gap:12px}
+.ent{--t:var(--slate);padding:14px;display:flex;flex-direction:column;gap:10px;background:linear-gradient(145deg,color-mix(in srgb,var(--t) 20%,var(--card)),color-mix(in srgb,var(--t) 5%,var(--card)))}
+.ent.s-bad{opacity:.55}
+.ent .eh{display:flex;align-items:center;gap:12px}
+.ent .nb{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;background:linear-gradient(135deg,var(--t),color-mix(in srgb,var(--t) 62%,#000))}
+.ent .en{flex:1;min-width:0}
+.ent .en b{display:block;font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.ent .en span{font-size:13px;color:var(--ink2)}
+.pill{flex:none;font-size:12px;font-weight:700;border-radius:99px;padding:5px 10px;white-space:nowrap}
+.pill.muy{background:var(--green);color:#fff}
+.pill.prob{background:color-mix(in srgb,var(--green) 20%,var(--card));color:var(--green)}
+.pill.pos{background:color-mix(in srgb,var(--orange) 20%,var(--card));color:var(--orange)}
+.pill.poco{background:var(--seg);color:var(--ink2)}
+.attrs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:380px){.attrs{grid-template-columns:repeat(2,1fr)}}
+.attr{background:var(--card);border-radius:12px;padding:8px 10px;min-width:0}
+.attr small{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.attr b{font-size:15px;font-variant-numeric:tabular-nums}
+.attr.mark{box-shadow:inset 0 0 0 1.5px var(--blue)}
+.why{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--ink2)}
+.why li::before{content:"· ";font-weight:800}
+
+/* WPW vs pseudo-WPW */
+.vs{display:flex;flex-direction:column;gap:12px}
+.vhead{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vtop{--t:var(--red);border-radius:18px;padding:12px 12px 10px;min-width:0;background:linear-gradient(150deg,color-mix(in srgb,var(--t) 26%,var(--card)),color-mix(in srgb,var(--t) 6%,var(--card)));box-shadow:var(--shadow)}
+.vtop.p{--t:var(--blue)}
+.vtop b{display:block;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--t)}
+.vtop small{display:block;font-size:12px;line-height:1.3;color:var(--ink2);margin-top:1px}
+.vtop svg{display:block;width:100%;height:auto;margin-top:8px;border-radius:10px;background:color-mix(in srgb,var(--card) 70%,transparent)}
+.vtop svg .tr{fill:none;stroke:var(--t);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vtop svg .bl{stroke:var(--line);stroke-width:1;stroke-dasharray:3 3}
+.vnote{margin:-4px 4px 0;font-size:12px;color:var(--ink2);text-align:center}
+.vrow{padding:12px;display:flex;flex-direction:column;gap:10px}
+.vh{display:flex;align-items:center;gap:10px}
+.vico{--t:var(--blue);flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--t),color-mix(in srgb,var(--t) 62%,#000))}
+.vico svg{width:20px;height:20px}
+.vl{font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.vcols{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vc{border-radius:14px;padding:10px 12px 10px;min-width:0;font-size:14px;line-height:1.35;font-weight:500}
+.vc small{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+.vc small i{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+.vc.w{background:color-mix(in srgb,var(--red) 13%,var(--card))}
+.vc.w small{color:var(--red)}
+.vc.p{background:color-mix(in srgb,var(--blue) 13%,var(--card))}
+.vc.p small{color:var(--blue)}
+.vc .none{color:var(--ink2);font-style:italic;font-weight:400}
+.vsb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;background:var(--card);color:var(--ink2);box-shadow:0 0 0 3px var(--card),0 1px 4px rgba(0,0,0,.18)}
+
+/* secciones desplegables */
+.acc{display:flex;flex-direction:column;gap:12px}
+.acch{--t:var(--blue);display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;text-align:left;appearance:none;border:0;font:inherit;color:inherit;cursor:pointer;border-radius:18px;background:linear-gradient(145deg,color-mix(in srgb,var(--t) 22%,var(--card)),color-mix(in srgb,var(--t) 6%,var(--card)));box-shadow:var(--shadow)}
+.acch:active{opacity:.7}
+.acch .accico{flex:none;width:40px;height:40px;border-radius:12px;--hc:var(--t)}
+.acch .accico svg{width:22px;height:22px}
+.acch .rt{flex:1;min-width:0}
+.acch .rt b{display:block;font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.acch .rt small{display:block;color:var(--ink2);font-size:13px;line-height:1.3;margin-top:2px}
+.acch .chev{flex:none;width:28px;height:28px;display:grid;place-items:center;color:var(--ink2);transition:transform .2s}
+.acch .chev svg{width:20px;height:20px}
+.acch[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.accb{display:flex;flex-direction:column;gap:12px}
+
+/* modo práctica */
+.practice{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;text-align:left;appearance:none;border:0;font:inherit;color:inherit;cursor:pointer;border-radius:16px;background:linear-gradient(145deg,color-mix(in srgb,var(--violet) 24%,var(--card)),color-mix(in srgb,var(--violet) 6%,var(--card)))}
+.practice:active{opacity:.7}
+.practice .pico{flex:none;width:36px;height:36px;border-radius:11px;--hc:var(--violet)}
+.practice .pico svg{width:20px;height:20px}
+.practice .rt{flex:1;min-width:0}
+.practice .rt b{display:block;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.practice .rt small{display:block;color:var(--ink2);font-size:13px;line-height:1.3;margin-top:1px}
+.practice .go{flex:none;color:var(--violet);font-weight:700;font-size:13px}
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 0}
+.qcount{font-size:14px;font-weight:600;color:var(--ink2);font-variant-numeric:tabular-nums}
+.qbar{height:5px;border-radius:99px;background:var(--seg);margin:12px 16px 4px;overflow:hidden}
+.qbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--violet),color-mix(in srgb,var(--violet) 60%,#e04aa0));transition:width .3s ease}
+.case-h{padding:14px 16px 4px}
+.case-h .tag{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
+.case-h h2{margin:2px 0 0;font-size:19px;letter-spacing:-.01em;line-height:1.25;text-wrap:balance}
+.q-opts{display:flex;flex-direction:column;gap:8px;padding:14px 16px 4px}
+.qopt{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;appearance:none;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:16px;font-weight:600;border-radius:14px;padding:13px 14px;min-height:48px;cursor:pointer;transition:border-color .15s,background .15s,opacity .15s}
+.qopt:active:not(:disabled){opacity:.6}
+.qopt:disabled{cursor:default}
+.qopt i{font-style:normal;font-weight:800;flex:none}
+.qopt.good{border-color:var(--green);background:color-mix(in srgb,var(--green) 16%,var(--bg))}
+.qopt.good i{color:var(--green)}
+.qopt.bad{border-color:var(--red);background:color-mix(in srgb,var(--red) 14%,var(--bg))}
+.qopt.bad i{color:var(--red)}
+.qopt.dim{opacity:.5}
+.fb{margin:12px 16px 0;padding:14px;border-radius:14px;font-size:14px;line-height:1.45}
+.fb.ok{background:color-mix(in srgb,var(--green) 14%,var(--bg))}
+.fb.bad{background:color-mix(in srgb,var(--orange) 16%,var(--bg))}
+.fb p{margin:6px 0 0;color:var(--ink2)}
+.fb .fbt{font-weight:800;font-size:16px;color:var(--ink)}
+.nxt{display:block;width:calc(100% - 32px);margin:12px 16px 16px;appearance:none;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--violet),color-mix(in srgb,var(--violet) 62%,#000));cursor:pointer}
+.nxt:active{opacity:.8}
+.result .score{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:22px 16px 0}
+.result .score b{font-size:76px;line-height:1;font-weight:800;letter-spacing:-.04em;background:linear-gradient(135deg,var(--violet),color-mix(in srgb,var(--violet) 55%,#e04aa0));-webkit-background-clip:text;background-clip:text;color:transparent}
+.result .score span{font-size:24px;font-weight:700;color:var(--ink2)}
+.result .pct{text-align:center;color:var(--ink2);font-size:14px;margin-top:2px}
+.result h2{margin:14px 16px 0;text-align:center;font-size:22px;letter-spacing:-.015em;text-wrap:balance}
+.result .rtext{margin:8px 20px 0;text-align:center;color:var(--ink2);font-size:15px}
+.rlist{list-style:none;margin:16px 16px 0;padding:0;display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line)}
+.rlist li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rlist .mk{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800}
+.rlist .mk.ok{background:var(--green)}
+.rlist .mk.bad{background:var(--red)}
+.rlist small{color:var(--ink2)}
+.result .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+@media (max-width:420px){.result .two{grid-template-columns:1fr}}
+.result .two .btn{border-radius:12px;padding:12px}
+.foot{font-size:12px;color:var(--ink2);text-align:center;padding-inline:8px;display:flex;flex-direction:column;gap:6px}
+.foot a{color:var(--blue)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main class="wrap">
+  <header class="hero">
+    <button class="themebtn" id="theme" type="button" aria-label="Cambiar a modo oscuro"></button>
+    <span class="hicon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 22.5s-9-5.6-9-12.2A5 5 0 0 1 13 7.600a5 5 0 0 1 9 2.700c0 6.600-9 12.200-9 12.200z"/><path d="M7 13h3l1.500-3 2.500 6 1.500-3H19"/></svg></span>
+    <h1>Diagnóstico diferencial de MCH con WPW</h1>
+    <p class="sub">Según la afectación del nodo AV y la presencia de WPW. Incluye cómo distinguir WPW de pseudopreexcitación.</p>
+  </header>
+
+  <section class="prof" aria-label="Contacto"><div class="pname">Dr. Sebastián Maldonado</div><div class="prole">Electrofisiólogo infantil · Htal. JP Garrahan y Hospital Italiano de Buenos Aires</div>
+    <div class="pact"><a class="wa" href="https://wa.me/5491131860600?text=Hola%20Dr.%20Maldonado%2C%20te%20escribo%20por%20una%20interconsulta%20sobre%20un%20paciente%20con%20miocardiopat%C3%ADa%20hipertr%C3%B3fica%20y%20WPW." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.700 6.700 0 0 1-3.300-2.900c-.2-.4.2-.4.700-1.300.1-.2 0-.3 0-.4l-.8-1.800c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.300-.9.900-.9 2.200s.9 2.500 1 2.700c.1.2 1.800 2.800 4.400 3.900 1.600.7 2.300.800 3.100.700.5-.1 1.500-.6 1.700-1.200.2-.6.2-1.100.2-1.200-.1-.1-.3-.2-.5-.3z"/></svg>Interconsulta por WhatsApp</a>
+    <button class="mailbtn" id="copy" type="button" aria-label="Copiar mail"><span class="mailtxt" id="mailtxt">drsebastian.maldonado@gmail.com</span><span class="mailcp" id="mailcp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.500 2.500 0 0 1 7.500 4H15"/></svg></span></button></div></section>
+
+  <section id="main" style="display:flex;flex-direction:column;gap:18px" aria-label="Contenido"></section>
+
+  <footer class="foot">
+    <span>Material de apoyo para la toma de decisiones. No reemplaza el criterio clínico.</span>
+    <span>Interconsultas: <a href="https://wa.me/5491131860600" target="_blank" rel="noopener">WhatsApp del Dr. Maldonado</a></span>
+  </footer>
+</main>
+
+<script>
+(function(){
+  /* ---------- datos (tabla "Diagnóstico diferencial de MCH según afectación del nodo AV y presencia de WPW") ---------- */
+  var ENT=[
+    {id:'prkag2',n:'PRKAG2',ab:'PR',her:'AD',mch:'++/+++',bavc:'+++',wpw:'+++',miop:'-',di:'-',hep:'-',tone:'var(--red)'},
+    {id:'danon',n:'Danon',ab:'Da',her:'XL',mch:'++/+++',bavc:'+++',wpw:'+++',miop:'+',di:'+',hep:'-',tone:'var(--orange)'},
+    {id:'pompe',n:'Pompe',ab:'Po',her:'AR',mch:'++/+++',bavc:'+/-',wpw:'+',miop:'-',di:'-',hep:'-',tone:'var(--violet)'},
+    {id:'gluco',n:'Glucogenosis tipo III',ab:'G3',her:'AR',mch:'+++',bavc:'+/-',wpw:'+',miop:'-',di:'-',hep:'+',tone:'var(--teal)'},
+    {id:'sarc',n:'MCH sarcomérica',ab:'Sa',her:'AD',mch:'+/++/+++',bavc:'-',wpw:'+',miop:'-',di:'-',hep:'-',tone:'var(--blue)'}
+  ];
+  var ROWS=[
+    {k:'her',n:'Herencia',txt:true},
+    {k:'mch',n:'MCH'},
+    {k:'bavc',n:'BAVC'},
+    {k:'wpw',n:'WPW'},
+    {k:'miop',n:'Miopatía esquelét.'},
+    {k:'di',n:'Discap. intelectual'},
+    {k:'hep',n:'Hepatomegalia'}
+  ];
+  var FEAT=[
+    {k:'bavc',n:'BAVC'},
+    {k:'wpw',n:'WPW'},
+    {k:'miop',n:'Miopatía esquelética'},
+    {k:'di',n:'Discapacidad intelectual'},
+    {k:'hep',n:'Hepatomegalia'}
+  ];
+  var VS=[
+    {n:'Intervalo PR',w:'Fijo',p:'Fijo/variable'},
+    {n:'Onda delta',w:'Nítida, bien marcada',p:'Empastada, irregular, difusa'},
+    {n:'Polaridad de la onda delta',w:'Respeta una ubicación siguiendo algoritmos clásicos',p:'No encuadra en alguna localización habitual o da para dos regiones distintas'},
+    {n:'Onda q en V6',w:'Su ausencia es fuerte indicador de vía accesoria izquierda',p:''},
+    {n:'Comportamiento en Holter y PEG',w:'Distintos grados de preexcitación o desaparición abrupta de la onda delta',p:'QRS fijo'},
+    {n:'Test de adenosina',w:'Máxima preexcitación',p:'Bloqueo AV con igual QRS'}
+  ];
+
+  var DEF={bavc:2,wpw:1,miop:2,di:2,hep:2,her:''};  /* 1 presente · 2 ausente */
+  var st=JSON.parse(JSON.stringify(DEF));
+  var quiz=null;
+  var openSec={};
+  var main=document.getElementById('main');
+  var MINUS='−';
+  function sym(s){return s.replace(/-/g,MINUS);}
+  function cls(s){
+    if(s==='-')return 'l0';
+    if(s==='+/-')return 'lv';
+    var m=s.match(/\+{1,3}/g).reduce(function(a,b){return Math.max(a,b.length);},0);
+    return 'l'+m;
+  }
+  function lvl(s){return s==='-'?0:(s==='+/-'?'v':1);}
+
+  /* ---------- tabla comparativa ---------- */
+  function tableHtml(){
+    var h='<div class="card tblcard"><div class="tscroll" tabindex="0" role="region" aria-label="Tabla comparativa, desplazable"><table class="cmp"><thead><tr><th class="rl" scope="col">Característica</th>';
+    ENT.forEach(function(e){h+='<th scope="col" style="--t:'+e.tone+'"><span class="ehead"><span class="edot"></span>'+e.n+'</span></th>';});
+    h+='</tr></thead><tbody>';
+    ROWS.forEach(function(r){
+      h+='<tr><th class="rl" scope="row">'+r.n+'</th>';
+      ENT.forEach(function(e){
+        var v=e[r.k];
+        h+='<td>'+(r.txt?'<span class="cv txt">'+v+'</span>':'<span class="cv '+cls(v)+'">'+sym(v)+'</span>')+'</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>'+
+      '<div class="legend"><span><i style="background:color-mix(in srgb,var(--blue) 26%,var(--card))"></i>+++ más marcado</span><span><i style="background:color-mix(in srgb,var(--orange) 16%,var(--card))"></i>+/'+MINUS+' puede estar o no</span><span>'+MINUS+' ausente</span></div>'+
+      '<div class="legend" style="padding-top:0">AD autosómica dominante · AR autosómica recesiva · XL ligada al X</div></div>';
+    return h;
+  }
+
+  /* ---------- filtro de hallazgos ---------- */
+  function nm(f){return (f.k==='bavc'||f.k==='wpw')?f.n:f.n.toLowerCase();}
+  /* Factor de verosimilitud de cada hallazgo marcado, según la frecuencia que da la tabla.
+     +++ = muy frecuente · +/- = variable · + en WPW = menos frecuente · + en miopatía/disc. intelectual/hepatomegalia = rasgo característico, cuya ausencia resta poco · - = no cursa */
+  function factor(e,f,s){
+    var sy=e[f.k],kind;
+    if(sy==='-')kind='none';
+    else if(sy==='+/-')kind='var';
+    else if(sy.indexOf('+++')>-1)kind='strong';
+    else kind=(f.k==='wpw')?'weak':'char';
+    var pr={none:.05,'var':.4,strong:1,weak:.4,'char':1};
+    var ab={none:1,'var':.6,strong:.6,weak:.6,'char':.95};
+    var w=null;
+    if(s===1){
+      if(kind==='none')w='No cursa con '+nm(f);
+      else if(kind==='var')w=f.n+' variable';
+      else if(kind==='weak')w=f.n+' menos frecuente ('+sym(sy)+')';
+      return {p:pr[kind],w:w};
+    }
+    if(kind==='strong')w='Cursa con '+nm(f)+' ('+sym(sy)+')';
+    else if(kind==='char')w='Puede cursar con '+nm(f)+' (+)';
+    else if(kind==='var')w=f.n+' variable';
+    else if(kind==='weak')w=f.n+' menos frecuente ('+sym(sy)+')';
+    return {p:ab[kind],w:w};
+  }
+  function evalEnt(e){
+    var sc=1,why=[],active=false;
+    FEAT.forEach(function(f){
+      var s=st[f.k];if(!s)return;active=true;
+      var r=factor(e,f,s);sc*=r.p;if(r.w)why.push(r.w);
+    });
+    if(st.her){active=true;if(e.her!==st.her){sc*=.05;why.push('Herencia '+e.her+', no '+st.her);}}
+    var t=!active?'':(sc>=.85?'muy':(sc>=.5?'prob':(sc>=.2?'pos':'poco')));
+    return {t:t,sc:sc,why:why};
+  }
+  function filterHtml(){
+    var h='<div class="card fcard"><div class="fgrp"><div class="sl">Hallazgos del paciente</div><div class="frows">';
+    FEAT.forEach(function(f){
+      h+='<div class="frowf s'+st[f.k]+'"><b>'+f.n+'</b><div class="seg two" role="group" aria-label="'+f.n+'">'+
+        '<button type="button" data-feat="'+f.k+'" data-val="1" aria-pressed="'+(st[f.k]===1)+'">Presente</button>'+
+        '<button type="button" data-feat="'+f.k+'" data-val="2" aria-pressed="'+(st[f.k]===2)+'">Ausente</button></div></div>';
+    });
+    h+='</div></div><div class="fgrp"><div class="sl">Herencia</div><div class="seg" role="group" aria-label="Herencia">';
+    [['','Todas'],['AD','AD'],['AR','AR'],['XL','XL']].forEach(function(o){
+      h+='<button type="button" data-her="'+o[0]+'" aria-pressed="'+(st.her===o[0])+'">'+o[1]+'</button>';
+    });
+    h+='</div></div><div class="frow"><span class="small">Todas las entidades cursan con MCH.</span><button class="btn" type="button" data-reset="1">Borrar</button></div></div>';
+    var arr=ENT.map(function(e,i){var r=evalEnt(e);return {e:e,r:r,i:i};});
+    arr.sort(function(a,b){return (b.r.sc-a.r.sc)||(a.i-b.i);});
+    var active=arr[0].r.t!=='';
+    arr.forEach(function(x){x.rank=1+arr.filter(function(y){return y.r.sc>x.r.sc+1e-9;}).length;});
+    var TL={muy:'Muy probable',prob:'Probable',pos:'Posible',poco:'Poco probable'};
+    h+='<div class="elist">';
+    if(active)h+='<p class="hint" style="margin-top:2px">Ranking orientativo según la frecuencia de cada hallazgo en la tabla. No es un cálculo de probabilidad real.</p>';
+    arr.forEach(function(x){
+      var e=x.e,r=x.r;
+      var pill=r.t?'<span class="pill '+r.t+'">'+TL[r.t]+'</span>':'';
+      h+='<article class="card ent'+(r.t==='poco'?' s-bad':'')+'" style="--t:'+e.tone+'"><div class="eh"><span class="nb">'+(active?x.rank+'°':e.ab)+'</span><div class="en"><b>'+e.n+'</b><span>Herencia '+e.her+'</span></div>'+pill+'</div><div class="attrs">';
+      [['mch','MCH'],['bavc','BAVC'],['wpw','WPW'],['miop','Miopatía'],['di','Disc. intel.'],['hep','Hepatomeg.']].forEach(function(a){
+        var on=!!st[a[0]]&&FEAT.some(function(f){return f.k===a[0];});
+        h+='<div class="attr'+(on?' mark':'')+'"><small>'+a[1]+'</small><b>'+sym(e[a[0]])+'</b></div>';
+      });
+      h+='</div>';
+      if(r.why.length)h+='<ul class="why">'+r.why.map(function(w){return '<li>'+w+'</li>';}).join('')+'</ul>';
+      h+='</article>';
+    });
+    return h+'</div>';
+  }
+
+  /* ---------- WPW vs pseudo-WPW ---------- */
+  var VICO=[
+    ['var(--blue)','<path d="M3 8h18v8H3zM7 8v3M11 8v4M15 8v3M19 8v4"/>'],
+    ['var(--red)','<path d="M2 16h5l4-8 3 12 3-6h5"/>'],
+    ['var(--violet)','<path d="M8 4v16M5 7l3-3 3 3M16 20V4M13 17l3 3 3-3"/>'],
+    ['var(--teal)','<text x="3" y="16.500" font-size="11" font-weight="800" fill="currentColor" stroke="none">V6</text>'],
+    ['var(--orange)','<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],
+    ['var(--green)','<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>']
+  ];
+  function vsHtml(){
+    var h='<div class="vs"><div class="vhead">'+
+      '<div class="vtop"><b>WPW</b><small>Vía accesoria verdadera</small><svg viewBox="0 0 100 48" role="img" aria-label="Esquema: onda delta nítida"><line class="bl" x1="2" y1="34" x2="98" y2="34"/><path class="tr" d="M2 34H12q3-8 6 0H18.500L26 29L32 6L36 44L40 34H48q7-11 14 0H98"/></svg></div>'+
+      '<div class="vtop p"><b>Pseudo WPW</b><small>Patrón que la simula</small><svg viewBox="0 0 100 48" role="img" aria-label="Esquema: onda delta empastada e irregular"><line class="bl" x1="2" y1="34" x2="98" y2="34"/><path class="tr" d="M2 34H12q3-8 6 0H26l2-3 2 2 3-4L38 8L42 44L46 34H53q7-11 14 0H98"/></svg></div>'+
+      '</div><p class="vnote">Esquemas ilustrativos</p>';
+    VS.forEach(function(r,i){
+      var ic=VICO[i];
+      h+='<article class="card vrow"><div class="vh"><span class="vico" style="--t:'+ic[0]+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ic[1]+'</svg></span><span class="vl">'+r.n+'</span></div>'+
+        '<div class="vcols"><div class="vc w"><small><i></i>WPW</small>'+r.w+'</div><span class="vsb" aria-hidden="true">vs</span><div class="vc p"><small><i></i>Pseudo WPW</small>'+(r.p?r.p:'<span class="none">Sin dato</span>')+'</div></div></article>';
+    });
+    return h+'</div>';
+  }
+
+  function sec(id,t,sub,col,ico,body){
+    var open=!!openSec[id];
+    return '<section class="acc" style="--t:'+col+'"><button type="button" class="acch" data-acc="'+id+'" aria-expanded="'+open+'" aria-controls="acc-'+id+'"><span class="hicon pico accico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ico+'</svg></span><span class="rt"><b>'+t+'</b><small>'+sub+'</small></span><span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button><div class="accb" id="acc-'+id+'"'+(open?'':' hidden')+'>'+body+'</div></section>';
+  }
+  function homeHtml(){
+    var h='';
+    h+=sec('perfil','Armá el perfil del paciente','Marcá los hallazgos y mirá el ranking de probabilidad','var(--teal)','<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>','<p class="hint">Indicá si cada hallazgo está presente o ausente y las entidades se ordenan de más a menos probable. Arranca con WPW presente y el resto ausente.</p><div id="filt" style="display:flex;flex-direction:column;gap:12px">'+filterHtml()+'</div>');
+    h+=sec('tabla','Tabla comparativa','PRKAG2, Danon, Pompe, glucogenosis III y MCH sarcomérica','var(--blue)','<path d="M3 5h18v14H3zM3 10h18M9 5v14"/>',tableHtml());
+    h+=sec('vs','WPW vs pseudopreexcitación','Claves para diferenciar una vía accesoria verdadera','var(--red)','<path d="M2 12h5l2-6 4 12 2-6h7"/>','<p class="hint">Claves para diferenciar una vía accesoria verdadera de un patrón que la simula.</p>'+vsHtml());
+    h+='<button class="card practice" type="button" data-start="1"><span class="hicon pico"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3.5l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L13 17.700l-5.600 3 1.100-6.200L4 10.100l6.200-.900z"/></svg></span>'+
+      '<span class="rt"><b>Modo práctica</b><small>5 casos al azar. Al final, tu puntuación.</small></span><span class="go" aria-hidden="true">Empezar ›</span></button>';
+    return h;
+  }
+
+  /* ---------- modo práctica ---------- */
+  var CASES=[
+    {q:'Varón adolescente con MCH, WPW, BAVC, miopatía esquelética y discapacidad intelectual. ¿Cuál es la entidad más probable?',
+     o:['Enfermedad de Danon','PRKAG2','Enfermedad de Pompe','MCH sarcomérica'],a:0,
+     f:'Danon es la única con miopatía esquelética y discapacidad intelectual (+), además de MCH ++/+++, BAVC +++ y WPW +++. Herencia ligada al X.'},
+    {q:'MCH con WPW y BAVC, sin miopatía esquelética ni discapacidad intelectual, con herencia autosómica dominante. ¿Qué entidad sospechás?',
+     o:['PRKAG2','Enfermedad de Danon','Glucogenosis tipo III','Enfermedad de Pompe'],a:0,
+     f:'PRKAG2 combina MCH ++/+++, BAVC +++ y WPW +++, sin miopatía ni discapacidad intelectual. Herencia AD.'},
+    {q:'MCH con hepatomegalia, WPW y BAVC variable, de herencia autosómica recesiva. ¿Cuál es la entidad más probable?',
+     o:['Glucogenosis tipo III','Enfermedad de Pompe','PRKAG2','MCH sarcomérica'],a:0,
+     f:'La hepatomegalia (+) solo figura en la glucogenosis tipo III, que además tiene MCH +++, BAVC +/− y WPW +. Herencia AR.'},
+    {q:'MCH ++/+++ con WPW, BAVC variable, herencia AR y sin hepatomegalia, miopatía ni discapacidad intelectual. ¿Qué entidad corresponde en la tabla?',
+     o:['Enfermedad de Pompe','Glucogenosis tipo III','Enfermedad de Danon','PRKAG2'],a:0,
+     f:'Pompe: MCH ++/+++, BAVC +/−, WPW +, herencia AR y sin hepatomegalia. Se diferencia de la glucogenosis III justamente por la hepatomegalia.'},
+    {q:'MCH con WPW, sin afectación del nodo AV (sin BAVC) y herencia AD. ¿Qué entidad sospechás?',
+     o:['MCH sarcomérica','PRKAG2','Enfermedad de Danon','Glucogenosis tipo III'],a:0,
+     f:'La MCH sarcomérica es la única de la tabla con BAVC ausente (−). WPW +, herencia AD.'},
+    {q:'¿Qué entidad de la tabla tiene herencia ligada al X?',
+     o:['Enfermedad de Danon','PRKAG2','Enfermedad de Pompe','MCH sarcomérica'],a:0,
+     f:'Danon es XL. PRKAG2 y la MCH sarcomérica son AD; Pompe y la glucogenosis III son AR.'},
+    {q:'¿Cuáles son las dos entidades con BAVC +++ y WPW +++?',
+     o:['PRKAG2 y Danon','Pompe y glucogenosis tipo III','Glucogenosis III y MCH sarcomérica','Pompe y MCH sarcomérica'],a:0,
+     f:'PRKAG2 y Danon tienen BAVC +++ y WPW +++. En Pompe y glucogenosis III el BAVC es variable y el WPW +.'},
+    {q:'En un test de adenosina aparece bloqueo AV con el mismo QRS. ¿Qué sugiere?',
+     o:['Pseudopreexcitación','WPW verdadero','Vía accesoria izquierda','Preexcitación máxima'],a:0,
+     f:'En el pseudo WPW la adenosina produce bloqueo AV con igual QRS. En el WPW verdadero muestra la máxima preexcitación.'},
+    {q:'En el Holter, la onda delta desaparece de manera abrupta. ¿Qué patrón es?',
+     o:['WPW verdadero','Pseudo WPW','Ninguno de los dos','Los dos por igual'],a:0,
+     f:'Distintos grados de preexcitación o desaparición abrupta de la onda delta orientan a WPW. En el pseudo WPW el QRS permanece fijo.'},
+    {q:'¿Qué indica la ausencia de onda q en V6 en un paciente con preexcitación?',
+     o:['Fuerte indicador de vía accesoria izquierda','Pseudopreexcitación','Vía accesoria derecha','Nodo AV normal'],a:0,
+     f:'Su ausencia es un fuerte indicador de vía accesoria izquierda.'},
+    {q:'Una onda delta empastada, irregular y difusa, con intervalo PR fijo o variable. ¿Qué patrón sugiere?',
+     o:['Pseudo WPW','WPW verdadero','MCH sarcomérica','Enfermedad de Danon'],a:0,
+     f:'Onda delta empastada, irregular y difusa, con PR fijo/variable, corresponde al pseudo WPW. En el WPW la delta es nítida y bien marcada, con PR fijo.'}
+  ];
+  function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function startQuiz(){
+    var items=shuffle(CASES).slice(0,5).map(function(c){
+      return {c:c,opts:shuffle(c.o.map(function(t,k){return {t:t,ok:k===c.a};})),pick:null};
+    });
+    quiz={items:items,i:0,done:false};
+    render();window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function score(){return quiz.items.reduce(function(s,it){return s+(it.pick!==null&&it.opts[it.pick].ok?1:0);},0);}
+  function quizHtml(){
+    var n=quiz.items.length;
+    if(quiz.done) return resultHtml();
+    var it=quiz.items[quiz.i],ans=it.pick!==null,ok=ans&&it.opts[it.pick].ok,doneN=quiz.i+(ans?1:0);
+    var h='<div class="qhead"><button class="btn" type="button" data-exit="1">‹ Salir</button><span class="qcount">Pregunta '+(quiz.i+1)+' de '+n+'</span></div>'+
+      '<div class="qbar" role="progressbar" aria-valuemin="0" aria-valuemax="'+n+'" aria-valuenow="'+doneN+'"><i style="width:'+(doneN/n*100)+'%"></i></div>'+
+      '<div class="case-h"><div class="tag">Caso '+(quiz.i+1)+'</div><h2>'+it.c.q+'</h2></div><div class="q-opts" role="group" aria-label="Opciones">';
+    it.opts.forEach(function(o,k){
+      var c='qopt';
+      if(ans){if(o.ok)c+=' good';else if(k===it.pick)c+=' bad';else c+=' dim';}
+      h+='<button type="button" class="'+c+'" data-pick="'+k+'"'+(ans?' disabled':'')+'><span>'+o.t+'</span>'+(ans&&o.ok?'<i aria-hidden="true">✓</i>':(ans&&k===it.pick?'<i aria-hidden="true">✕</i>':''))+'</button>';
+    });
+    h+='</div>';
+    if(ans){
+      h+='<div class="fb '+(ok?'ok':'bad')+'" role="status"><div class="fbt">'+(ok?'Correcto':'Incorrecto')+'</div><p>'+it.c.f+'</p></div>'+
+        '<button class="nxt" type="button" data-next="1">'+(quiz.i===n-1?'Ver resultado':'Siguiente caso ›')+'</button>';
+    }
+    return h;
+  }
+  function resultHtml(){
+    var n=quiz.items.length,sc=score(),pct=Math.round(sc/n*100),title,text;
+    if(sc===n){title='Excelente';text='Acertaste todos los casos. Tenés muy bien incorporado el diferencial.';}
+    else if(sc===n-1){title='Muy bien';text='Se te escapó un solo caso. Repasá la tabla y vas por el puntaje máximo.';}
+    else if(sc>=3){title='Bien, con margen para mejorar';text='Acertaste '+sc+' de '+n+'. Conviene repasar los casos que fallaste.';}
+    else{title='Conviene repasar';text='Acertaste '+sc+' de '+n+'. Volvé a recorrer la tabla y probá con otros casos.';}
+    var rows=quiz.items.map(function(it){
+      var ok=it.opts[it.pick].ok;
+      return '<li><span class="mk '+(ok?'ok':'bad')+'" aria-hidden="true">'+(ok?'✓':'✕')+'</span><span><b>'+it.c.q+'</b>'+(ok?'':'<br><small>Elegiste: '+it.opts[it.pick].t+'</small>')+'<br><small>'+it.c.f+'</small></span></li>';
+    }).join('');
+    return '<div class="qhead"><button class="btn" type="button" data-exit="1">‹ Inicio</button><span class="qcount">Resultado</span></div>'+
+      '<div class="score"><b>'+sc+'</b><span>/ '+n+'</span></div><div class="pct">'+pct+' % de aciertos</div><h2>'+title+'</h2><p class="rtext">'+text+'</p>'+
+      '<ul class="rlist">'+rows+'</ul><div class="two"><button class="btn" type="button" data-start="1">Practicar otros 5</button><button class="btn" type="button" data-exit="1">Volver al inicio</button></div>';
+  }
+
+  function render(){
+    if(quiz){main.innerHTML='<article class="card '+(quiz.done?'result':'case q')+'">'+quizHtml()+'</article>';}
+    else{main.innerHTML=homeHtml();}
+  }
+  function renderFilter(){
+    var f=document.getElementById('filt');
+    if(f)f.innerHTML=filterHtml();
+  }
+  main.addEventListener('click',function(e){
+    if(e.target.closest('[data-start]')){startQuiz();return;}
+    if(e.target.closest('[data-exit]')){quiz=null;render();window.scrollTo({top:0,behavior:'smooth'});return;}
+    var ft=e.target.closest('[data-feat]');
+    if(ft){var k=ft.getAttribute('data-feat'),v=ft.getAttribute('data-val');st[k]=+v;renderFilter();var again=document.querySelector('[data-feat="'+k+'"][data-val="'+v+'"]');if(again)again.focus();return;}
+    var hr=e.target.closest('[data-her]');
+    if(hr){st.her=hr.getAttribute('data-her');renderFilter();var a2=document.querySelector('[data-her="'+st.her+'"]');if(a2)a2.focus();return;}
+    if(e.target.closest('[data-reset]')){st=JSON.parse(JSON.stringify(DEF));renderFilter();return;}
+    var ac=e.target.closest('[data-acc]');
+    if(ac){var id=ac.getAttribute('data-acc'),body=document.getElementById('acc-'+id),op=ac.getAttribute('aria-expanded')!=='true';openSec[id]=op;ac.setAttribute('aria-expanded',op);if(body)body.hidden=!op;return;}
+    var pk=e.target.closest('[data-pick]');
+    if(pk&&quiz){var it=quiz.items[quiz.i];if(it.pick===null){it.pick=+pk.getAttribute('data-pick');render();}return;}
+    if(e.target.closest('[data-next]')&&quiz){
+      if(quiz.i===quiz.items.length-1)quiz.done=true;else quiz.i++;
+      render();window.scrollTo({top:0,behavior:'smooth'});
+    }
+  });
+  document.getElementById('copy').addEventListener('click',function(){
+    var cp=document.getElementById('mailcp'),old=cp.innerHTML,txt=document.getElementById('mailtxt');
+    var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg>';
+    function done(){cp.innerHTML=CHECK;setTimeout(function(){cp.innerHTML=old;},1600);}
+    function sel(){var r=document.createRange();r.selectNodeContents(txt);var s=getSelection();s.removeAllRanges();s.addRange(r);}
+    try{navigator.clipboard.writeText(txt.textContent).then(done,sel);}catch(err){sel();}
+  });
+  /* modo claro / oscuro */
+  var root=document.documentElement,tb=document.getElementById('theme');
+  var MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.500A8 8 0 0 1 9.500 4a8 8 0 1 0 10.500 10.500z"/></svg>';
+  var SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.900 4.900l1.400 1.400M17.700 17.700l1.400 1.400M2 12h2M20 12h2M4.900 19.100l1.400-1.400M17.700 6.300l1.400-1.400"/></svg>';
+  function effTheme(){var t=root.getAttribute('data-theme');if(t)return t;try{return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}catch(err){return 'light';}}
+  function paintTheme(){var d=effTheme()==='dark';tb.innerHTML=d?SUN:MOON;tb.setAttribute('aria-label',d?'Cambiar a modo claro':'Cambiar a modo oscuro');}
+  try{var sv=localStorage.getItem('theme-mch');if(sv==='dark'||sv==='light')root.setAttribute('data-theme',sv);}catch(err){}
+  tb.addEventListener('click',function(){
+    var n=effTheme()==='dark'?'light':'dark';
+    root.setAttribute('data-theme',n);
+    try{localStorage.setItem('theme-mch',n);}catch(err){}
+    paintTheme();
+  });
+  paintTheme();
+  render();
+})();
+</script>
+
+</body></html>

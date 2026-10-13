@@ -1,0 +1,281 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Bradicardia en la Urgencia</title>
+<style>
+/* Layout: columna única tipo iOS (inset grouped), banda de encabezado con degradé, tarjeta de contacto, algoritmo en tarjetas con paneles abiertos y modo práctica (mismo formato que Fallas del Marcapasos Transitorio) */
+:root{
+  --bg:#f2f2f7;
+  --card:#ffffff;
+  --ink:#0b0b10;
+  --ink2:#6c6c74;
+  --line:#e3e3e8;
+  --blue:#0a74f0;
+  --blue-soft:#e4f0ff;
+  --green:#1faa4a;
+  --orange:#d97a00;
+  --red:#e0352b;
+  --violet:#7a3fd0;
+  --slate:#5b6b8c;
+  --teal:#12a58f;
+  --seg:#e4e4ea;
+  --shadow:0 1px 2px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.05);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#9c9ca4;--line:#2e2e32;--blue:#4aa3ff;--blue-soft:#10263d;
+  --green:#30d158;--orange:#ffa733;--red:#ff6259;--violet:#a98bff;--slate:#9fb0d0;--teal:#2fd0b8;
+  --seg:#1c1c1e;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#9c9ca4;--line:#2e2e32;--blue:#4aa3ff;--blue-soft:#10263d;
+  --green:#30d158;--orange:#ffa733;--red:#ff6259;--violet:#a98bff;--slate:#9fb0d0;--teal:#2fd0b8;
+  --seg:#1c1c1e;--shadow:none;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:flex;flex-direction:column;gap:18px}
+h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margin:0;font-weight:800;text-wrap:balance}
+.card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);min-width:0}
+
+/* encabezado: banda con degradé suave, ícono, título grande y datos del médico */
+.hero{--hc:var(--blue);margin:-20px -16px 0;padding:44px 20px 26px;border-radius:0 0 32px 32px;background:linear-gradient(165deg,color-mix(in srgb,var(--hc) 30%,var(--bg)),color-mix(in srgb,var(--hc) 6%,var(--bg)))}
+.hicon{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;color:#fff;background:linear-gradient(135deg,var(--hc),color-mix(in srgb,var(--hc) 62%,#000));box-shadow:0 6px 16px color-mix(in srgb,var(--hc) 35%,transparent)}
+.hicon svg{width:26px;height:26px}
+.hero h1{margin:16px 0 6px;font-size:clamp(32px,9.4vw,40px);font-weight:800;letter-spacing:-.035em;line-height:1.06}
+.hero .sub{margin:0;color:var(--ink2);font-size:16px;max-width:44ch}
+.prof{margin:0;padding:11px 0 13px;border-top:.5px solid var(--line);border-bottom:.5px solid var(--line)}
+.pname{font-size:15px;font-weight:600}
+.prole{font-size:12px;line-height:1.35;color:var(--ink2);margin-top:1px;max-width:44ch}
+.pact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:9px}
+.wa{display:inline-flex;align-items:center;gap:8px;background:#1f9d55;color:#fff;border-radius:99px;padding:7px 13px;font-size:13px;font-weight:600;text-decoration:none}
+.wa svg{width:15px;height:15px}
+.wa:active{opacity:.75}
+.mailbtn{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);min-width:0;appearance:none;border:0;background:none;font-family:inherit;padding:0;cursor:pointer;text-align:left}
+.mailtxt{user-select:all;overflow-wrap:anywhere}
+.mailcp{color:var(--blue);flex:none;display:grid;place-items:center;width:24px;height:24px}
+.mailcp svg{width:15px;height:15px}
+
+.btn{appearance:none;border:0;background:var(--blue-soft);color:var(--blue);font:inherit;font-weight:600;font-size:14px;border-radius:999px;padding:8px 14px;cursor:pointer;min-height:36px}
+.btn:active{opacity:.6}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.modelabel{margin:4px 4px -6px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+
+/* algoritmo: una tarjeta por paso, con su panel lateral abierto */
+.flow{display:flex;flex-direction:column;align-items:stretch}
+.node{--t:var(--slate);padding:14px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(145deg,color-mix(in srgb,var(--t) 20%,var(--card)),color-mix(in srgb,var(--t) 5%,var(--card)))}
+.node.t-warn{--t:var(--orange)}
+.node.t-ok{--t:var(--teal)}
+.node.t-crit{--t:var(--red)}
+.nh{display:flex;align-items:center;gap:12px}
+.nb{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px;font-variant-numeric:tabular-nums;background:linear-gradient(135deg,var(--t),color-mix(in srgb,var(--t) 62%,#000))}
+.nt{font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.2;text-wrap:balance}
+.ns{font-size:14px;color:var(--ink2);margin-top:2px}
+.ns span{display:block}
+.side{background:var(--card);border-radius:14px;padding:12px 14px}
+.side .sl{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
+.side ol,.side ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15px}
+.side li::marker{color:var(--ink2);font-weight:600}
+.arrow{align-self:center;display:grid;place-items:center;width:28px;height:28px;color:var(--ink2)}
+.arrow svg{width:14px;height:18px}
+
+/* modo práctica */
+.practice{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;text-align:left;appearance:none;border:0;font:inherit;color:inherit;cursor:pointer;border-radius:16px;background:linear-gradient(145deg,color-mix(in srgb,var(--violet) 24%,var(--card)),color-mix(in srgb,var(--violet) 6%,var(--card)))}
+.practice:active{opacity:.7}
+.practice .pico{flex:none;width:36px;height:36px;border-radius:11px;--hc:var(--violet)}
+.practice .pico svg{width:20px;height:20px}
+.practice .rt{flex:1;min-width:0}
+.practice .rt b{display:block;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.practice .rt small{display:block;color:var(--ink2);font-size:13px;line-height:1.3;margin-top:1px}
+.practice .go{flex:none;color:var(--violet);font-weight:700;font-size:13px}
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 0}
+.qcount{font-size:14px;font-weight:600;color:var(--ink2);font-variant-numeric:tabular-nums}
+.qbar{height:5px;border-radius:99px;background:var(--seg);margin:12px 16px 4px;overflow:hidden}
+.qbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--violet),color-mix(in srgb,var(--violet) 60%,#e04aa0));transition:width .3s ease}
+.case-h{padding:14px 16px 4px}
+.case-h .tag{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
+.case-h h2{margin:2px 0 0;font-size:19px;letter-spacing:-.01em;line-height:1.25;text-wrap:balance}
+.q-opts{display:flex;flex-direction:column;gap:8px;padding:14px 16px 4px}
+.qopt{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;appearance:none;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:16px;font-weight:600;border-radius:14px;padding:13px 14px;min-height:48px;cursor:pointer;transition:border-color .15s,background .15s,opacity .15s}
+.qopt:active:not(:disabled){opacity:.6}
+.qopt:disabled{cursor:default}
+.qopt i{font-style:normal;font-weight:800;flex:none}
+.qopt.good{border-color:var(--green);background:color-mix(in srgb,var(--green) 16%,var(--bg))}
+.qopt.good i{color:var(--green)}
+.qopt.bad{border-color:var(--red);background:color-mix(in srgb,var(--red) 14%,var(--bg))}
+.qopt.bad i{color:var(--red)}
+.qopt.dim{opacity:.5}
+.fb{margin:12px 16px 0;padding:14px;border-radius:14px;font-size:14px;line-height:1.45}
+.fb.ok{background:color-mix(in srgb,var(--green) 14%,var(--bg))}
+.fb.bad{background:color-mix(in srgb,var(--orange) 16%,var(--bg))}
+.fb p{margin:6px 0 0;color:var(--ink2)}
+.fb .fbt{font-weight:800;font-size:16px;color:var(--ink)}
+.nxt{display:block;width:calc(100% - 32px);margin:12px 16px 16px;appearance:none;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--violet),color-mix(in srgb,var(--violet) 62%,#000));cursor:pointer}
+.nxt:active{opacity:.8}
+.result .score{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:22px 16px 0}
+.result .score b{font-size:76px;line-height:1;font-weight:800;letter-spacing:-.04em;background:linear-gradient(135deg,var(--violet),color-mix(in srgb,var(--violet) 55%,#e04aa0));-webkit-background-clip:text;background-clip:text;color:transparent}
+.result .score span{font-size:24px;font-weight:700;color:var(--ink2)}
+.result .pct{text-align:center;color:var(--ink2);font-size:14px;margin-top:2px}
+.result h2{margin:14px 16px 0;text-align:center;font-size:22px;letter-spacing:-.015em;text-wrap:balance}
+.result .rtext{margin:8px 20px 0;text-align:center;color:var(--ink2);font-size:15px}
+.rlist{list-style:none;margin:16px 16px 0;padding:0;display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line)}
+.rlist li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rlist .mk{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800}
+.rlist .mk.ok{background:var(--green)}
+.rlist .mk.bad{background:var(--red)}
+.rlist small{color:var(--ink2)}
+.result .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+@media (max-width:420px){.result .two{grid-template-columns:1fr}}
+.result .two .btn{border-radius:12px;padding:12px}
+.foot{font-size:12px;color:var(--ink2);text-align:center;padding-inline:8px;display:flex;flex-direction:column;gap:6px}
+.foot a{color:var(--blue)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main class="wrap">
+  <header class="hero">
+    <span class="hicon"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13h5l2.5-7 4 14 2.5-7h8"/></svg></span>
+    <h1>Manejo de la bradicardia en la urgencia</h1>
+    <p class="sub">Medidas iniciales, causas a descartar y tratamiento escalonado según respuesta</p>
+  </header>
+
+  <section class="prof" aria-label="Contacto"><div class="pname">Dr. Sebastián Maldonado</div><div class="prole">Electrofisiólogo infantil · Htal. JP Garrahan y Hospital Italiano de Buenos Aires</div>
+    <div class="pact"><a class="wa" href="https://wa.me/5491131860600?text=Hola%20Dr.%20Maldonado%2C%20te%20escribo%20por%20una%20interconsulta%20sobre%20un%20paciente%20con%20bradicardia." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.700 6.700 0 0 1-3.300-2.900c-.2-.4.2-.4.700-1.300.1-.2 0-.3 0-.4l-.8-1.800c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.300-.9.900-.9 2.200s.9 2.500 1 2.700c.1.2 1.800 2.800 4.400 3.900 1.600.7 2.300.800 3.100.700.5-.1 1.500-.6 1.700-1.200.2-.6.2-1.100.2-1.200-.1-.1-.3-.2-.5-.3z"/></svg>Interconsulta por WhatsApp</a>
+    <button class="mailbtn" id="copy" type="button" aria-label="Copiar mail"><span class="mailtxt" id="mailtxt">drsebastian.maldonado@gmail.com</span><span class="mailcp" id="mailcp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.500 2.500 0 0 1 7.500 4H15"/></svg></span></button></div></section>
+
+  <section id="main" style="display:flex;flex-direction:column;gap:18px" aria-label="Contenido"></section>
+
+  <footer class="foot">
+    <span>Material de apoyo para la toma de decisiones. No reemplaza el criterio clínico.</span>
+    <span>Interconsultas: <a href="https://wa.me/5491131860600" target="_blank" rel="noopener">WhatsApp del Dr. Maldonado</a></span>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var STEPS=[
+    {t:'Bradicardia sintomática',s:['FC menor a 50 lpm'],tone:'',
+     side:{h:'Medidas iniciales',ol:true,items:['ABC','Monitoreo (SatO2/TA/ECG)','Acceso IV']}},
+    {t:'¿Síntomas de bajo gasto?',s:[],tone:'warn',
+     side:{h:'Signos de alarma',items:['Hipotensión','Alteración del sensorio','Signos de shock','Dolor precordial','Insuficiencia cardíaca']}},
+    {t:'Identificar y tratar causas',s:['Causas reversibles primero'],tone:'',
+     side:{h:'Causas a descartar',items:['Hipotermia','Hipotiroidismo','Alt. hidroelectrolíticas','Fármacos','Isquemia']}},
+    {t:'Tratamiento',s:['Escalonado según respuesta'],tone:'ok'},
+    {t:'Atropina + marcapasos transcutáneo',s:['0,03 mg/kg IV c/5 min (máx 3 mg)','Sobretodo si sospecha vasovagal'],tone:'crit',
+     side:{h:'Si Torsades de Pointes mientras se espera marcapasos transvenoso',ol:true,items:['Overdrive con transcutáneo','Magnesio IV (aunque Mg normal)','Isoproterenol o adrenalina','K+ 4,5-5 y Ca2+ corregidos','Evitar amiodarona (empeora QT)','Lidocaína si refractaria','Desfibrilador a la cabecera']}},
+    {t:'Aminas (2ª línea)',s:['Dopamina 2-10 mcg/kg/min','Adrenalina 2-10 mcg/min','Isoproterenol 0,05-0,5 mcg/kg/min'],tone:'crit'},
+    {t:'Marcapasos transvenoso',s:['Definitivo, si refractario'],tone:'crit'}
+  ];
+  var ARROW='<div class="arrow" aria-hidden="true"><svg viewBox="0 0 14 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1v15M2 11l5 5 5-5"/></svg></div>';
+
+  function algoHtml(){
+    var h='<button class="card practice" type="button" data-start="1"><span class="hicon pico"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3.5l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L13 17.7l-5.6 3 1.1-6.2L4 10.1l6.2-.9z"/></svg></span>'+
+      '<span class="rt"><b>Modo práctica</b><small>5 casos al azar. Al final, tu puntuación.</small></span><span class="go" aria-hidden="true">Empezar ›</span></button>';
+    h+='<div class="modelabel">Algoritmo</div><div class="flow">';
+    STEPS.forEach(function(st,i){
+      h+='<article class="card node'+(st.tone?' t-'+st.tone:'')+'"><div class="nh"><span class="nb">'+(i+1)+'</span><div><div class="nt">'+st.t+'</div>'+
+        (st.s.length?'<div class="ns">'+st.s.map(function(x){return '<span>'+x+'</span>';}).join('')+'</div>':'')+'</div></div>';
+      if(st.side){
+        var tag=st.side.ol?'ol':'ul';
+        h+='<div class="side"><div class="sl">'+st.side.h+'</div><'+tag+'>'+st.side.items.map(function(x){return '<li>'+x+'</li>';}).join('')+'</'+tag+'></div>';
+      }
+      h+='</article>';
+      if(i<STEPS.length-1) h+=ARROW;
+    });
+    return h+'</div>';
+  }
+
+  /* ---------- modo práctica ---------- */
+  var CASES=[
+    {q:'Lactante con FC 45 lpm, hipotenso y con alteración del sensorio. ¿Qué hacés primero?',
+     o:['ABC, monitoreo (SatO2/TA/ECG) y acceso IV','Colocar marcapasos transvenoso','Iniciar isoproterenol','Esperar y reevaluar en 30 minutos'],a:0,
+     f:'Las medidas iniciales son ABC, monitoreo (SatO2/TA/ECG) y acceso IV.'},
+    {q:'Bradicardia con signos de bajo gasto y sospecha vasovagal. ¿Cuál es el tratamiento indicado?',
+     o:['Atropina 0,03 mg/kg IV + marcapasos transcutáneo','Dopamina 2-10 mcg/kg/min sola','Amiodarona IV','Marcapasos transvenoso definitivo'],a:0,
+     f:'Atropina 0,03 mg/kg IV c/5 min (máx 3 mg) más marcapasos transcutáneo, sobre todo si se sospecha causa vasovagal.'},
+    {q:'Persiste el bajo gasto tras atropina y marcapasos transcutáneo. ¿Cuál es el siguiente escalón?',
+     o:['Aminas: dopamina, adrenalina o isoproterenol','Volver a ABC','Alta con control ambulatorio','Solo observar'],a:0,
+     f:'Las aminas son la 2ª línea: dopamina 2-10 mcg/kg/min, adrenalina 2-10 mcg/min o isoproterenol 0,05-0,5 mcg/kg/min.'},
+    {q:'Paciente en TdP activa (inestable) mientras se espera el marcapasos transvenoso. ¿Cuál es la conducta inmediata?',
+     o:['Desfibrilación','Magnesio IV y esperar','Overdrive con transcutáneo','Amiodarona IV'],a:0,
+     f:'Mientras el paciente está en Torsades de Pointes la conducta es la desfibrilación (desfibrilador a la cabecera). Las demás medidas se indican una vez resuelta la arritmia.'},
+    {q:'Se resolvió la Torsades de Pointes con desfibrilación y se sigue esperando el marcapasos transvenoso. ¿Qué medida NO corresponde?',
+     o:['Amiodarona','Magnesio IV aunque el Mg sea normal','Overdrive con transcutáneo','Corregir K+ (4,5-5) y Ca2+'],a:0,
+     f:'Una vez resuelta la TdP se evita la amiodarona porque empeora el QT.'},
+    {q:'Se resolvió la Torsades de Pointes con desfibrilación y se espera el marcapasos transvenoso. ¿Cuál de estas medidas corresponde para evitar que recurra?',
+     o:['Overdrive con transcutáneo','Digoxina IV','Suspender el monitoreo','Esperar sin intervención'],a:0,
+     f:'Una vez resuelta la TdP se indica overdrive con transcutáneo, junto con magnesio IV, isoproterenol o adrenalina y corrección de K+ y Ca2+, con el desfibrilador a la cabecera.'},
+    {q:'Bradicardia refractaria a todo el tratamiento escalonado. ¿Qué corresponde?',
+     o:['Marcapasos transvenoso, definitivo si es refractario','Más atropina sin límite','Repetir la causa reversible','Hipotermia terapéutica'],a:0,
+     f:'El último escalón es el marcapasos transvenoso.'},
+    {q:'¿Cuál de estas NO figura entre las causas a descartar?',
+     o:['Hipertensión arterial','Hipotermia','Hipotiroidismo','Alteraciones hidroelectrolíticas'],a:0,
+     f:'Figuran hipotermia, hipotiroidismo, alt. hidroelectrolíticas, fármacos e isquemia.'}
+  ];
+  var quiz=null;
+  var main=document.getElementById('main');
+  function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function startQuiz(){
+    var items=shuffle(CASES).slice(0,5).map(function(c){
+      return {c:c,opts:shuffle(c.o.map(function(t,k){return {t:t,ok:k===c.a};})),pick:null};
+    });
+    quiz={items:items,i:0,done:false};
+    render();window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function score(){return quiz.items.reduce(function(s,it){return s+(it.pick!==null&&it.opts[it.pick].ok?1:0);},0);}
+  function quizHtml(){
+    var n=quiz.items.length;
+    if(quiz.done) return resultHtml();
+    var it=quiz.items[quiz.i],ans=it.pick!==null,ok=ans&&it.opts[it.pick].ok,doneN=quiz.i+(ans?1:0);
+    var h='<div class="qhead"><button class="btn" type="button" data-exit="1">‹ Salir</button><span class="qcount">Pregunta '+(quiz.i+1)+' de '+n+'</span></div>'+
+      '<div class="qbar" role="progressbar" aria-valuemin="0" aria-valuemax="'+n+'" aria-valuenow="'+doneN+'"><i style="width:'+(doneN/n*100)+'%"></i></div>'+
+      '<div class="case-h"><div class="tag">Caso '+(quiz.i+1)+'</div><h2>'+it.c.q+'</h2></div><div class="q-opts" role="group" aria-label="Opciones">';
+    it.opts.forEach(function(o,k){
+      var cls='qopt';
+      if(ans){if(o.ok)cls+=' good';else if(k===it.pick)cls+=' bad';else cls+=' dim';}
+      h+='<button type="button" class="'+cls+'" data-pick="'+k+'"'+(ans?' disabled':'')+'><span>'+o.t+'</span>'+(ans&&o.ok?'<i aria-hidden="true">✓</i>':(ans&&k===it.pick?'<i aria-hidden="true">✕</i>':''))+'</button>';
+    });
+    h+='</div>';
+    if(ans){
+      h+='<div class="fb '+(ok?'ok':'bad')+'" role="status"><div class="fbt">'+(ok?'Correcto':'Incorrecto')+'</div><p>'+it.c.f+'</p></div>'+
+        '<button class="nxt" type="button" data-next="1">'+(quiz.i===n-1?'Ver resultado':'Siguiente caso ›')+'</button>';
+    }
+    return h;
+  }
+  function resultHtml(){
+    var n=quiz.items.length,sc=score(),pct=Math.round(sc/n*100),title,text;
+    if(sc===n){title='Excelente';text='Acertaste todos los casos. Tenés muy bien incorporado el algoritmo de bradicardia.';}
+    else if(sc===n-1){title='Muy bien';text='Se te escapó un solo caso. Repasá el algoritmo y vas por el puntaje máximo.';}
+    else if(sc>=3){title='Bien, con margen para mejorar';text='Acertaste '+sc+' de '+n+'. Conviene repasar los pasos que fallaste.';}
+    else{title='Conviene repasar';text='Acertaste '+sc+' de '+n+'. Volvé a recorrer el algoritmo y probá con otros casos.';}
+    var rows=quiz.items.map(function(it){
+      var ok=it.opts[it.pick].ok;
+      return '<li><span class="mk '+(ok?'ok':'bad')+'" aria-hidden="true">'+(ok?'✓':'✕')+'</span><span><b>'+it.c.q+'</b>'+(ok?'':'<br><small>Elegiste: '+it.opts[it.pick].t+'</small>')+'<br><small>'+it.c.f+'</small></span></li>';
+    }).join('');
+    return '<div class="qhead"><button class="btn" type="button" data-exit="1">‹ Inicio</button><span class="qcount">Resultado</span></div>'+
+      '<div class="score"><b>'+sc+'</b><span>/ '+n+'</span></div><div class="pct">'+pct+' % de aciertos</div><h2>'+title+'</h2><p class="rtext">'+text+'</p>'+
+      '<ul class="rlist">'+rows+'</ul><div class="two"><button class="btn" type="button" data-start="1">Practicar otros 5</button><button class="btn" type="button" data-exit="1">Volver al inicio</button></div>';
+  }
+  function render(){
+    if(quiz){main.innerHTML='<article class="card '+(quiz.done?'result':'case q')+'">'+quizHtml()+'</article>';}
+    else{main.innerHTML=algoHtml();}
+  }
+  main.addEventListener('click',function(e){
+    if(e.target.closest('[data-start]')){startQuiz();return;}
+    if(e.target.closest('[data-exit]')){quiz=null;render();window.scrollTo({top:0,behavior:'smooth'});return;}
+    var pk=e.target.closest('[data-pick]');
+    if(pk&&quiz){var it=quiz.items[quiz.i];if(it.pick===null){it.pick=+pk.getAttribute('data-pick');render();}return;}
+    if(e.target.closest('[data-next]')&&quiz){
+      if(quiz.i===quiz.items.length-1)quiz.done=true;else quiz.i++;
+      render();window.scrollTo({top:0,behavior:'smooth'});
+    }
+  });
+  document.getElementById('copy').addEventListener('click',function(){
+    var cp=document.getElementById('mailcp'),old=cp.innerHTML,txt=document.getElementById('mailtxt');
+    var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg>';
+    function done(){cp.innerHTML=CHECK;setTimeout(function(){cp.innerHTML=old;},1600);}
+    function sel(){var r=document.createRange();r.selectNodeContents(txt);var s=getSelection();s.removeAllRanges();s.addRange(r);}
+    try{navigator.clipboard.writeText(txt.textContent).then(done,sel);}catch(err){sel();}
+  });
+  render();
+})();
+</script>
+
+</body></html>
