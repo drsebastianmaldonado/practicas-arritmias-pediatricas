@@ -80,6 +80,8 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 .count{color:var(--mute);font-size:.88rem;margin:12px 0 6px}
 .list{display:grid;gap:10px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;display:block;text-decoration:none;color:inherit}
+.pdfpreview{display:none}
+@media (min-width:760px){.pdfpreview{display:block;width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:12px}}
 .rescard{--k:var(--acc2);background:linear-gradient(145deg,color-mix(in srgb,var(--k) 22%,var(--card)),color-mix(in srgb,var(--k) 5%,var(--card)))}
 .rescard:hover{border-color:var(--k)}
 .rescard .meta{color:var(--k);font-weight:600}
@@ -152,6 +154,7 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
         <a class="navlink" href="#parametrosZ" data-t="parametrosZ">Parámetros Z</a>
         <a class="navlink" href="#drogas" data-t="drogas">Drogas a evitar</a>
         <a class="navlink" href="#valores" data-t="valores">QTc y valores por edad</a>
+        <a class="navlink" href="#endocarditis" data-t="endocarditis">Profilaxis de endocarditis</a>
       </div>
     </div>
     <a class="navbtn navlink" href="#recursos" data-t="recursos">Recursos</a>
@@ -674,6 +677,15 @@ function pintarDrogasBrugada() {
   const q = document.getElementById('drq');
   q.oninput = e => { DR.q = e.target.value; const p = e.target.selectionStart; pintarDrogasBrugada(); const n = document.getElementById('drq'); n.focus(); n.setSelectionRange(p, p); };
 }
+// ---------- Profilaxis de endocarditis: el PDF vive en recursos\ (el resumen es del propio PDF) ----------
+function endocarditis() {
+  const pdf = 'recursos/Prevencion_Endocarditis_Pediatria.pdf';
+  app.innerHTML = `<div class="case"><h2>Profilaxis de endocarditis infecciosa en pediatría</h2>
+    <p class="hint">Resumen de recomendaciones basado en las guías AHA (2007, actualización 2021), AHA en endocarditis pediátrica (2015) y ESC 2023. Incluye quiénes requieren profilaxis, en qué procedimientos, esquemas antibióticos pediátricos y medidas generales de prevención.</p>
+    <p><a href="${pdf}"><button class="primary" type="button">Abrir PDF</button></a></p>
+    <iframe class="pdfpreview" src="${pdf}" title="Prevención de endocarditis infecciosa en pediatría"></iframe>
+    <div class="warn">Material de consulta rápida para profesionales de la salud. No reemplaza el juicio clínico ni las guías locales: verificar siempre las dosis contra la fuente primaria antes de prescribir.</div></div>`;
+}
 // ---------- Estadísticas del autor: SOLO números agregados (nunca nombres/mails/ciudades individuales). ----------
 // A propósito no tiene pestaña en el menú: se llega escribiendo #estadisticas. Lee del mismo Apps Script que registro.js,
 // con JSONP (una etiqueta <script>) porque los navegadores no dejan leer la respuesta de otra manera sin configurar CORS.
@@ -701,9 +713,9 @@ function pintarEstadisticas(d) {
     <h3>Por país</h3><div class="list">${d.por_pais.map(p => `<div class="card" style="cursor:default">${esc(p.pais)} · <b>${p.n}</b></div>`).join('')}</div>
     <p class="hint">Generado el ${new Date(d.generado).toLocaleString('es-AR')}. Los datos individuales (nombre, mail, ciudad) siguen solo en tu planilla de Google.</p>`;
 }
-const VISTAS = { recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, drogas, estadisticas, fasciculos };
+const VISTAS = { recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, drogas, endocarditis, estadisticas, fasciculos };
 // Grupos de la nav de arriba, para resaltar "Casos"/"Herramientas" cuando la vista activa es una de las suyas.
-const NAV_GRUPOS = { Casos: ['fasciculos', 'diagnosticos', 'patrones', 'examen', 'progreso'], Herramientas: ['scores', 'parametrosZ', 'drogas', 'valores'] };
+const NAV_GRUPOS = { Casos: ['fasciculos', 'diagnosticos', 'patrones', 'examen', 'progreso'], Herramientas: ['scores', 'parametrosZ', 'drogas', 'valores', 'endocarditis'] };
 function route() { const h = location.hash.slice(1);
   const enCasos = h === '' || NAV_GRUPOS.Casos.includes(h) || (h && !VISTAS[h] && h !== 'estadisticas');   // '' o un caso (#f1c2, #semana…) cuentan como "Casos"
   document.getElementById('navCasos').classList.toggle('active', enCasos);
