@@ -186,9 +186,10 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 <script>
 const C = window.CASOS;
 // Caso de la semana (semana.js) y casos de semanas anteriores (semana_archivo.js): ambos los genera publicar_semana.ps1
+// Cada pregunta puede traer "ctx" (texto previo) e "img" (imágenes que se muestran justo antes de esa pregunta).
 const mkSemana = w => ({ semana: true, f: 'Semana', n: 0, id: w.id || ('semana-' + w.fecha), titulo: w.titulo, fecha: w.fecha, devFecha: w.devFecha, vineta: w.vineta, borrador: false,
-  preguntas: w.preguntas.map(p => ({ ctx: '', enun: p.enun, multi: p.multi, opc: p.opc, k: { r: p.r, c: 't' } })),
-  imgs: w.imgs.map(a => ({ a, p: 0 })), dev: w.dev, devimgs: w.devimgs });
+  preguntas: w.preguntas.map(p => ({ ctx: p.ctx || '', enun: p.enun, multi: p.multi, opc: p.opc, k: { r: p.r, c: 't' } })),
+  imgs: w.imgs.map(a => ({ a, p: 0 })).concat(w.preguntas.flatMap((p, k) => [].concat(p.img || []).map(a => ({ a, p: k })))), dev: w.dev, devimgs: w.devimgs });
 const S = window.SEMANA ? mkSemana(window.SEMANA) : null;
 (window.SEMANA_ARCHIVO || []).forEach(w => C.push(mkSemana(w)));
 const TAGS = [
