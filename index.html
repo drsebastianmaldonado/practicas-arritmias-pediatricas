@@ -83,6 +83,10 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 .dgcat{margin:20px 0 8px;padding:9px 14px;border-radius:12px;font-size:1.02rem;background:linear-gradient(100deg,color-mix(in srgb,var(--k) 32%,var(--card)),color-mix(in srgb,var(--k) 5%,var(--card)) 90%)}
 .q.dgitem{background:linear-gradient(145deg,color-mix(in srgb,var(--k) 12%,var(--card)),color-mix(in srgb,var(--k) 3%,var(--card)))}
 .q.dgitem[open]{border-color:var(--k)}
+.card.tint,.q.tint{--k:var(--acc2);background:linear-gradient(145deg,color-mix(in srgb,var(--k) 13%,var(--card)),color-mix(in srgb,var(--k) 3%,var(--card)))}
+.card.tint:hover,.q.tint[open]{border-color:var(--k)}
+.wa-cta{background:linear-gradient(145deg,color-mix(in srgb,#25D366 15%,var(--card)),color-mix(in srgb,#25D366 3%,var(--card)))}
+.wa-cta.coffee-cta{background:linear-gradient(145deg,color-mix(in srgb,var(--acc) 15%,var(--card)),color-mix(in srgb,var(--acc) 3%,var(--card)))}
 .pdfpreview{display:none}
 @media (min-width:760px){.pdfpreview{display:block;width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:12px}}
 .rescard{--k:var(--acc2);background:linear-gradient(145deg,color-mix(in srgb,var(--k) 22%,var(--card)),color-mix(in srgb,var(--k) 5%,var(--card)))}
@@ -257,7 +261,7 @@ const state = { q: '', f: '', tag: '', solo: false };
 
 // ---------- Portada ("Casos"): destaca el caso de la semana; browsear/filtrar vive en "Fascículos" ----------
 function heroSemana() {
-  if (S) return `<a class="card semana" href="#semana">
+  if (S) return `<a class="card tint semana" style="--k:var(--acc)" href="#semana">
     ${S.imgs.length ? `<img src="imagenes_web/${S.imgs[0].a}" alt="Trazado del caso de la semana">` : ''}
     <div class="meta">CASO DE LA SEMANA${S.fecha ? ' · ' + fechaCorta(S.fecha) : ''}${seen[S.id] ? ' · ✓ repasado' : ''}</div>
     <h3>${esc(S.titulo)}</h3>
@@ -267,7 +271,7 @@ function heroSemana() {
   const archivo = window.SEMANA_ARCHIVO || [];
   if (archivo.length) {
     const w = archivo[archivo.length - 1], c = C.find(x => x.id === (w.id || ('semana-' + w.fecha)));
-    if (c) return `<a class="card semana" href="#${c.id}">
+    if (c) return `<a class="card tint semana" style="--k:var(--acc)" href="#${c.id}">
       ${c.imgs.length ? `<img src="imagenes_web/${c.imgs[0].a}" alt="Trazado del último caso de la semana">` : ''}
       <div class="meta">ÚLTIMO CASO DE LA SEMANA${c.fecha ? ' · ' + fechaCorta(c.fecha) : ''}${seen[c.id] ? ' · ✓ repasado' : ''}</div>
       <h3>${esc(c.titulo)}</h3>
@@ -275,7 +279,7 @@ function heroSemana() {
       <div class="meta"><b>Resolver el caso →</b></div></a>`;
   }
   // Ni caso activo ni archivo: estado vacío prolijo, invita a explorar por fascículo.
-  return `<div class="card hero-empty">
+  return `<div class="card tint hero-empty" style="--k:var(--acc)">
     <p class="hint" style="margin:0 0 14px">Todavía no hay un caso de la semana cargado.</p>
     <a href="#fasciculos"><button class="primary" type="button">Explorar por fascículo →</button></a></div>`;
 }
@@ -294,7 +298,7 @@ function list() {
       </button>
     </div>
     ${heroSemana()}
-    <a class="card" href="#fasciculos" style="display:flex;align-items:center;gap:14px;margin-top:12px">
+    <a class="card tint" href="#fasciculos" style="display:flex;align-items:center;gap:14px;margin-top:12px">
       <div style="flex:1"><h3 style="margin:0 0 3px">Fascículos</h3>
         <p class="snip" style="margin:0">Buscar y filtrar los 110 casos por fascículo o palabra clave.</p></div>
       <span style="font-size:1.4rem;color:var(--acc2)" aria-hidden="true">→</span>
@@ -512,7 +516,7 @@ function patrones() {
     ${P.length ? `<input type="search" id="pq" placeholder="Buscar patrón…" value="${esc(PT.q)}">
       ${cats.length > 1 ? `<div class="chips">${cats.map(c => `<span class="chip ${PT.cat === c ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</span>`).join('')}</div>` : ''}
       <div class="count">${res.length} de ${P.length} patrones</div>` : '<p class="hint">Todavía no se cargó ningún patrón.</p>'}
-    <div class="list">${res.map(p => `<div class="card" style="cursor:default"><h3>${esc(p.t)}</h3>${p.c ? `<div class="meta">${esc(p.c)}</div>` : ''}${imgs(p.imgs)}
+    <div class="list">${res.map(p => `<div class="card tint" style="cursor:default;--k:${COLOR_PAT[p.c] || 'var(--acc2)'}"><h3>${esc(p.t)}</h3>${p.c ? `<div class="meta">${esc(p.c)}</div>` : ''}${imgs(p.imgs)}
       <ul>${p.k.map(k => `<li>${esc(k)}</li>`).join('')}</ul>${p.d ? `<p class="snip"><b>Diagnóstico diferencial:</b> ${esc(p.d)}</p>` : ''}
       ${p.q ? `<button class="ghost" data-q="${esc(p.q)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></div>`;
   const q = document.getElementById('pq');
@@ -528,7 +532,7 @@ function calculadoras(L, opts) {
   app.innerHTML = `<div class="case"><h2>${esc(opts.titulo)}</h2>
     <p class="hint">${esc(opts.intro)}</p>
     ${L.length ? '' : `<p class="hint">${esc(opts.vacio)}</p>`}
-    ${L.map((s, si) => `<details class="q" ${L.length === 1 ? 'open' : ''}><summary style="cursor:pointer;font-weight:700;font-size:1.05rem">${esc(s.titulo)}</summary>
+    ${L.map((s, si) => `<details class="q tint" style="--k:${COLOR_CALC[s.id] || 'var(--acc2)'}" ${L.length === 1 ? 'open' : ''}><summary style="cursor:pointer;font-weight:700;font-size:1.05rem">${esc(s.titulo)}</summary>
       ${s.verificado ? '' : '<div class="warn" style="margin-top:10px">Borrador: criterios y puntajes pendientes de verificación por el autor.</div>'}
       ${s.nota ? `<p class="hint" style="margin-top:10px">${esc(s.nota)}</p>` : ''}
       ${(s.campos || []).map(c => c.tipo === 'si'
@@ -590,6 +594,10 @@ const COLOR_DIAG = {
   'Preexcitación': '#4fb286', 'Canalopatías y repolarización': '#c9588f', 'Posoperatorio de cirugía cardíaca': '#5f7fa6',
   'Miocardiopatías': '#b0753f', 'Marcapasos y dispositivos': '#7d8a99', 'Intoxicaciones': '#8aa13a', 'Otros': '#8f8f9a'
 };
+const COLOR_PAT = { 'Bloqueos AV': '#2aa198', 'Canalopatías': '#c9588f', 'Preexcitación': '#4fb286', 'Repolarización': '#b86bb8',
+  'Ritmo y conducción': '#5f7fa6', 'Taquicardia de QRS ancho': '#8a63d2', 'Taquicardia de QRS angosto': '#3d8bd9' };
+const COLOR_CALC = { schwartz: '#2aa198', shanghai: '#c9588f', hcmkids: '#b0753f', hcmscd: '#d9a02f', pettersen: '#3d8bd9', dallaire: '#e0584f' };
+const colorHash = s => { const P = Object.values(COLOR_DIAG).slice(0, 12); return P[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % P.length]; };
 function diagnosticos() {
   const D = window.DIAGNOSTICOS || [], nq = norm(DG.q.trim()), byId = Object.fromEntries(C.map(c => [c.id, c]));
   const asignados = new Set(D.flatMap(d => d.casos)), cats = [...new Set(D.map(d => d.c))];
@@ -646,7 +654,7 @@ function glosario() {
   app.innerHTML = `<div class="case"><h2>Glosario</h2>
     <p class="hint">Siglas y términos que aparecen en los casos del banco.</p>
     ${G.length ? `<input type="search" id="glq" placeholder="Buscar sigla o término…" value="${esc(GL.q)}"><div class="count">${res.length} de ${G.length} términos</div>` : '<p class="hint">Todavía no se cargó el glosario.</p>'}
-    <div class="list">${res.map(x => `<div class="card" style="cursor:default"><h3>${esc(x.sigla)}${x.termino ? ' — ' + esc(x.termino) : ''}</h3>${x.definicion ? `<p class="snip">${esc(x.definicion)}</p>` : ''}${x.buscar ? `<button class="ghost" data-q="${esc(x.buscar)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></div>`;
+    <div class="list">${res.map(x => `<div class="card tint" style="cursor:default;--k:${colorHash(x.sigla)}"><h3>${esc(x.sigla)}${x.termino ? ' — ' + esc(x.termino) : ''}</h3>${x.definicion ? `<p class="snip">${esc(x.definicion)}</p>` : ''}${x.buscar ? `<button class="ghost" data-q="${esc(x.buscar)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></div>`;
   const q = document.getElementById('glq');
   if (q) q.oninput = e => { GL.q = e.target.value; const p = e.target.selectionStart; glosario(); const n = document.getElementById('glq'); n.focus(); n.setSelectionRange(p, p); };
   app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = 'fasciculos'; });
