@@ -9,14 +9,27 @@
 <link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
 <meta name="theme-color" content="#ff8a80" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#b3261e" media="(prefers-color-scheme: light)">
+<script>
+/* Tema elegido con el botón sol/luna: se aplica antes de pintar para que no parpadee. Sin elección = automático (sistema). */
+(function () { var t = null; try { t = localStorage.getItem('bc_tema'); } catch (e) {} if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); })();
+</script>
 <style>
 /* Oscuro por default; pasa a claro solo, automáticamente, si el sistema/navegador avisa "prefers-color-scheme: light"
    (sin botón, sin JS ni localStorage para esto). Si ese aviso no llega —pasa en algunos navegadores/WebViews— se queda
    en oscuro, que es el modo que el autor eligió como base: es el fallback más seguro, no el claro. */
-:root{--bg:#12161b;--card:#1a2027;--ink:#e6ebf1;--mute:#93a0b1;--line:#2c3541;--acc:#ff8a80;--acc2:#7db7f5;--chip:#252d37;--ok:#1d2b22;color-scheme:dark}
+:root,:root[data-theme="dark"]{--bg:#12161b;--card:#1a2027;--ink:#e6ebf1;--mute:#93a0b1;--line:#2c3541;--acc:#ff8a80;--acc2:#7db7f5;--chip:#252d37;--ok:#1d2b22;color-scheme:dark}
 @media (prefers-color-scheme: light){
-  :root{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec;color-scheme:light}
+  :root:not([data-theme="dark"]){--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec;color-scheme:light}
 }
+:root[data-theme="light"]{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec;color-scheme:light}
+/* Botón de tema (sol/luna) en el encabezado */
+.themebtn{margin-left:auto;flex-shrink:0;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.themebtn:hover{border-color:var(--acc)}
+.themebtn svg{width:22px;height:22px}
+.themebtn .sol{display:none}
+:root[data-theme="dark"] .themebtn .sol{display:block}
+:root[data-theme="dark"] .themebtn .luna{display:none}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 header{padding:20px 16px 8px;max-width:1000px;margin:0 auto}
@@ -132,6 +145,10 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
   <div class="header-top">
     <img src="iconos/icon-192.png" alt="">
     <h1>Prácticas en arritmias pediátricas</h1>
+    <button class="themebtn" id="themeBtn" type="button" aria-label="Cambiar entre fondo claro y oscuro" title="Fondo claro / oscuro">
+      <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
   </div>
   <div class="header-contacto">
     <div>
@@ -215,7 +232,20 @@ let seenFecha = {};
 try { seenFecha = JSON.parse(localStorage.getItem('bc_seen_fecha') || '{}'); } catch (e) {}
 const marcarFechaRepaso = id => { seenFecha[id] = new Date().toISOString().slice(0, 10); try { localStorage.setItem('bc_seen_fecha', JSON.stringify(seenFecha)); } catch (e) {} };
 const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-// Tema claro/oscuro: 100% CSS por prefers-color-scheme (ver :root arriba). Sin JS ni localStorage para esto.
+// Tema claro/oscuro: automático por prefers-color-scheme (ver :root arriba) hasta que se toca el botón sol/luna;
+// desde ahí queda la elección (localStorage 'bc_tema') y manda sobre el sistema.
+(function () {
+  const root = document.documentElement;
+  const actual = () => root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const meta = () => document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', actual() === 'light' ? '#b3261e' : '#ff8a80'));
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const nuevo = actual() === 'light' ? 'dark' : 'light';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('bc_tema', nuevo); } catch (e) {}
+    meta();
+  });
+  meta();
+})();
 
 // ---------- Colaborá con el banco: copiar alias de transferencia (botón vive en la portada, ver list()) ----------
 const ALIAS_COLABORA = 'docseba79';
