@@ -429,12 +429,12 @@ function detail(id) {
       if (!q.opc.length) { box.textContent = ''; return; }
       if (!q.k.r.length) { sinClave++; box.innerHTML = 'Todavía no hay respuesta cargada para esta pregunta.'; return; }
       const right = q.k.r;
-      const good = sel.length && (q.multi ? sel.length === right.length && right.every(l => sel.includes(l)) : right.includes(sel[0]));
+      const good = exCorrecta(q, sel), faltan = right.filter(l => !sel.includes(l));
       tot++; if (good) ok++;
       inputs.forEach(i => { const l = i.dataset.l, on = i.checked, isR = right.includes(l), row = i.closest('.opt');
         if (on && isR) row.classList.add('ok'); else if (on && !isR) row.classList.add('bad'); else if (!on && isR && (q.multi || !good)) row.classList.add('miss'); });
       const nota = q.k.c === 'i' ? ' <i>(respuesta deducida del material: pendiente de confirmar)</i>' : '';
-      box.innerHTML = good ? `<b class="g">✓ Correcto.</b>${nota}` : `<b class="r">✗ Respuesta correcta: ${right.join(' + ')}.</b>${q.multi ? '' : (right.length > 1 ? ' (cualquiera de esas es válida)' : '')}${nota}`;
+      box.innerHTML = good ? `<b class="g">✓ Correcto.</b>${q.multi && faltan.length ? ` También ${faltan.length > 1 ? 'eran correctas' : 'era correcta'}: ${faltan.join(' + ')}.` : ''}${nota}` : `<b class="r">✗ Respuesta correcta: ${right.join(' + ')}.</b>${q.multi ? '' : (right.length > 1 ? ' (cualquiera de esas es válida)' : '')}${nota}`;
     });
     const s = document.getElementById('score'); s.style.display = 'block';
     s.innerHTML = tot ? `<b>${ok} de ${tot}</b> correctas${sinClave ? ` · ${sinClave} sin respuesta cargada` : ''}` : 'Este caso todavía no tiene respuestas cargadas.';
@@ -486,7 +486,11 @@ const exPool = cfg => { const out = [];
 const exElegir = (pool, n) => { const vistos = new Set(), a = [], resto = [];
   shuffle(pool).forEach(x => { if (!vistos.has(x.c.id)) { vistos.add(x.c.id); a.push(x); } else resto.push(x); });   // primero casos distintos
   const sel = a.slice(0, n); if (sel.length < n) sel.push(...resto.slice(0, n - sel.length)); return shuffle(sel); };
-const exCorrecta = (q, sel) => sel.length > 0 && (q.multi ? sel.length === q.k.r.length && q.k.r.every(l => sel.includes(l)) : q.k.r.includes(sel[0]));
+// Opción única: vale cualquiera de las respuestas cargadas. Múltiple: correcta si marcó el 60 % o más de las correctas
+// y ninguna incorrecta (si no, marcar todo daría siempre bien).
+const exCorrecta = (q, sel) => sel.length > 0 && (q.multi
+  ? sel.every(l => q.k.r.includes(l)) && sel.length * 5 >= q.k.r.length * 3   // = 60 % o más, sin decimales
+  : q.k.r.includes(sel[0]));
 function examen() { EX.fase === 'preg' ? exPreg() : EX.fase === 'fin' ? exFin() : exInicio(); }
 function exInicio() {
   const fas = [...new Set(C.map(c => c.f))], disp = exPool(EX.cfg).length, h = exHist().slice(-5).reverse();
