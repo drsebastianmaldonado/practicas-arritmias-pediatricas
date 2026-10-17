@@ -10,7 +10,7 @@ window.REGISTRO = {
   trackVisitas: true,
   // Respuestas anónimas (sin nombre, mail ni número de registro) del primer intento de cada pregunta, para ver en la página
   // de estadísticas qué preguntas fallan más. Vacío = apagado. Es la dirección del script aparte "respuestas_banco.gs".
-  endpointRespuestas: "",
+  endpointRespuestas: "https://script.google.com/macros/s/AKfycbwz--xw94h00IdrTLeV-R5alPdGntROhZSRiKJb006_t5ebW5jVymft6D0GQanu__d8/exec",
   // Si cambiás el aviso de privacidad o los datos que se piden, subí este número: todos vuelven a ver el formulario.
   version: 2,
   // Mail de contacto que se muestra en el aviso de privacidad para pedir acceso, corrección o baja de los datos.
