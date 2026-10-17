@@ -17,11 +17,11 @@
 /* Oscuro por default; pasa a claro solo, automáticamente, si el sistema/navegador avisa "prefers-color-scheme: light"
    (sin botón, sin JS ni localStorage para esto). Si ese aviso no llega —pasa en algunos navegadores/WebViews— se queda
    en oscuro, que es el modo que el autor eligió como base: es el fallback más seguro, no el claro. */
-:root,:root[data-theme="dark"]{--bg:#12161b;--card:#1a2027;--ink:#e6ebf1;--mute:#93a0b1;--line:#2c3541;--acc:#ff8a80;--acc2:#7db7f5;--chip:#252d37;--ok:#1d2b22;color-scheme:dark}
+:root,:root[data-theme="dark"]{--bg:#12161b;--card:#1a2027;--ink:#e6ebf1;--mute:#93a0b1;--line:#2c3541;--acc:#ff8a80;--acc2:#7db7f5;--chip:#252d37;--ok:#1d2b22;--on-acc:#2a0b08;--on-acc2:#0b1b2e;color-scheme:dark}
 @media (prefers-color-scheme: light){
-  :root:not([data-theme="dark"]){--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec;color-scheme:light}
+  :root:not([data-theme="dark"]){--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec;--on-acc:#fff;--on-acc2:#fff;color-scheme:light}
 }
-:root[data-theme="light"]{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec;color-scheme:light}
+:root[data-theme="light"]{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dfe4ea;--acc:#b3261e;--acc2:#0b5cad;--chip:#eaeff5;--ok:#e8f3ec;--on-acc:#fff;--on-acc2:#fff;color-scheme:light}
 /* Botón de tema (sol/luna) en el encabezado */
 .themebtn{margin-left:auto;flex-shrink:0;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);
   display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
@@ -62,8 +62,8 @@ body:not(.portada) .header-contacto{display:none}   /* nombre y mail del autor: 
   padding:7px 13px;border-radius:99px;font:inherit;font-size:.85rem;cursor:pointer;text-decoration:none;line-height:1.3}
 .navbtn .chev{width:12px;height:12px;transition:transform .15s;flex-shrink:0}
 .navbtn.open .chev{transform:rotate(180deg)}
-#topnav>a.navlink.active{background:var(--acc2);color:#fff;border-color:var(--acc2)}
-.navgroup>.navbtn.active,.navgroup>.navbtn.open{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+#topnav>a.navlink.active{background:var(--acc2);color:var(--on-acc2);border-color:var(--acc2)}
+.navgroup>.navbtn.active,.navgroup>.navbtn.open{background:var(--acc2);color:var(--on-acc2);border-color:var(--acc2)}
 /* con un submenú abierto, solo esa etiqueta queda resaltada (la de la vista actual vuelve al gris mientras tanto) */
 #topnav.menuabierto .navbtn.active:not(.open){background:var(--chip);color:var(--ink);border-color:var(--line)}
 .navmenu{display:flex;flex-direction:column;gap:2px;position:absolute;top:calc(100% + 6px);left:0;min-width:230px;
@@ -101,7 +101,7 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 .row select,.row input{flex:1;min-width:140px}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .chip{border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:5px 11px;border-radius:99px;font-size:.85rem;cursor:pointer}
-.chip.on{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+.chip.on{background:var(--acc2);color:var(--on-acc2);border-color:var(--acc2)}
 .count{color:var(--mute);font-size:.88rem;margin:12px 0 6px}
 .list{display:grid;gap:10px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;display:block;text-decoration:none;color:inherit}
@@ -135,7 +135,7 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 .card h3{margin:0 0 3px;font-size:1.02rem}
 .meta{color:var(--mute);font-size:.82rem}
 .snip{margin:5px 0 0;color:var(--mute);font-size:.9rem}
-.badge{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:99px;background:var(--acc);color:#fff;margin-left:6px;vertical-align:middle}
+.badge{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:99px;background:var(--acc);color:var(--on-acc);margin-left:6px;vertical-align:middle}
 .done{background:var(--ok)}
 .case h2{margin:6px 0 2px}
 .vineta{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
@@ -149,7 +149,7 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 .opt.sel{border-color:var(--acc2);background:var(--chip)}
 .hint{color:var(--mute);font-size:.82rem}
 button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer}
-.primary{background:var(--acc2);color:#fff}
+.primary{background:var(--acc2);color:var(--on-acc2);font-weight:600}
 .ghost{background:var(--chip);color:var(--ink)}
 .nav{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
 .dev{border-left:4px solid var(--acc);padding:4px 0 4px 14px;margin:18px 0}
@@ -169,6 +169,19 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 .expl summary{cursor:pointer;color:var(--acc2);font-weight:600}
 .expl p{margin:6px 0}
 .retomado{margin:10px 0}
+/* Mi progreso: tres números arriba y secciones desplegables */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 4px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.tile .num{font-size:1.45rem;line-height:1.1}
+.tile .num small{font-size:.8rem;color:var(--mute);font-weight:500}
+.tile span{font-size:.78rem;color:var(--mute);line-height:1.25}
+.tile button{padding:6px 10px;font-size:.82rem;margin-top:auto;align-self:flex-start}
+details.sec{border-top:1px solid var(--line)}
+details.sec>summary{cursor:pointer;font-weight:700;font-size:1.02rem;padding:14px 0;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:'▾';color:var(--mute);font-weight:400}
+details.sec[open]>summary::after{content:'▴'}
+details.sec>summary .meta{font-weight:400;margin-left:auto}
 /* caso de a una pregunta por vez */
 .case.por-pasos .paso:not(.activa){display:none}
 .pasos{display:flex;align-items:center;gap:10px;margin:14px 0 4px}
@@ -387,7 +400,14 @@ function list() {
   app.innerHTML = `<div class="case">
     <h2 style="margin:4px 0 2px">Banco de casos</h2>
     <p class="hint" style="margin:0 0 14px">El caso de la semana. Desde acá recorrés los 110 casos por fascículo, incluidos los de semanas anteriores.</p>
-    <div class="ctarow">
+    ${heroSemana()}
+    ${avisoTemas()}
+    <a class="card tint" href="#fasciculos" style="display:flex;align-items:center;gap:14px;margin-top:12px">
+      <div style="flex:1"><h3 style="margin:0 0 3px">Fascículos</h3>
+        <p class="snip" style="margin:0">Buscar y filtrar los 110 casos por fascículo o palabra clave.</p></div>
+      <span style="font-size:1.4rem;color:var(--acc2)" aria-hidden="true">→</span>
+    </a>
+    <div class="ctarow" style="margin-top:14px">
       <a class="wa-cta" href="https://wa.me/5491131860600" target="_blank" rel="noopener noreferrer">
         <span class="wa-logo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.39a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.13.82.84-3.05-.2-.31a8.2 8.2 0 0 1-1.26-4.29c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.23 3.7 8.23 8.24 0 4.55-3.7 8.15-8.24 8.15zm4.52-6.14c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.15-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.25 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.1-.23-.16-.48-.28z"></path></svg></span>
         <span><b>Interconsultas por WhatsApp</b><small>Dr. Sebastián Maldonado</small></span>
@@ -397,13 +417,6 @@ function list() {
         <span><b>Colaborá con el banco</b><small>Alias: ${ALIAS_COLABORA} — tocá para copiar</small></span>
       </button>
     </div>
-    ${heroSemana()}
-    ${avisoTemas()}
-    <a class="card tint" href="#fasciculos" style="display:flex;align-items:center;gap:14px;margin-top:12px">
-      <div style="flex:1"><h3 style="margin:0 0 3px">Fascículos</h3>
-        <p class="snip" style="margin:0">Buscar y filtrar los 110 casos por fascículo o palabra clave.</p></div>
-      <span style="font-size:1.4rem;color:var(--acc2)" aria-hidden="true">→</span>
-    </a>
   </div>`;
   document.getElementById('btnColabora').onclick = e => copiarAlias(e.currentTarget);
   enlazarTemas();
@@ -1059,24 +1072,26 @@ function progreso() {
   const repaso = candidatosRepaso();
   app.innerHTML = `<div class="case"><h2>Mi progreso</h2>
     <p class="hint">Se guarda solo en este navegador y en este dispositivo: no lo ve nadie más.</p>
-    <div class="vineta"><b>${rev} de ${C.length}</b> casos repasados (${pct(rev, C.length)} %)${bar(pct(rev, C.length))}
-      <div style="margin-top:10px"><b>${totT ? pct(okT, totT) + ' %' : '—'}</b> de respuestas correctas en los casos resueltos${totT ? ` (${okT} de ${totT})` : ' (todavía no resolviste ninguno con "Comprobar mis respuestas")'}</div></div>
+    <div class="tiles">
+      <div class="tile"><b class="num">${rev}<small> / ${C.length}</small></b><span>casos repasados</span>${bar(pct(rev, C.length))}</div>
+      <div class="tile"><b class="num">${totT ? pct(okT, totT) + ' %' : '—'}</b><span>${totT ? 'respuestas correctas' : 'respuestas correctas (todavía no comprobaste ningún caso)'}</span></div>
+      <div class="tile"><b class="num">${misErrores().length}</b><span>pregunta${misErrores().length == 1 ? '' : 's'} para repasar</span>${misErrores().length ? '<button class="primary" id="perr">Repasar</button>' : ''}</div>
+    </div>
     <h3>Para repasar hoy</h3>
     ${repaso.length ? `<p class="hint">Casos que repasaste hace más de 10 días, o que todavía no viste.</p><div class="list">${repaso.map(c => `<a class="card" href="#${c.id}"><h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} — ${esc(c.titulo)}</h3><div class="meta">${seenFecha[c.id] ? 'Repasado por última vez el ' + fechaCorta(seenFecha[c.id]) : 'Todavía no lo repasaste'}</div></a>`).join('')}</div>` : `<p class="hint">${C.length ? '¡Estás al día! No hay casos pendientes de repaso por ahora.' : ''}</p>`}
-    <h3>Por fascículo</h3><div class="list">${Object.entries(porF).map(([f, v]) => `<div class="card" style="cursor:default;padding:8px 12px">${nombreF(f)} · ${v.r} de ${v.t}${bar(pct(v.r, v.t))}</div>`).join('')}</div>
-    <h3>Constancias</h3>
+    <details class="sec"><summary>Temas para reforzar${temas.length ? `<span class="meta">el más flojo: ${esc(temas[0][0])}</span>` : ''}</summary>${temas.length ? '<p class="hint">Ordenados del más flojo al más firme, con tus respuestas de casos y exámenes.</p>' : '<p class="hint">Resolvé casos o exámenes para ver acá tus temas más flojos.</p>'}
+    <div class="list">${temas.map(([t, v]) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(t)}</b> · ${pct(v.ok, v.tot)} % correctas (${v.ok} de ${v.tot})${bar(pct(v.ok, v.tot))}<div style="margin-top:6px"><button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div></div>`).join('')}</div></details>
+    <details class="sec"><summary>Por fascículo</summary><div class="list">${Object.entries(porF).map(([f, v]) => `<div class="card" style="cursor:default;padding:8px 12px">${nombreF(f)} · ${v.r} de ${v.t}${bar(pct(v.r, v.t))}</div>`).join('')}</div></details>
+    <details class="sec"><summary>Constancias${(n => n ? `<span class="meta">${n} disponible${n > 1 ? 's' : ''}</span>` : '')(constanciasDisponibles().filter(x => x.completo).length)}</summary>
     <p class="hint">Cuando completás un fascículo (todos sus casos repasados) podés descargar una constancia en PDF, por ejemplo para tu portfolio.</p>
     <div class="row" style="margin:6px 0 10px"><input id="cnombre" placeholder="Tu nombre y apellido, como querés que figure" value="${esc(nombreConstancia())}" autocomplete="name"></div>
     <div class="list">${constanciasDisponibles().map((x, i) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(x.titulo)}</b> · ${x.hechos} de ${x.total} casos${x.completo
       ? ` <button class="primary" data-const="${i}" style="margin-left:6px">Descargar constancia</button>`
-      : `<div class="meta">Te falta${x.total - x.hechos > 1 ? 'n' : ''} ${x.total - x.hechos} caso${x.total - x.hechos > 1 ? 's' : ''} para la constancia.</div>`}</div>`).join('')}</div>
-    <h3>Repasar mis errores</h3>${misErrores().length ? `<p class="hint">Las preguntas que respondiste mal la última vez, en casos o exámenes. Cuando las acertás, salen de la lista.</p><div class="nav"><button class="primary" id="perr">Repasar mis errores (${misErrores().length} pregunta${misErrores().length == 1 ? '' : 's'})</button></div>` : '<p class="hint">No tenés preguntas pendientes: acá se juntan las que respondas mal en casos o exámenes.</p>'}
-    <h3>Temas para reforzar</h3>${temas.length ? '<p class="hint">Ordenados del más flojo al más firme, con tus respuestas de casos y exámenes.</p>' : '<p class="hint">Resolvé casos o exámenes para ver acá tus temas más flojos.</p>'}
-    <div class="list">${temas.map(([t, v]) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(t)}</b> · ${pct(v.ok, v.tot)} % correctas (${v.ok} de ${v.tot})${bar(pct(v.ok, v.tot))}<div style="margin-top:6px"><button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div></div>`).join('')}</div>
-    <h3>Exámenes</h3>${H.length ? `<div class="list">${H.slice(-10).reverse().map(h => `<div class="card" style="cursor:default;padding:8px 12px">${fechaCorta(h.d)} · <b>${h.ok} de ${h.n}</b> (${pct(h.ok, h.n)} %)${bar(pct(h.ok, h.n))}<div class="meta">${esc(h.tag || 'Todos los temas')}${h.f ? ' · ' + nombreF(h.f) : ''}</div></div>`).join('')}</div>` : '<p class="hint">Todavía no hiciste ningún examen.</p>'}
-    <h3>Pasar mi progreso a otro dispositivo</h3>
+      : `<div class="meta">Te falta${x.total - x.hechos > 1 ? 'n' : ''} ${x.total - x.hechos} caso${x.total - x.hechos > 1 ? 's' : ''} para la constancia.</div>`}</div>`).join('')}</div></details>
+    <details class="sec"><summary>Exámenes${H.length ? `<span class="meta">${H.length} hecho${H.length > 1 ? 's' : ''}</span>` : ''}</summary>${H.length ? `<div class="list">${H.slice(-10).reverse().map(h => `<div class="card" style="cursor:default;padding:8px 12px">${fechaCorta(h.d)} · <b>${h.ok} de ${h.n}</b> (${pct(h.ok, h.n)} %)${bar(pct(h.ok, h.n))}<div class="meta">${esc(h.tag || 'Todos los temas')}${h.f ? ' · ' + nombreF(h.f) : ''}</div></div>`).join('')}</div>` : '<p class="hint">Todavía no hiciste ningún examen.</p>'}</details>
+    <details class="sec"><summary>Pasar mi progreso a otro dispositivo</summary>
     <p class="hint">Tu progreso se guarda solo en este navegador. Para tenerlo también en el celular o en la computadora, mandate este enlace (por WhatsApp, mail…) y abrilo en el otro dispositivo: se suma a lo que ya tengas ahí. Hacelo de nuevo cada tanto para actualizarlo.</p>
-    <div class="nav">${navigator.share ? '<button class="primary" id="rshare">Compartir el enlace</button>' : ''}<button class="${navigator.share ? 'ghost' : 'primary'}" id="rcopy">Copiar el enlace</button><button class="ghost" id="rwa">Mandármelo por WhatsApp</button></div>
+    <div class="nav">${navigator.share ? '<button class="primary" id="rshare">Compartir el enlace</button>' : ''}<button class="${navigator.share ? 'ghost' : 'primary'}" id="rcopy">Copiar el enlace</button><button class="ghost" id="rwa">Mandármelo por WhatsApp</button></div></details>
     <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div></div>`;
   enlazarTemas();
   const pe = document.getElementById('perr'); if (pe) pe.onclick = repasarErrores;
