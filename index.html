@@ -157,6 +157,13 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 .expl summary{cursor:pointer;color:var(--acc2);font-weight:600}
 .expl p{margin:6px 0}
 .retomado{margin:10px 0}
+/* caso de a una pregunta por vez */
+.case.por-pasos .paso:not(.activa){display:none}
+.pasos{display:flex;align-items:center;gap:10px;margin:14px 0 4px}
+.pasos span{flex:1;text-align:center;color:var(--mute);font-size:.9rem;white-space:nowrap}
+.pasos button{white-space:nowrap}
+.pasos button[disabled]{opacity:.4;cursor:default}
+.pasos[hidden],.verpasos[hidden]{display:none}
 /* glosario dentro de los casos: término tocable + ficha abajo de la pantalla */
 .glt{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:help;text-decoration:underline dotted var(--acc2);text-underline-offset:3px}
 #nuevaVersion{position:fixed;left:50%;top:12px;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));z-index:40;display:flex;align-items:center;gap:10px;
@@ -562,32 +569,61 @@ function detail(id) {
   const mismo = x => x && x.f === c.f;
   const n = c.preguntas.length, usados = new Set(), gl = t => glosar(esc(t), usados);
   const vineta = gl(c.vineta);
-  let body = imgs(c.imgs.filter(m => m.p == 0).map(m => m.a));
+  // Cada pregunta va en su "paso" (con su texto previo e imágenes): se muestran de a una con "Siguiente pregunta".
+  let body = '';
   c.preguntas.forEach((q, k) => {
-    if (k > 0) body += (q.ctx ? `<p class="ctx">${gl(q.ctx)}</p>` : '') + imgs(c.imgs.filter(m => m.p == k).map(m => m.a));
+    body += `<section class="paso" data-k="${k}">` + (k === 0 ? imgs(c.imgs.filter(m => m.p == 0).map(m => m.a))
+      : (q.ctx ? `<p class="ctx">${gl(q.ctx)}</p>` : '') + imgs(c.imgs.filter(m => m.p == k).map(m => m.a)));
     body += `<div class="q"><h4>Pregunta ${k + 1}${q.enun ? ' · ' + gl(q.enun) : ''}</h4>
       ${q.multi ? '<div class="hint">Se puede elegir más de una opción.</div>' : ''}
-      ${q.opc.length ? q.opc.map(o => `<label class="opt"><input type="${q.multi ? 'checkbox' : 'radio'}" name="q${k}" data-l="${o.l}"><span><b>${o.l}.</b> ${gl(o.t)}</span></label>`).join('') : '<div class="hint">Las opciones están en la imagen.</div>'}<div class="fb" id="fb${k}"></div><div id="ex${k}"></div></div>`;
+      ${q.opc.length ? q.opc.map(o => `<label class="opt"><input type="${q.multi ? 'checkbox' : 'radio'}" name="q${k}" data-l="${o.l}"><span><b>${o.l}.</b> ${gl(o.t)}</span></label>`).join('') : '<div class="hint">Las opciones están en la imagen.</div>'}<div class="fb" id="fb${k}"></div><div id="ex${k}"></div></div>`
+      + (k === n - 1 ? imgs(c.imgs.filter(m => m.p >= n).map(m => m.a)) : '') + '</section>';
   });
-  body += imgs(c.imgs.filter(m => m.p >= n && n > 0).map(m => m.a));
   const dev = c.dev.map(p => /^respuestas?\s*n/i.test(p) ? `<p class="rh">${esc(p)}</p>` : `<p>${gl(p)}</p>`).join('');
   const porPreg = devPorPregunta(c);
-  app.innerHTML = `<div class="case">
+  app.innerHTML = `<div class="case" id="caso">
     <p><a href="#">← Volver al banco</a></p>
     <div class="meta">${c.semana ? 'Caso de la semana' + (c.fecha ? ' · ' + fechaCorta(c.fecha) : '') : `Fascículo ${c.f} · Caso ${c.n}`}</div><h2>${esc(c.titulo)}</h2>
     ${c.borrador ? '<div class="warn">Este fascículo todavía es un borrador: el contenido puede cambiar.</div>' : ''}
     <div class="vineta">${vineta || '<i>Ver imágenes.</i>'}</div>
     <div class="hint retomado" id="retomado" hidden>Retomaste las respuestas que habías marcado la última vez.</div>
     ${body}
+    <div class="pasos" id="pasos" hidden><button class="ghost" type="button" id="pant">← Anterior</button><span id="pnum"></span><button class="primary" type="button" id="psig">Siguiente pregunta →</button></div>
+    <p class="hint verpasos" id="verpasos" hidden><a href="#" id="ptodas"></a></p>
     <div class="score" id="score"></div><div id="aviso"></div>
     <div class="nav"><button class="primary" id="chk">Comprobar mis respuestas</button><button class="primary" id="rev">Ver devolución del caso</button>
       <button class="ghost" id="reset">Empezar de nuevo</button>
       <span class="hint" id="mk" style="align-self:center"${seen[c.id] ? '' : ' hidden'}>✓ Repasado</span>
       <button class="ghost" id="wa">Compartir por WhatsApp</button></div>
     <div id="dev" hidden><div class="dev"><h3>Devolución</h3>${dev}${imgs(c.devimgs)}</div></div>
-    <div class="nav">${mismo(prev) ? `<a href="#${prev.id}"><button class="ghost">← Anterior</button></a>` : ''}${mismo(next) ? `<a href="#${next.id}"><button class="ghost">Siguiente →</button></a>` : ''}</div></div>`;
+    <div class="nav">${mismo(prev) ? `<a href="#${prev.id}"><button class="ghost">← Caso anterior</button></a>` : ''}${mismo(next) ? `<a href="#${next.id}"><button class="ghost">Caso siguiente →</button></a>` : ''}</div></div>`;
   const pintarSel = () => app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
   const marcadas = k => [...app.querySelectorAll(`input[name="q${k}"]:checked`)].map(i => i.dataset.l);
+  // De a una pregunta por vez (salvo que la persona elija verlas todas juntas, o el caso tenga una sola pregunta).
+  const PK = 'bc_pasos', secc = [...app.querySelectorAll('.paso')];
+  let pref = 'pasos'; try { pref = localStorage.getItem(PK) || 'pasos'; } catch (e) {}
+  let modoPasos = n > 1 && pref === 'pasos', paso = 0;
+  const irPaso = (k, desplazar) => {
+    paso = k;
+    document.getElementById('caso').classList.toggle('por-pasos', modoPasos);
+    secc.forEach(x => x.classList.toggle('activa', +x.dataset.k === k));
+    document.getElementById('pasos').hidden = !modoPasos;
+    document.getElementById('verpasos').hidden = n < 2;
+    document.getElementById('ptodas').textContent = modoPasos ? 'Ver todas las preguntas juntas' : 'Ver de a una pregunta';
+    document.getElementById('pnum').textContent = `${k + 1} de ${n}`;
+    document.getElementById('pant').disabled = k === 0;
+    document.getElementById('psig').hidden = k === n - 1;
+    document.getElementById('chk').hidden = modoPasos && k < n - 1;   // comprobar, al llegar a la última
+    if (desplazar) secc[k].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  document.getElementById('pant').onclick = () => irPaso(Math.max(0, paso - 1), true);
+  document.getElementById('psig').onclick = () => irPaso(Math.min(n - 1, paso + 1), true);
+  document.getElementById('ptodas').onclick = e => {
+    e.preventDefault(); modoPasos = !modoPasos;
+    try { localStorage.setItem(PK, modoPasos ? 'pasos' : 'todas'); } catch (er) {}
+    irPaso(modoPasos ? paso : 0, false);
+  };
+  irPaso(0, false);
   // Respuestas a medio hacer: si quedaron guardadas de la vez anterior, se vuelven a marcar.
   if (borr[c.id]) {
     Object.entries(borr[c.id]).forEach(([k, ls]) => ls.forEach(l => { const i = app.querySelector(`input[name="q${k}"][data-l="${l}"]`); if (i) i.checked = true; }));
@@ -605,6 +641,7 @@ function detail(id) {
     }
   });
   document.getElementById('chk').onclick = () => {
+    if (modoPasos) { modoPasos = false; irPaso(paso, false); }   // se ven todas juntas con su corrección
     let ok = 0, tot = 0, sinClave = 0; const lista = [];
     c.preguntas.forEach((q, k) => {
       const box = document.getElementById('fb' + k), inputs = [...app.querySelectorAll(`input[name="q${k}"]`)];
@@ -638,7 +675,9 @@ function detail(id) {
     pintarSel(); app.querySelectorAll('.fb, [id^="ex"]').forEach(x => x.innerHTML = '');
     const s = document.getElementById('score'); s.style.display = ''; s.innerHTML = '';
     document.getElementById('aviso').innerHTML = ''; document.getElementById('retomado').hidden = true;
-    delete borr[c.id]; saveBorr(); window.scrollTo(0, 0);
+    delete borr[c.id]; saveBorr();
+    try { modoPasos = n > 1 && (localStorage.getItem(PK) || 'pasos') === 'pasos'; } catch (e) {}
+    irPaso(0, false); window.scrollTo(0, 0);
   };
   document.getElementById('rev').onclick = e => { const d = document.getElementById('dev'); d.hidden = !d.hidden; e.target.textContent = d.hidden ? 'Ver devolución del caso' : 'Ocultar devolución'; if (!d.hidden) d.scrollIntoView({behavior:'smooth'}); };
   document.getElementById('wa').onclick = () => {
