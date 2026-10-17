@@ -413,6 +413,19 @@ function fasciculos() {
 const imgs = (arr) => arr.length ? `<div class="imgs">${arr.map(i => `<img src="${i.includes('/') ? i : 'imagenes_web/' + i}" loading="lazy" alt="Trazado" onclick="zoom(this)">`).join('')}</div>` : '';
 window.zoom = el => { const lb = document.getElementById('lb'); lb.querySelector('img').src = el.src; lb.style.display = 'flex'; };
 
+// ---------- Respuestas anónimas (registro.js → endpointRespuestas): para saber qué preguntas fallan más en general ----------
+// Sin ningún dato de la persona. Solo el PRIMER intento de cada pregunta en este dispositivo (repetir un caso no cuenta).
+let respEnv = {};
+try { respEnv = JSON.parse(localStorage.getItem('bc_resp_env') || '{}'); } catch (e) {}
+function enviarRespuestas(casoId, lista, origen) {
+  if (!RG.endpointRespuestas) return;
+  const nuevas = lista.filter(r => !respEnv[casoId + ':' + r.k]);
+  if (!nuevas.length) return;
+  const datos = nuevas.map(r => `${r.k}:${r.sel.join('+')}:${r.ok ? 1 : 0}`).join(';');
+  fetch(RG.endpointRespuestas, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ accion: 'respuestas', caso: casoId, datos, origen }).toString() })
+    .then(() => { nuevas.forEach(r => respEnv[casoId + ':' + r.k] = 1); try { localStorage.setItem('bc_resp_env', JSON.stringify(respEnv)); } catch (e) {} }).catch(() => {});
+}
+
 // ---------- Respuestas a medio hacer: se guardan por caso hasta comprobarlas o tocar "Empezar de nuevo" ----------
 const BK = 'bc_borrador';
 let borr = {};
@@ -512,7 +525,7 @@ function detail(id) {
     }
   });
   document.getElementById('chk').onclick = () => {
-    let ok = 0, tot = 0, sinClave = 0;
+    let ok = 0, tot = 0, sinClave = 0; const lista = [];
     c.preguntas.forEach((q, k) => {
       const box = document.getElementById('fb' + k), inputs = [...app.querySelectorAll(`input[name="q${k}"]`)];
       const sel = inputs.filter(i => i.checked).map(i => i.dataset.l);
@@ -521,7 +534,7 @@ function detail(id) {
       if (!q.k.r.length) { sinClave++; box.innerHTML = 'Todavía no hay respuesta cargada para esta pregunta.'; return; }
       const right = q.k.r;
       const good = exCorrecta(q, sel), faltan = right.filter(l => !sel.includes(l));
-      tot++; if (good) ok++;
+      tot++; if (good) ok++; if (sel.length) lista.push({ k, sel, ok: good });
       inputs.forEach(i => { const l = i.dataset.l, on = i.checked, isR = right.includes(l), row = i.closest('.opt');
         if (on && isR) row.classList.add('ok'); else if (on && !isR) row.classList.add('bad'); else if (!on && isR && (q.multi || !good)) row.classList.add('miss'); });
       const nota = q.k.c === 'i' ? ' <i>(respuesta deducida del material: pendiente de confirmar)</i>' : '';
@@ -534,6 +547,7 @@ function detail(id) {
     if (tot) { seenScore[c.id] = { ok, tot }; try { localStorage.setItem('bc_score', JSON.stringify(seenScore)); } catch (e) {} }
     document.getElementById('aviso').innerHTML = avisoTemas(); enlazarTemas();
     delete borr[c.id]; saveBorr();   // ya las comprobó: la próxima vez el caso arranca en blanco
+    enviarRespuestas(c.id, lista, 'caso');
     s.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   if (c.semana && devBloqueada(c)) {   // hasta la fecha de devolución: ni la devolución ni "Comprobar mis respuestas" (que mostraría la correcta)
@@ -632,7 +646,9 @@ function exFin() {
   const res = EX.qs.map((t, i) => { const sel = EX.ans[i] || []; return { ...t, sel, ok: exCorrecta(t.q, sel) }; });
   const ok = res.filter(r => r.ok).length, N = res.length, mal = res.filter(r => !r.ok);
   if (!EX.guardado) { EX.guardado = true; const h = exHist(), tm = {}; res.forEach(r => r.c.tags.forEach(t => { const a = tm[t] = tm[t] || [0, 0]; a[1]++; if (r.ok) a[0]++; }));
-    h.push({ d: new Date().toISOString().slice(0, 10), ok, n: N, tag: EX.cfg.tag, f: EX.cfg.f, temas: tm }); try { localStorage.setItem(EXK, JSON.stringify(h.slice(-20))); } catch (e) {} }
+    h.push({ d: new Date().toISOString().slice(0, 10), ok, n: N, tag: EX.cfg.tag, f: EX.cfg.f, temas: tm }); try { localStorage.setItem(EXK, JSON.stringify(h.slice(-20))); } catch (e) {}
+    const porCaso = {}; res.filter(r => r.sel.length).forEach(r => (porCaso[r.c.id] = porCaso[r.c.id] || []).push({ k: r.k, sel: r.sel, ok: r.ok }));
+    Object.entries(porCaso).forEach(([id, l]) => enviarRespuestas(id, l, 'examen')); }
   const temas = {}; mal.forEach(r => (r.c.tags.length ? r.c.tags : ['Sin etiqueta']).forEach(t => temas[t] = (temas[t] || 0) + 1));
   const orden = Object.entries(temas).sort((a, b) => b[1] - a[1]);
   app.innerHTML = `<div class="case"><h2>Resultado: ${ok} de ${N} (${Math.round(ok / N * 100)} %)</h2>
@@ -941,7 +957,9 @@ function endocarditis() {
 function estadisticas() {
   app.innerHTML = `<div class="case"><h2>Estadísticas del banco</h2>
     <p class="hint">Página privada: no está en el menú, solo se llega escribiendo la dirección. Muestra números agregados de toda la gente registrada; nunca nombres, mails, ciudades ni filas individuales.</p>
-    <div id="estBox"><p class="hint">Cargando…</p></div></div>`;
+    <div id="estBox"><p class="hint">Cargando…</p></div>
+    <h3>Preguntas con más errores</h3><div id="estResp"><p class="hint">Cargando…</p></div></div>`;
+  cargarEstRespuestas();
   const box = document.getElementById('estBox');
   if (!RG.activo || !RG.endpoint) { box.innerHTML = '<p class="hint">El registro de usuarios no está activo o no tiene un endpoint configurado (registro.js).</p>'; return; }
   const cb = 'bcEstCb' + Date.now();
@@ -950,6 +968,30 @@ function estadisticas() {
   s.src = RG.endpoint + (RG.endpoint.includes('?') ? '&' : '?') + 'callback=' + cb;
   s.onerror = () => { box.innerHTML = '<p class="hint">No se pudo cargar. Puede ser que el script de Google todavía no tenga la función "doGet": hay que actualizarlo y volver a implementar (ver registro/LEEME.md).</p>'; delete window[cb]; };
   document.body.appendChild(s);
+}
+// Preguntas con más errores, con las respuestas anónimas de todos (primer intento de cada pregunta).
+const EST_MIN_RESP = 5;
+function cargarEstRespuestas() {
+  const box = document.getElementById('estResp');
+  if (!RG.endpointRespuestas) { box.innerHTML = '<p class="hint">Todavía no está configurado: falta el script de respuestas y su dirección en registro.js (endpointRespuestas).</p>'; return; }
+  const cb = 'bcRespCb' + Date.now(), s = document.createElement('script');
+  window[cb] = d => { try { pintarEstRespuestas(d); } finally { delete window[cb]; s.remove(); } };
+  s.src = RG.endpointRespuestas + (RG.endpointRespuestas.includes('?') ? '&' : '?') + 'callback=' + cb;
+  s.onerror = () => { box.innerHTML = '<p class="hint">No se pudo cargar el resumen de respuestas.</p>'; delete window[cb]; };
+  document.body.appendChild(s);
+}
+function pintarEstRespuestas(d) {
+  const box = document.getElementById('estResp'); if (!box) return;
+  const byId = {}; C.concat(S ? [S] : []).forEach(c => byId[c.id] = c);
+  const filas = (d && d.preguntas || []).filter(p => p.n >= EST_MIN_RESP && byId[p.caso] && byId[p.caso].preguntas[p.preg - 1])
+    .map(p => Object.assign({}, p, { pct: Math.round(p.ok / p.n * 100) })).sort((a, b) => a.pct - b.pct || b.n - a.n).slice(0, 25);
+  if (!filas.length) { box.innerHTML = `<p class="hint">Todavía no hay suficientes respuestas (se muestran las preguntas con al menos ${EST_MIN_RESP}). Respuestas recibidas: ${d && d.total || 0}.</p>`; return; }
+  box.innerHTML = `<p class="hint">${d.total} respuestas recibidas. ${filas.length > 1 ? `Las ${filas.length} preguntas con menos aciertos` : 'La pregunta con menos aciertos'} (con al menos ${EST_MIN_RESP} respuestas): sirve para encontrar preguntas confusas o claves mal cargadas.</p><div class="list">` +
+    filas.map(p => { const c = byId[p.caso], q = c.preguntas[p.preg - 1];
+      const mal = Object.entries(p.elegidas || {}).filter(([l]) => !q.k.r.includes(l)).sort((a, b) => b[1] - a[1])[0];
+      return `<a class="card" href="#${c.id}"><h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} · Pregunta ${p.preg}</h3>
+        <div class="meta"><b>${p.pct} % correctas</b> (${p.ok} de ${p.n}) · correcta: ${q.k.r.join(q.multi ? ' + ' : ' o ')}${mal ? ` · la incorrecta más elegida: <b>${esc(mal[0])}</b> (${mal[1]} ${mal[1] == 1 ? 'vez' : 'veces'})` : ''}</div>
+        <p class="snip">${esc(q.enun)}</p></a>`; }).join('') + '</div>';
 }
 function pintarEstadisticas(d) {
   const box = document.getElementById('estBox'); if (!box) return;
