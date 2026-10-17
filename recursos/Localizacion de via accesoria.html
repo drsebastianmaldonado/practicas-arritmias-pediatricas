@@ -214,11 +214,10 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
     p2:{k:'yn',tag:'Paso 2',q:'¿Onda delta negativa en V1?',ayuda:'',si:'zs',no:'p3',rs:'Onda delta negativa en V1',rn:'Onda delta no negativa en V1'},
     zs:{k:'info',z:'sep',txt:'Vía septal derecha',next:'inf_s'},
     inf_s:{k:'ch',tag:'Vía septal derecha',q:'Evaluá la onda delta en la cara inferior',ayuda:INF,o:[['neg','sd_ps'],['p2','sd_ms'],['p3','sd_as']]},
-    p3:{k:'yn',tag:'Paso 3',q:'¿Complejo rS en V1 (ausencia de onda delta)?',ayuda:'',si:'tr',no:'nd',rs:'rS en V1 (sin onda delta)',rn:'Sin rS en V1'},
-    tr:{k:'tr',tag:'Paso 3',q:'Evaluá la transición del QRS en las precordiales',ayuda:'Derivación donde el QRS pasa a ser predominantemente positivo.'},
+    p3:{k:'one',tag:'Hallazgo en V1',q:'Seleccioná el hallazgo en V1',ayuda:'',next:'tr',r:'rS (ausencia de onda delta)'},
+    tr:{k:'tr',tag:'Transición del QRS',q:'Evaluá la transición del QRS en las precordiales',ayuda:'Derivación donde el QRS pasa a ser predominantemente positivo.'},
     zl:{k:'info',z:'lat',txt:'Vía lateral derecha',next:'inf_l'},
-    inf_l:{k:'ch',tag:'Vía lateral derecha',q:'Evaluá la onda delta en la cara inferior',ayuda:INF,o:[['neg','ld_pl'],['p2','ld_l'],['p3','ld_al']]},
-    nd:{k:'nd'}
+    inf_l:{k:'ch',tag:'Vía lateral derecha',q:'Evaluá la onda delta en la cara inferior',ayuda:INF,o:[['neg','ld_pl'],['p2','ld_l'],['p3','ld_al']]}
   };
   var NOMBRE={neg:'2 o 3 negativas',p2:'2 positivas',p3:'3 positivas'};
   var $=document.getElementById('main');
@@ -235,6 +234,11 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
     var x=N[cur]; pushStack();
     hist.push({p:x.q.replace(/^¿|\?$/g,''),r:si?'Sí':'No'});
     goto(si?x.si:x.no);
+  }
+  function answerOne(){
+    var x=N[cur]; pushStack();
+    hist.push({p:'Hallazgo en V1',r:x.r});
+    goto(x.next);
   }
   function answerCh(i){
     var x=N[cur]; pushStack();
@@ -265,11 +269,10 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
         '<div class="gfoot"><button class="btn" type="button" data-reset="1">Nuevo ECG</button></div>';
     } else {
       var x=N[cur];
-      if(x.k==='nd'){
-        h+='<div class="gq"><div class="gtag">Sin rama definida</div><h2>El esquema no define una rama para este hallazgo</h2><p>Revisá el ECG (por ejemplo, preexcitación mínima o poco evidente) y, si hace falta, consultá.</p></div>'+pathHtml()+'<div class="gfoot"><button class="btn" type="button" data-back="1">‹ Atrás</button><button class="btn" type="button" data-reset="1">Nuevo ECG</button></div>';
-      } else {
+      {
         h+='<div class="gq"><div class="gtag">'+esc(x.tag)+'</div><h2>'+esc(x.q)+'</h2>'+(x.ayuda?'<p>'+esc(x.ayuda)+'</p>':'')+'</div>';
-        if(x.k==='yn') h+='<div class="gopts two"><button class="gopt si" type="button" data-yn="1">Sí</button><button class="gopt no" type="button" data-yn="0">No</button></div>';
+        if(x.k==='one') h+='<div class="gopts"><button class="gopt" type="button" data-one="1">rS en V1<small>ausencia de onda delta</small></button></div>';
+        else if(x.k==='yn') h+='<div class="gopts two"><button class="gopt si" type="button" data-yn="1">Sí</button><button class="gopt no" type="button" data-yn="0">No</button></div>';
         else if(x.k==='ch') h+='<div class="gopts">'+x.o.map(function(o,i){return '<button class="gopt" type="button" data-ch="'+i+'">'+NOMBRE[o[0]]+'</button>';}).join('')+'</div>';
         else if(x.k==='tr') h+='<div class="gopts two"><button class="gopt" type="button" data-tr="0">≤ V3<small>transición hasta V3</small></button><button class="gopt" type="button" data-tr="1">&gt; V3<small>transición después de V3</small></button></div>';
         h+=pathHtml();
@@ -284,7 +287,7 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
       zone('izq',[['2 o 3 inferiores negativas',LOC.izq_ps.n],['2 inferiores positivas',LOC.izq_pl.n],['3 inferiores positivas',LOC.izq_al.n]])+
       zone('sep',[['2 o 3 inferiores negativas',LOC.sd_ps.n],['2 inferiores positivas',LOC.sd_ms.n],['3 inferiores positivas',LOC.sd_as.n]])+
       zone('lat',[['2 o 3 inferiores negativas',LOC.ld_pl.n],['2 inferiores positivas',LOC.ld_l.n],['3 inferiores positivas',LOC.ld_al.n]])+
-      '<p class="note"><b>Izquierda:</b> Paso 1 «Sí». <b>Septal derecha:</b> Paso 2 «Sí», o Paso 3 con transición ≤ V3. <b>Lateral derecha:</b> Paso 3 con transición &gt; V3. Cara inferior: DII, DIII y aVF.</p></article>';
+      '<p class="note"><b>Izquierda:</b> Paso 1 «Sí». <b>Septal derecha:</b> Paso 2 «Sí», o rS en V1 con transición ≤ V3. <b>Lateral derecha:</b> rS en V1 con transición &gt; V3. Cara inferior: DII, DIII y aVF.</p></article>';
   }
   /* ---------- modo práctica: casos armados con las reglas del algoritmo ---------- */
   var BASE=[
@@ -357,6 +360,7 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
       if(e.target.closest('[data-next]')){if(quiz.i===quiz.items.length-1)quiz.done=true;else quiz.i++;render();window.scrollTo({top:0,behavior:'smooth'});}
       return;
     }
+    if(e.target.closest('[data-one]')){answerOne();render();return;}
     if((t=e.target.closest('[data-yn]'))){answerYN(t.getAttribute('data-yn')==='1');render();return;}
     if((t=e.target.closest('[data-ch]'))){answerCh(+t.getAttribute('data-ch'));render();return;}
     if((t=e.target.closest('[data-tr]'))){answerTr(t.getAttribute('data-tr')==='1');render();return;}
