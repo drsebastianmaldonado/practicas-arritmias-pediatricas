@@ -248,6 +248,13 @@ C.forEach(c => { const s = c.titulo + ' ' + c.vineta; c.tags = TAGS.filter(t => 
   c.blob = (c.titulo + ' ' + c.vineta + ' ' + c.preguntas.map(q => q.enun + ' ' + q.opc.map(o => o.t).join(' ')).join(' ') + ' ' + c.dev.join(' ')).toLowerCase(); });
 const fechaCorta = s => s ? s.split('-').reverse().join('/') : '';
 const devBloqueada = c => !!(c.devFecha && new Date() < new Date(c.devFecha + 'T00:00:00'));
+// Cuenta regresiva de la devolución (se libera a las 00:00 del día devFecha, igual que devBloqueada).
+const diasParaDev = c => c.devFecha ? Math.max(0, Math.ceil((new Date(c.devFecha + 'T00:00:00') - new Date()) / 864e5)) : 0;
+const textoDev = (c, que = 'Devolución') => { const d = diasParaDev(c), f = fechaCorta(c.devFecha);
+  return d > 1 ? `${que} en ${d} días (${f})` : d === 1 ? `${que} mañana (${f})` : `${que} disponible`; };
+// Devoluciones del caso de la semana ya vistas: hasta abrir el caso, la portada avisa "¡Ya salió la devolución!".
+let devVista = {};
+try { devVista = JSON.parse(localStorage.getItem('bc_dev_vista') || '{}'); } catch (e) {}
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 C.forEach(c => c.blobN = norm(c.blob));
 
@@ -331,7 +338,7 @@ function heroSemana() {
     <div class="meta">CASO DE LA SEMANA${S.fecha ? ' · ' + fechaCorta(S.fecha) : ''}${seen[S.id] ? ' · ✓ repasado' : ''}</div>
     <h3>${esc(S.titulo)}</h3>
     <p class="snip">${esc(S.vineta.slice(0, 200))}${S.vineta.length > 200 ? '…' : ''}</p>
-    <div class="meta">${devBloqueada(S) ? 'Devolución disponible el ' + fechaCorta(S.devFecha) : 'Devolución disponible'} · <b>Resolver el caso →</b></div></a>`;
+    <div class="meta">${S.devFecha && !devBloqueada(S) && !devVista[S.id] ? '<span class="badge">¡Ya salió la devolución!</span> ' : ''}${textoDev(S)} · <b>Resolver el caso →</b></div></a>`;
   // Sin caso activo: si hay archivo de semanas anteriores, mostramos el más reciente como fallback.
   const archivo = window.SEMANA_ARCHIVO || [];
   if (archivo.length) {
@@ -530,8 +537,8 @@ function detail(id) {
     s.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   if (c.semana && devBloqueada(c)) {   // hasta la fecha de devolución: ni la devolución ni "Comprobar mis respuestas" (que mostraría la correcta)
-    [['rev', 'Devolución disponible el '], ['chk', 'Respuestas disponibles el ']].forEach(([id, t]) => { const b = document.getElementById(id); b.textContent = t + fechaCorta(c.devFecha); b.disabled = true; b.style.opacity = .6; b.style.cursor = 'default'; });
-  }
+    [['rev', 'Devolución'], ['chk', 'Respuestas']].forEach(([id, t]) => { const b = document.getElementById(id); b.textContent = textoDev(c, t); b.disabled = true; b.style.opacity = .6; b.style.cursor = 'default'; });
+  } else if (c.semana && c.devFecha && !devVista[c.id]) { devVista[c.id] = true; try { localStorage.setItem('bc_dev_vista', JSON.stringify(devVista)); } catch (e) {} }
   document.getElementById('reset').onclick = () => {
     app.querySelectorAll('.opt input').forEach(i => { i.checked = false; i.closest('.opt').classList.remove('ok', 'bad', 'miss'); });
     pintarSel(); app.querySelectorAll('.fb, [id^="ex"]').forEach(x => x.innerHTML = '');
