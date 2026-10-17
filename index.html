@@ -415,11 +415,18 @@ function detail(id) {
     ${body}
     <div class="score" id="score"></div>
     <div class="nav"><button class="primary" id="chk">Comprobar mis respuestas</button><button class="primary" id="rev">Ver devolución del caso</button>
-      <button class="ghost" id="mk">${seen[c.id] ? 'Marcado como repasado ✓' : 'Marcar como repasado'}</button>
+      <span class="hint" id="mk" style="align-self:center"${seen[c.id] ? '' : ' hidden'}>✓ Repasado</span>
       <button class="ghost" id="wa">Compartir por WhatsApp</button></div>
     <div id="dev" hidden><div class="dev"><h3>Devolución</h3>${dev}${imgs(c.devimgs)}</div></div>
     <div class="nav">${mismo(prev) ? `<a href="#${prev.id}"><button class="ghost">← Anterior</button></a>` : ''}${mismo(next) ? `<a href="#${next.id}"><button class="ghost">Siguiente →</button></a>` : ''}</div></div>`;
-  app.querySelectorAll('.opt input').forEach(inp => inp.onchange = () => app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked)));
+  // Repasado automático: cuando respondió todas las preguntas que tienen opciones (ya no hay botón para marcarlo a mano).
+  let marcado = false;
+  app.querySelectorAll('.opt input').forEach(inp => inp.onchange = () => {
+    app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
+    if (!marcado && c.preguntas.every((q, k) => !q.opc.length || app.querySelector(`input[name="q${k}"]:checked`))) {
+      marcado = true; seen[c.id] = true; marcarFechaRepaso(c.id); saveSeen(); document.getElementById('mk').hidden = false;
+    }
+  });
   document.getElementById('chk').onclick = () => {
     let ok = 0, tot = 0, sinClave = 0;
     c.preguntas.forEach((q, k) => {
@@ -445,7 +452,6 @@ function detail(id) {
     [['rev', 'Devolución disponible el '], ['chk', 'Respuestas disponibles el ']].forEach(([id, t]) => { const b = document.getElementById(id); b.textContent = t + fechaCorta(c.devFecha); b.disabled = true; b.style.opacity = .6; b.style.cursor = 'default'; });
   }
   document.getElementById('rev').onclick = e => { const d = document.getElementById('dev'); d.hidden = !d.hidden; e.target.textContent = d.hidden ? 'Ver devolución del caso' : 'Ocultar devolución'; if (!d.hidden) d.scrollIntoView({behavior:'smooth'}); };
-  document.getElementById('mk').onclick = e => { seen[c.id] = !seen[c.id]; if (!seen[c.id]) delete seen[c.id]; else marcarFechaRepaso(c.id); saveSeen(); e.target.textContent = seen[c.id] ? 'Marcado como repasado ✓' : 'Marcar como repasado'; };
   document.getElementById('wa').onclick = () => {
     const url = location.href; const titulo = c.semana ? 'Caso de la semana' : `Fascículo ${c.f} · Caso ${c.n}`;
     const texto = `${titulo} — ${c.titulo}\n${url}`;
