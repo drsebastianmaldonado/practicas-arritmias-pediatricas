@@ -1,7 +1,7 @@
 // Service worker del banco: permite instalarlo como app y que lo ya visto se pueda abrir sin conexión.
 // Solo funciona cuando el banco se sirve por HTTPS (o localhost); en un archivo abierto directamente (file://) no corre.
 // Si cambiás casos.js, index.html u otro archivo del "esqueleto", subí CACHE_VERSION para que se actualice en todos.
-const CACHE_VERSION = 'v41';
+const CACHE_VERSION = 'v42';
 const CACHE_ESQUELETO = 'banco-esqueleto-' + CACHE_VERSION;
 const CACHE_DATOS = 'banco-datos-' + CACHE_VERSION;   // imágenes y otros archivos grandes: se guardan a medida que se ven
 
@@ -27,8 +27,9 @@ self.addEventListener('fetch', e => {
   // no hay conexión se usa la copia guardada. (Antes buscaba en la copia guardada sin fijarse la versión: por eso
   // podía quedar mostrando una versión vieja aunque CACHE_VERSION cambiara.)
   if (ESQUELETO.some(p => req.url.endsWith(p.replace('./', '/'))) || req.mode === 'navigate') {
+    // cache:'no-cache' = preguntar siempre al servidor si hay versión nueva (si no, el navegador puede reusar su copia hasta 10 min)
     e.respondWith(
-      fetch(req).then(res => { if (res.ok) caches.open(CACHE_ESQUELETO).then(c => c.put(req, res.clone())); return res; })
+      fetch(new Request(req.url, { cache: 'no-cache' })).then(res => { if (res.ok) caches.open(CACHE_ESQUELETO).then(c => c.put(req, res.clone())); return res; })
         .catch(() => caches.match(req, { cacheName: CACHE_ESQUELETO }).then(r => r || caches.match('./index.html', { cacheName: CACHE_ESQUELETO })))
     );
     return;
