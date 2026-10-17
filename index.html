@@ -63,6 +63,8 @@ header p{margin:2px 0 0;color:var(--mute);font-size:.92rem}
 .navbtn.open .chev{transform:rotate(180deg)}
 #topnav>a.navlink.active{background:var(--acc2);color:#fff;border-color:var(--acc2)}
 .navgroup>.navbtn.active,.navgroup>.navbtn.open{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+/* con un submenú abierto, solo esa etiqueta queda resaltada (la de la vista actual vuelve al gris mientras tanto) */
+#topnav.menuabierto .navbtn.active:not(.open){background:var(--chip);color:var(--ink);border-color:var(--line)}
 .navmenu{display:flex;flex-direction:column;gap:2px;position:absolute;top:calc(100% + 6px);left:0;min-width:230px;
   background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:16}
 .navmenu[hidden]{display:none}
@@ -286,6 +288,7 @@ async function copiarAlias(btn) {
 function closeMenus() {
   document.querySelectorAll('.navmenu').forEach(m => m.hidden = true);
   document.querySelectorAll('.navbtn').forEach(b => b.classList.remove('open'));
+  document.getElementById('topnav').classList.remove('menuabierto');
   const bd = document.getElementById('navBackdrop'); if (bd) bd.hidden = true;
 }
 function toggleMenu(key) {
@@ -294,6 +297,7 @@ function toggleMenu(key) {
   closeMenus();
   if (abrir) {
     menu.hidden = false; btn.classList.add('open'); document.getElementById('navBackdrop').hidden = false;
+    document.getElementById('topnav').classList.add('menuabierto');
     menu.style.left = '0'; menu.style.right = 'auto';   // si se sale por la derecha de la pantalla, se alinea al borde derecho de la etiqueta
     if (menu.getBoundingClientRect().right > innerWidth - 8) { menu.style.left = 'auto'; menu.style.right = '0'; }
   }
