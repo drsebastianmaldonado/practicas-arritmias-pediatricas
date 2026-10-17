@@ -168,6 +168,9 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
 .zr span:first-child{color:var(--ink2)}
 .zr b{font-weight:700}
 .note{font-size:13px;color:var(--ink2);margin:10px 4px 0}
+.ej{margin:12px 16px 0}
+.ej img{width:100%;display:block;border-radius:12px;border:1px solid var(--line);background:#fff}
+.ej figcaption{font-size:13px;color:var(--ink2);margin-top:6px}
 </style>
 
 <main class="wrap">
@@ -250,8 +253,21 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
     hist.push({p:'Transición del QRS en precordiales',r:v?'después de V3 (> V3)':'hasta V3 (≤ V3)'});
     goto(v?'zl':'zs');
   }
-  function back(){var s=stack.pop();if(!s)return;cur=s.cur;res=s.res;hist=s.hist;}
-  function reset(){hist=[];stack=[];cur='p1';res=null;}
+  /* ejemplos de ECG de 12 derivaciones (casos del banco con la localización confirmada); el resto queda como «pendiente» */
+  var EJ={
+    sd_ps:{img:'../imagenes_web/f04_c07_01.jpg',t:'ECG del banco (caso 4-7): vía posteroseptal derecha.'},
+    sd_ms:{img:'../imagenes_web/f05_c02_01.jpg',t:'ECG del banco (caso 5-2): vía medio/posteroseptal derecha.'},
+    sd_as:{img:'../imagenes_web/f07_c07_01.jpg',t:'ECG del banco (caso 7-7): vía anteroseptal derecha.'}
+  };
+  var exOpen=false;
+  function ejemploHtml(k){
+    var e=EJ[k];
+    if(!e) return '<div class="path"><div class="pl">Ejemplo de ECG</div><div class="step"><span>Ejemplo pendiente para esta localización.</span></div></div>';
+    return '<div class="gfoot"><button class="btn" type="button" data-ej="1">'+(exOpen?'Ocultar ejemplo de ECG':'Ver ejemplo de ECG (12 derivaciones)')+'</button></div>'+
+      (exOpen?'<figure class="ej"><a href="'+e.img+'" target="_blank" rel="noopener"><img src="'+e.img+'" alt="'+esc(e.t)+'"></a><figcaption>'+esc(e.t)+' Tocá la imagen para ampliarla.</figcaption></figure>':'');
+  }
+  function back(){var s=stack.pop();if(!s)return;cur=s.cur;res=s.res;hist=s.hist;exOpen=false;}
+  function reset(){hist=[];stack=[];cur='p1';res=null;exOpen=false;}
   function pathHtml(){
     if(!hist.length) return '';
     var h='<div class="path"><div class="pl">Tu recorrido</div>',n=0;
@@ -266,7 +282,7 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
     if(res){
       var L=LOC[res];
       h+='<div class="res '+L.z+'" role="status"><div class="rl">Localización probable · '+ZONA[L.z]+'</div><div class="rn">'+esc(L.n)+'</div><div class="rz">Según el algoritmo de localización por onda delta.</div></div>'+pathHtml()+
-        '<div class="gfoot"><button class="btn" type="button" data-reset="1">Nuevo ECG</button></div>';
+        ejemploHtml(res)+'<div class="gfoot"><button class="btn" type="button" data-reset="1">Nuevo ECG</button></div>';
     } else {
       var x=N[cur];
       {
@@ -360,6 +376,7 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
       if(e.target.closest('[data-next]')){if(quiz.i===quiz.items.length-1)quiz.done=true;else quiz.i++;render();window.scrollTo({top:0,behavior:'smooth'});}
       return;
     }
+    if(e.target.closest('[data-ej]')){exOpen=!exOpen;render();return;}
     if(e.target.closest('[data-one]')){answerOne();render();return;}
     if((t=e.target.closest('[data-yn]'))){answerYN(t.getAttribute('data-yn')==='1');render();return;}
     if((t=e.target.closest('[data-ch]'))){answerCh(+t.getAttribute('data-ch'));render();return;}
