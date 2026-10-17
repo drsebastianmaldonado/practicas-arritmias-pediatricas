@@ -344,7 +344,7 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
   function homeHtml(){
     return '<button class="card practice" type="button" data-start="1"><span class="hicon pico"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3.5l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L13 17.7l-5.6 3 1.1-6.2L4 10.1l6.2-.9z"/></svg></span>'+
       '<span class="rt"><b>Modo práctica</b><small>5 casos al azar. Al final, tu puntuación.</small></span><span class="go" aria-hidden="true">Empezar ›</span></button>'+
-      '<div class="modelabel">Localizador</div>'+guideHtml()+resumenHtml();
+      '<div class="modelabel">Localizador</div>'+guideHtml();
   }
   function render(){
     if(quiz) $.innerHTML='<article class="card '+(quiz.done?'result':'case q')+'">'+quizHtml()+'</article>';
