@@ -486,10 +486,10 @@ const exPool = cfg => { const out = [];
 const exElegir = (pool, n) => { const vistos = new Set(), a = [], resto = [];
   shuffle(pool).forEach(x => { if (!vistos.has(x.c.id)) { vistos.add(x.c.id); a.push(x); } else resto.push(x); });   // primero casos distintos
   const sel = a.slice(0, n); if (sel.length < n) sel.push(...resto.slice(0, n - sel.length)); return shuffle(sel); };
-// Opción única: vale cualquiera de las respuestas cargadas. Múltiple: correcta si marcó el 60 % o más de las correctas
+// Opción única: vale cualquiera de las respuestas cargadas. Múltiple: correcta si marcó el 50 % o más de las correctas
 // y ninguna incorrecta (si no, marcar todo daría siempre bien).
 const exCorrecta = (q, sel) => sel.length > 0 && (q.multi
-  ? sel.every(l => q.k.r.includes(l)) && sel.length * 5 >= q.k.r.length * 3   // = 60 % o más, sin decimales
+  ? sel.every(l => q.k.r.includes(l)) && sel.length * 2 >= q.k.r.length   // = 50 % o más, sin decimales
   : q.k.r.includes(sel[0]));
 function examen() { EX.fase === 'preg' ? exPreg() : EX.fase === 'fin' ? exFin() : exInicio(); }
 function exInicio() {
