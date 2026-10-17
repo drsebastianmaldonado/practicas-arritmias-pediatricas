@@ -434,7 +434,7 @@ function detail(id) {
       inputs.forEach(i => { const l = i.dataset.l, on = i.checked, isR = right.includes(l), row = i.closest('.opt');
         if (on && isR) row.classList.add('ok'); else if (on && !isR) row.classList.add('bad'); else if (!on && isR && (q.multi || !good)) row.classList.add('miss'); });
       const nota = q.k.c === 'i' ? ' <i>(respuesta deducida del material: pendiente de confirmar)</i>' : '';
-      box.innerHTML = good ? `<b class="g">✓ Correcto.</b>${q.multi && faltan.length ? ` También ${faltan.length > 1 ? 'eran correctas' : 'era correcta'}: ${faltan.join(' + ')}.` : ''}${nota}` : `<b class="r">✗ Respuesta correcta: ${right.join(' + ')}.</b>${q.multi ? '' : (right.length > 1 ? ' (cualquiera de esas es válida)' : '')}${nota}`;
+      box.innerHTML = good ? `<b class="g">✓ Correcto.</b>${q.multi && faltan.length ? ` También ${faltan.length > 1 ? 'eran correctas' : 'era correcta'}: ${faltan.join(' + ')}.` : ''}${nota}` : `<b class="r">✗ Respuesta correcta: ${right.join(q.multi ? ' + ' : ' o ')}.</b>${q.multi ? '' : (right.length > 1 ? ' (cualquiera de esas es válida)' : '')}${nota}`;
     });
     const s = document.getElementById('score'); s.style.display = 'block';
     s.innerHTML = tot ? `<b>${ok} de ${tot}</b> correctas${sinClave ? ` · ${sinClave} sin respuesta cargada` : ''}` : 'Este caso todavía no tiene respuestas cargadas.';
