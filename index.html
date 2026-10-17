@@ -150,6 +150,17 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 .opt.miss{border-style:dashed;border-color:#2e7d32}
 .fb{margin-top:8px;font-size:.9rem;color:var(--mute)}
 .fb b.g{color:#2e7d32}.fb b.r{color:var(--acc)}
+.expl{margin-top:8px;font-size:.92rem;border-left:3px solid var(--acc2);padding:2px 0 2px 10px}
+.expl summary{cursor:pointer;color:var(--acc2);font-weight:600}
+.expl p{margin:6px 0}
+.retomado{margin:10px 0}
+/* glosario dentro de los casos: término tocable + ficha abajo de la pantalla */
+.glt{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:help;text-decoration:underline dotted var(--acc2);text-underline-offset:3px}
+#glpop{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));z-index:30;
+  background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px 40px 12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#glpop[hidden]{display:none}
+#glpop .x{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--mute);font-size:1.3rem;cursor:pointer;line-height:1;padding:4px}
+#glpop p{margin:4px 0 0;font-size:.92rem}
 .score{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:12px 0;display:none}
 .semana{border:2px solid var(--acc);margin:6px 0 14px}
 .semana img{width:100%;max-height:340px;object-fit:contain;background:#fff;border-radius:8px;margin-bottom:8px;display:block}
@@ -200,6 +211,7 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
   </nav>
 </header>
 <div class="navbackdrop" id="navBackdrop" hidden></div>
+<div id="glpop" hidden role="dialog" aria-live="polite"><button class="x" type="button" aria-label="Cerrar" onclick="this.parentNode.hidden=true">×</button><div></div></div>
 <main id="app"></main>
 <div id="lb" onclick="this.style.display='none'"><img alt=""></div>
 <script src="casos.js"></script>
@@ -394,37 +406,100 @@ function fasciculos() {
 const imgs = (arr) => arr.length ? `<div class="imgs">${arr.map(i => `<img src="${i.includes('/') ? i : 'imagenes_web/' + i}" loading="lazy" alt="Trazado" onclick="zoom(this)">`).join('')}</div>` : '';
 window.zoom = el => { const lb = document.getElementById('lb'); lb.querySelector('img').src = el.src; lb.style.display = 'flex'; };
 
+// ---------- Respuestas a medio hacer: se guardan por caso hasta comprobarlas o tocar "Empezar de nuevo" ----------
+const BK = 'bc_borrador';
+let borr = {};
+try { borr = JSON.parse(localStorage.getItem(BK) || '{}'); } catch (e) {}
+const saveBorr = () => { try { localStorage.setItem(BK, JSON.stringify(borr)); } catch (e) {} };
+
+// ---------- Devolución por pregunta: los encabezados "Respuesta N° 1", "N° 1 y 2", "N° 2-3"... reparten los párrafos ----------
+const RH = /^respuestas?\s*n\s*[°º]?\s*([\d\s,y°º\-–n.]*\d)\s*[:.]?\s*/i;
+function devPorPregunta(c) {
+  const por = {}; let act = null;
+  c.dev.forEach(p => {
+    const m = p.match(RH);
+    if (m) {
+      const nums = [];
+      m[1].replace(/(\d+)\s*[-–]\s*(\d+)/g, (_, a, b) => { for (let x = +a; x <= +b; x++) nums.push(x); return ' '; }).replace(/\d+/g, d => nums.push(+d));
+      act = nums; const resto = p.slice(m[0].length).trim();
+      if (resto) act.forEach(n => (por[n] = por[n] || []).push(resto));
+    } else if (act) act.forEach(n => (por[n] = por[n] || []).push(p));
+  });
+  return por;
+}
+
+// ---------- Glosario dentro de los casos: siglas y términos del glosario se tocan para ver la definición ----------
+// Siglas (TSV, QTc...) respetan mayúsculas; los términos completos no. Cada término se marca solo la primera vez en la página.
+const GLX = (() => {
+  const G = window.GLOSARIO || [], mapa = {};
+  G.forEach((g, i) => {
+    g.sigla.split('/').map(x => x.trim()).filter(Boolean).forEach(x => mapa[x.toLowerCase()] = { i, cs: /^[A-Z]{2,}[a-z]?$/.test(x) ? x : '' });
+    (g.termino || '').replace(/\s*\(.*?\)/g, '').split('/').map(x => x.trim()).filter(x => x.length > 3).forEach(x => { const k = x.toLowerCase(); if (!mapa[k]) mapa[k] = { i, cs: '' }; });
+  });
+  const alts = Object.keys(mapa).sort((a, b) => b.length - a.length).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return { G, mapa, re: alts.length ? new RegExp(`(?<![\\p{L}\\p{N}])(${alts.join('|')})(?![\\p{L}\\p{N}])`, 'giu') : null };
+})();
+// Recibe texto YA escapado con esc(); "usados" evita repetir el mismo término en la página.
+const glosar = (html, usados) => !GLX.re ? html : html.replace(GLX.re, m => {
+  const e = GLX.mapa[m.toLowerCase()];
+  if (!e || (e.cs && m !== e.cs) || usados.has(e.i)) return m;
+  usados.add(e.i); return `<button type="button" class="glt" data-g="${e.i}">${m}</button>`;
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('.glt'), pop = document.getElementById('glpop');
+  if (t) {
+    e.preventDefault();   // dentro de una opción: que no marque la respuesta
+    const g = GLX.G[+t.dataset.g];
+    pop.querySelector('div').innerHTML = `<b>${esc(g.sigla)}</b>${g.termino && g.termino !== g.sigla ? ' · ' + esc(g.termino) : ''}<p>${esc(g.definicion)}</p>`;
+    pop.hidden = false;
+  } else if (pop && !e.target.closest('#glpop')) pop.hidden = true;
+});
+
 function detail(id) {
   const esS = id === 'semana' && S;
   const i = esS ? -1 : C.findIndex(c => c.id == id); if (i < 0 && !esS) return list();
   const c = esS ? S : C[i], prev = esS ? null : C[i - 1], next = esS ? null : C[i + 1];
   const mismo = x => x && x.f === c.f;
-  const n = c.preguntas.length;
+  const n = c.preguntas.length, usados = new Set(), gl = t => glosar(esc(t), usados);
+  const vineta = gl(c.vineta);
   let body = imgs(c.imgs.filter(m => m.p == 0).map(m => m.a));
   c.preguntas.forEach((q, k) => {
-    if (k > 0) body += (q.ctx ? `<p class="ctx">${esc(q.ctx)}</p>` : '') + imgs(c.imgs.filter(m => m.p == k).map(m => m.a));
-    body += `<div class="q"><h4>Pregunta ${k + 1}${q.enun ? ' · ' + esc(q.enun) : ''}</h4>
+    if (k > 0) body += (q.ctx ? `<p class="ctx">${gl(q.ctx)}</p>` : '') + imgs(c.imgs.filter(m => m.p == k).map(m => m.a));
+    body += `<div class="q"><h4>Pregunta ${k + 1}${q.enun ? ' · ' + gl(q.enun) : ''}</h4>
       ${q.multi ? '<div class="hint">Se puede elegir más de una opción.</div>' : ''}
-      ${q.opc.length ? q.opc.map(o => `<label class="opt"><input type="${q.multi ? 'checkbox' : 'radio'}" name="q${k}" data-l="${o.l}"><span><b>${o.l}.</b> ${esc(o.t)}</span></label>`).join('') : '<div class="hint">Las opciones están en la imagen.</div>'}<div class="fb" id="fb${k}"></div></div>`;
+      ${q.opc.length ? q.opc.map(o => `<label class="opt"><input type="${q.multi ? 'checkbox' : 'radio'}" name="q${k}" data-l="${o.l}"><span><b>${o.l}.</b> ${gl(o.t)}</span></label>`).join('') : '<div class="hint">Las opciones están en la imagen.</div>'}<div class="fb" id="fb${k}"></div><div id="ex${k}"></div></div>`;
   });
   body += imgs(c.imgs.filter(m => m.p >= n && n > 0).map(m => m.a));
-  const dev = c.dev.map(p => /^respuestas?\s*n/i.test(p) ? `<p class="rh">${esc(p)}</p>` : `<p>${esc(p)}</p>`).join('');
+  const dev = c.dev.map(p => /^respuestas?\s*n/i.test(p) ? `<p class="rh">${esc(p)}</p>` : `<p>${gl(p)}</p>`).join('');
+  const porPreg = devPorPregunta(c);
   app.innerHTML = `<div class="case">
     <p><a href="#">← Volver al banco</a></p>
     <div class="meta">${c.semana ? 'Caso de la semana' + (c.fecha ? ' · ' + fechaCorta(c.fecha) : '') : `Fascículo ${c.f} · Caso ${c.n}`}</div><h2>${esc(c.titulo)}</h2>
     ${c.borrador ? '<div class="warn">Este fascículo todavía es un borrador: el contenido puede cambiar.</div>' : ''}
-    <div class="vineta">${esc(c.vineta) || '<i>Ver imágenes.</i>'}</div>
+    <div class="vineta">${vineta || '<i>Ver imágenes.</i>'}</div>
+    <div class="hint retomado" id="retomado" hidden>Retomaste las respuestas que habías marcado la última vez.</div>
     ${body}
     <div class="score" id="score"></div><div id="aviso"></div>
     <div class="nav"><button class="primary" id="chk">Comprobar mis respuestas</button><button class="primary" id="rev">Ver devolución del caso</button>
+      <button class="ghost" id="reset">Empezar de nuevo</button>
       <span class="hint" id="mk" style="align-self:center"${seen[c.id] ? '' : ' hidden'}>✓ Repasado</span>
       <button class="ghost" id="wa">Compartir por WhatsApp</button></div>
     <div id="dev" hidden><div class="dev"><h3>Devolución</h3>${dev}${imgs(c.devimgs)}</div></div>
     <div class="nav">${mismo(prev) ? `<a href="#${prev.id}"><button class="ghost">← Anterior</button></a>` : ''}${mismo(next) ? `<a href="#${next.id}"><button class="ghost">Siguiente →</button></a>` : ''}</div></div>`;
+  const pintarSel = () => app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
+  const marcadas = k => [...app.querySelectorAll(`input[name="q${k}"]:checked`)].map(i => i.dataset.l);
+  // Respuestas a medio hacer: si quedaron guardadas de la vez anterior, se vuelven a marcar.
+  if (borr[c.id]) {
+    Object.entries(borr[c.id]).forEach(([k, ls]) => ls.forEach(l => { const i = app.querySelector(`input[name="q${k}"][data-l="${l}"]`); if (i) i.checked = true; }));
+    pintarSel(); document.getElementById('retomado').hidden = false;
+  }
   // Repasado automático: cuando respondió todas las preguntas que tienen opciones (ya no hay botón para marcarlo a mano).
   let marcado = false;
   app.querySelectorAll('.opt input').forEach(inp => inp.onchange = () => {
-    app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
+    pintarSel();
+    const b = {}; c.preguntas.forEach((q, k) => { const ls = marcadas(k); if (ls.length) b[k] = ls; });
+    if (Object.keys(b).length) borr[c.id] = b; else delete borr[c.id];
+    saveBorr();
     if (!marcado && c.preguntas.every((q, k) => !q.opc.length || app.querySelector(`input[name="q${k}"]:checked`))) {
       marcado = true; seen[c.id] = true; marcarFechaRepaso(c.id); saveSeen(); document.getElementById('mk').hidden = false;
     }
@@ -443,17 +518,27 @@ function detail(id) {
       inputs.forEach(i => { const l = i.dataset.l, on = i.checked, isR = right.includes(l), row = i.closest('.opt');
         if (on && isR) row.classList.add('ok'); else if (on && !isR) row.classList.add('bad'); else if (!on && isR && (q.multi || !good)) row.classList.add('miss'); });
       const nota = q.k.c === 'i' ? ' <i>(respuesta deducida del material: pendiente de confirmar)</i>' : '';
+      const ex = porPreg[k + 1];   // explicación de esta pregunta (abierta si se equivocó)
+      document.getElementById('ex' + k).innerHTML = ex ? `<details class="expl"${good ? '' : ' open'}><summary>Ver explicación</summary>${ex.map(p => `<p>${esc(p)}</p>`).join('')}${(c.devimgs || []).length ? '<p class="hint">Las figuras están en la devolución completa del caso.</p>' : ''}</details>` : '';
       box.innerHTML = good ? `<b class="g">✓ Correcto.</b>${q.multi && faltan.length ? ` También ${faltan.length > 1 ? 'eran correctas' : 'era correcta'}: ${faltan.join(' + ')}.` : ''}${nota}` : `<b class="r">✗ Respuesta correcta: ${right.join(q.multi ? ' + ' : ' o ')}.</b>${q.multi ? '' : (right.length > 1 ? ' (cualquiera de esas es válida)' : '')}${nota}`;
     });
     const s = document.getElementById('score'); s.style.display = 'block';
     s.innerHTML = tot ? `<b>${ok} de ${tot}</b> correctas${sinClave ? ` · ${sinClave} sin respuesta cargada` : ''}` : 'Este caso todavía no tiene respuestas cargadas.';
     if (tot) { seenScore[c.id] = { ok, tot }; try { localStorage.setItem('bc_score', JSON.stringify(seenScore)); } catch (e) {} }
     document.getElementById('aviso').innerHTML = avisoTemas(); enlazarTemas();
+    delete borr[c.id]; saveBorr();   // ya las comprobó: la próxima vez el caso arranca en blanco
     s.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   if (c.semana && devBloqueada(c)) {   // hasta la fecha de devolución: ni la devolución ni "Comprobar mis respuestas" (que mostraría la correcta)
     [['rev', 'Devolución disponible el '], ['chk', 'Respuestas disponibles el ']].forEach(([id, t]) => { const b = document.getElementById(id); b.textContent = t + fechaCorta(c.devFecha); b.disabled = true; b.style.opacity = .6; b.style.cursor = 'default'; });
   }
+  document.getElementById('reset').onclick = () => {
+    app.querySelectorAll('.opt input').forEach(i => { i.checked = false; i.closest('.opt').classList.remove('ok', 'bad', 'miss'); });
+    pintarSel(); app.querySelectorAll('.fb, [id^="ex"]').forEach(x => x.innerHTML = '');
+    const s = document.getElementById('score'); s.style.display = ''; s.innerHTML = '';
+    document.getElementById('aviso').innerHTML = ''; document.getElementById('retomado').hidden = true;
+    delete borr[c.id]; saveBorr(); window.scrollTo(0, 0);
+  };
   document.getElementById('rev').onclick = e => { const d = document.getElementById('dev'); d.hidden = !d.hidden; e.target.textContent = d.hidden ? 'Ver devolución del caso' : 'Ocultar devolución'; if (!d.hidden) d.scrollIntoView({behavior:'smooth'}); };
   document.getElementById('wa').onclick = () => {
     const url = location.href; const titulo = c.semana ? 'Caso de la semana' : `Fascículo ${c.f} · Caso ${c.n}`;
@@ -729,7 +814,7 @@ function progreso() {
     <h3>Exámenes</h3>${H.length ? `<div class="list">${H.slice(-10).reverse().map(h => `<div class="card" style="cursor:default;padding:8px 12px">${fechaCorta(h.d)} · <b>${h.ok} de ${h.n}</b> (${pct(h.ok, h.n)} %)${bar(pct(h.ok, h.n))}<div class="meta">${esc(h.tag || 'Todos los temas')}${h.f ? ' · ' + nombreF(h.f) : ''}</div></div>`).join('')}</div>` : '<p class="hint">Todavía no hiciste ningún examen.</p>'}
     <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div></div>`;
   enlazarTemas();
-  document.getElementById('pborrar').onclick = () => { if (confirm('¿Borrar tus casos repasados, puntajes y exámenes de este navegador?')) { seen = {}; seenScore = {}; seenFecha = {}; try { ['bc_seen', 'bc_score', 'bc_seen_fecha', EXK].forEach(k => localStorage.removeItem(k)); } catch (e) {} progreso(); } };
+  document.getElementById('pborrar').onclick = () => { if (confirm('¿Borrar tus casos repasados, puntajes y exámenes de este navegador?')) { seen = {}; seenScore = {}; seenFecha = {}; borr = {}; try { ['bc_seen', 'bc_score', 'bc_seen_fecha', BK, EXK].forEach(k => localStorage.removeItem(k)); } catch (e) {} progreso(); } };
 }
 // ---------- Glosario (glosario.js) ----------
 let GL = { q: '' };
