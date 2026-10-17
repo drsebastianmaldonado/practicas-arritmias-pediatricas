@@ -781,6 +781,48 @@ const candidatosRepaso = () => {
   if (out.length < 5) { const usados = new Set(out.map(c => c.id)); out = out.concat(shuffle(C.filter(c => !seen[c.id] && !usados.has(c.id))).slice(0, 5 - out.length)); }
   return out;
 };
+// ---------- Pasar el progreso a otro dispositivo: un enlace que lleva todo lo guardado en este navegador ----------
+// No lleva datos personales: casos repasados, puntajes, exámenes y el número anónimo del registro (para no volver a pedirlo).
+const b64url = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const deB64url = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
+// Formato compacto: c = [id, fecha de repaso, correctas, total] por caso; x = exámenes [fecha, ok, n, tema, fascículo, {tema: [ok, tot]}].
+function enlaceRespaldo() {
+  const ids = new Set([...Object.keys(seen).filter(k => seen[k]), ...Object.keys(seenScore)]);
+  const d = { v: 2, c: [...ids].map(id => { const sc = seenScore[id]; return [id, seen[id] ? (seenFecha[id] || '') : 0, sc ? sc.ok : '', sc ? sc.tot : '']; }),
+    x: exHist().map(h => [h.d, h.ok, h.n, h.tag || '', h.f || '', h.temas || {}]), dv: Object.keys(devVista) };
+  try { const r = JSON.parse(localStorage.getItem(RGK) || 'null'); if (r) d.reg = r; } catch (e) {}
+  return location.origin + location.pathname + '#respaldo=' + b64url(JSON.stringify(d));
+}
+// Suma (no reemplaza) el progreso del enlace al de este navegador.
+function importarRespaldo(cod) {
+  let d;
+  try { d = JSON.parse(deB64url(cod)); } catch (e) { alert('El enlace de respaldo está incompleto o dañado. Probá copiarlo de nuevo, entero.'); return; }
+  if (d.v === 2) {   // del formato compacto al de siempre
+    const seen2 = {}, score2 = {}, fecha2 = {};
+    (d.c || []).forEach(([id, f, ok, tot]) => { if (f !== 0) { seen2[id] = true; if (f) fecha2[id] = f; } if (tot !== '') score2[id] = { ok, tot }; });
+    d = { seen: seen2, score: score2, fecha: fecha2, exam: (d.x || []).map(([dd, ok, n, tag, f, temas]) => ({ d: dd, ok, n, tag, f, temas })), dev: Object.fromEntries((d.dv || []).map(k => [k, true])), reg: d.reg };
+  }
+  const n = Object.keys(d.seen || {}).filter(k => d.seen[k]).length;
+  if (!confirm(`Este enlace trae tu progreso de otro dispositivo (${n} caso${n == 1 ? '' : 's'} repasado${n == 1 ? '' : 's'}). ¿Sumarlo al de este dispositivo? No se borra nada de lo que ya tenés acá.`)) return;
+  const fLocal = { ...seenFecha };
+  Object.keys(d.seen || {}).forEach(k => { if (d.seen[k]) seen[k] = true; });
+  Object.entries(d.score || {}).forEach(([k, v]) => { if (!seenScore[k] || ((d.fecha || {})[k] || '') > (fLocal[k] || '')) seenScore[k] = v; });   // queda el puntaje más reciente
+  Object.entries(d.fecha || {}).forEach(([k, f]) => { if (!seenFecha[k] || f > seenFecha[k]) seenFecha[k] = f; });
+  const ex = exHist(), ya = new Set(ex.map(x => JSON.stringify(x)));
+  (d.exam || []).forEach(x => { if (!ya.has(JSON.stringify(x))) ex.push(x); });
+  ex.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
+  Object.assign(devVista, d.dev || {});
+  try {
+    saveSeen(); localStorage.setItem('bc_score', JSON.stringify(seenScore)); localStorage.setItem('bc_seen_fecha', JSON.stringify(seenFecha));
+    localStorage.setItem(EXK, JSON.stringify(ex.slice(-20))); localStorage.setItem('bc_dev_vista', JSON.stringify(devVista));
+    if (d.reg && !localStorage.getItem(RGK)) {   // ya registrado en el otro: no se lo vuelve a pedir
+      localStorage.setItem(RGK, JSON.stringify(d.reg));
+      const ov = document.getElementById('rg'); if (ov && !registroPendiente()) { ov.remove(); document.body.style.overflow = ''; }
+    }
+  } catch (e) {}
+  alert('¡Listo! Ya tenés acá tu progreso del otro dispositivo.');
+}
+
 // % de aciertos por tema, con los casos resueltos ("Comprobar mis respuestas") y los exámenes; del más flojo al más firme.
 function statsTemas() {
   const tema = {}; TAGS.forEach(t => tema[t[0]] = { ok: 0, tot: 0 });
@@ -819,8 +861,20 @@ function progreso() {
     <h3>Temas para reforzar</h3>${temas.length ? '<p class="hint">Ordenados del más flojo al más firme, con tus respuestas de casos y exámenes.</p>' : '<p class="hint">Resolvé casos o exámenes para ver acá tus temas más flojos.</p>'}
     <div class="list">${temas.map(([t, v]) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(t)}</b> · ${pct(v.ok, v.tot)} % correctas (${v.ok} de ${v.tot})${bar(pct(v.ok, v.tot))}<div style="margin-top:6px"><button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div></div>`).join('')}</div>
     <h3>Exámenes</h3>${H.length ? `<div class="list">${H.slice(-10).reverse().map(h => `<div class="card" style="cursor:default;padding:8px 12px">${fechaCorta(h.d)} · <b>${h.ok} de ${h.n}</b> (${pct(h.ok, h.n)} %)${bar(pct(h.ok, h.n))}<div class="meta">${esc(h.tag || 'Todos los temas')}${h.f ? ' · ' + nombreF(h.f) : ''}</div></div>`).join('')}</div>` : '<p class="hint">Todavía no hiciste ningún examen.</p>'}
+    <h3>Pasar mi progreso a otro dispositivo</h3>
+    <p class="hint">Tu progreso se guarda solo en este navegador. Para tenerlo también en el celular o en la computadora, mandate este enlace (por WhatsApp, mail…) y abrilo en el otro dispositivo: se suma a lo que ya tengas ahí. Hacelo de nuevo cada tanto para actualizarlo.</p>
+    <div class="nav">${navigator.share ? '<button class="primary" id="rshare">Compartir el enlace</button>' : ''}<button class="${navigator.share ? 'ghost' : 'primary'}" id="rcopy">Copiar el enlace</button><button class="ghost" id="rwa">Mandármelo por WhatsApp</button></div>
     <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div></div>`;
   enlazarTemas();
+  const txtR = 'Mi progreso en el Banco de casos de arritmias (abrilo en el otro dispositivo):';
+  if (navigator.share) document.getElementById('rshare').onclick = () => navigator.share({ title: 'Mi progreso', text: txtR, url: enlaceRespaldo() }).catch(() => {});
+  document.getElementById('rcopy').onclick = async e => {
+    const url = enlaceRespaldo();
+    try { await navigator.clipboard.writeText(url); }
+    catch (er) { const ta = document.createElement('textarea'); ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e2) {} ta.remove(); }
+    e.target.textContent = 'Enlace copiado ✓'; setTimeout(() => e.target.textContent = 'Copiar el enlace', 3000);
+  };
+  document.getElementById('rwa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(txtR + '\n' + enlaceRespaldo()), '_blank', 'noopener');
   document.getElementById('pborrar').onclick = () => { if (confirm('¿Borrar tus casos repasados, puntajes y exámenes de este navegador?')) { seen = {}; seenScore = {}; seenFecha = {}; borr = {}; try { ['bc_seen', 'bc_score', 'bc_seen_fecha', BK, EXK].forEach(k => localStorage.removeItem(k)); } catch (e) {} progreso(); } };
 }
 // ---------- Glosario (glosario.js) ----------
@@ -912,6 +966,7 @@ const VISTAS = { recursos, examen, valores, patrones, scores, diagnosticos, prog
 // Grupos de la nav de arriba, para resaltar "Casos"/"Herramientas" cuando la vista activa es una de las suyas.
 const NAV_GRUPOS = { Casos: ['fasciculos', 'diagnosticos', 'patrones', 'examen', 'progreso'], Herramientas: ['scores', 'parametrosZ', 'drogas', 'valores', 'endocarditis'] };
 function route() { const h = location.hash.slice(1);
+  if (h.startsWith('respaldo=')) { history.replaceState(null, '', location.pathname + location.search); importarRespaldo(h.slice(9)); location.hash = 'progreso'; return; }
   const enCasos = h === '' || NAV_GRUPOS.Casos.includes(h) || (h && !VISTAS[h] && h !== 'estadisticas');   // '' o un caso (#f1c2, #semana…) cuentan como "Casos"
   document.getElementById('navCasos').classList.toggle('active', enCasos);
   document.getElementById('navHerramientas').classList.toggle('active', NAV_GRUPOS.Herramientas.includes(h));
