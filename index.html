@@ -961,6 +961,65 @@ function importarRespaldo(cod) {
   alert('¡Listo! Ya tenés acá tu progreso del otro dispositivo.');
 }
 
+// ---------- Constancia de finalización: PDF armado en el navegador (canvas → JPEG → PDF de una página), sin servicios externos ----------
+const nombreConstancia = () => { try { return localStorage.getItem('bc_nombre_constancia') || ''; } catch (e) { return ''; } };
+// Una por fascículo (sin los casos de la semana, que siguen sumándose) y una por todo el banco.
+function constanciasDisponibles() {
+  const fas = [...new Set(C.filter(c => !c.semana).map(c => c.f))];
+  const item = (titulo, casos, detalle) => {
+    const hechos = casos.filter(c => seen[c.id]).length, sc = casos.filter(c => seenScore[c.id]);
+    const ok = sc.reduce((a, c) => a + seenScore[c.id].ok, 0), tot = sc.reduce((a, c) => a + seenScore[c.id].tot, 0);
+    return { titulo, detalle, total: casos.length, hechos, completo: casos.length > 0 && hechos === casos.length, pct: tot ? Math.round(ok / tot * 100) : null };
+  };
+  return fas.map(f => item('Fascículo ' + f, C.filter(c => c.f === f), 'el Fascículo ' + f))
+    .concat([item('Banco completo', C.filter(c => !c.semana), 'todos los fascículos')]);
+}
+async function descargarConstancia(x, nombre) {
+  const W = 1754, H = 1240, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d'), rojo = '#b3261e', azul = '#0b5cad', gris = '#5d6b7c', tinta = '#1c2430';
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = azul; g.lineWidth = 14; g.strokeRect(50, 50, W - 100, H - 100);
+  g.strokeStyle = rojo; g.lineWidth = 3; g.strokeRect(80, 80, W - 160, H - 160);
+  try { const logo = new Image(); logo.src = 'iconos/icon-192.png'; await logo.decode(); g.drawImage(logo, W / 2 - 70, 130, 140, 140); } catch (e) {}
+  const centro = (t, y, font, color) => { g.font = font; g.fillStyle = color; g.textAlign = 'center'; g.fillText(t, W / 2, y); };
+  const ajustar = (t, max, peso, tam) => { let s = tam; do { g.font = `${peso} ${s}px Georgia, 'Times New Roman', serif`; s -= 4; } while (g.measureText(t).width > max && s > 30); return g.font; };
+  centro('Banco de casos de arritmias pediátricas', 330, `600 40px Georgia, 'Times New Roman', serif`, azul);
+  centro('CONSTANCIA DE FINALIZACIÓN', 430, `700 72px Georgia, 'Times New Roman', serif`, rojo);
+  centro('Se deja constancia de que', 530, `400 38px Georgia, 'Times New Roman', serif`, gris);
+  centro(nombre, 640, ajustar(nombre, W - 360, 700, 84), tinta);
+  g.strokeStyle = '#dfe4ea'; g.lineWidth = 3; g.beginPath(); g.moveTo(W / 2 - 520, 675); g.lineTo(W / 2 + 520, 675); g.stroke();
+  const l1 = `completó ${x.detalle} del banco: ${x.total} casos clínicos de arritmias en pediatría`;
+  centro(l1, 760, ajustar(l1, W - 300, 400, 40), tinta);
+  if (x.pct !== null) centro(`con un ${x.pct} % de respuestas correctas en los casos que comprobó.`, 820, `400 40px Georgia, 'Times New Roman', serif`, tinta);
+  const hoy = new Date(); const fecha = hoy.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+  centro('Emitida el ' + fecha, 920, `400 34px Georgia, 'Times New Roman', serif`, gris);
+  centro('Dr. Sebastián Maldonado · Electrofisiólogo infantil · Autor del banco de casos', 1010, `600 32px Georgia, 'Times New Roman', serif`, azul);
+  centro('Constancia de autoestudio generada a partir del progreso registrado por el participante. No constituye una evaluación supervisada ni una acreditación.', 1110, `italic 400 24px Georgia, 'Times New Roman', serif`, gris);
+  const jpg = new Uint8Array(await (await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.92))).arrayBuffer());
+  const pdf = pdfDeImagen(jpg, W, H);
+  const a = document.createElement('a'), url = URL.createObjectURL(new Blob([pdf], { type: 'application/pdf' }));
+  // nombre del archivo sin acentos: algunos navegadores descartan el nombre si los tiene
+  a.href = url; a.download = norm(`Constancia - ${x.titulo} - ${nombre}`).replace(/\b\w/g, l => l.toUpperCase()).replace(/[^\w .-]/g, '') + '.pdf';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 60000);   // quitarlo enseguida puede hacer perder el nombre del archivo
+}
+// PDF mínimo de una página A4 apaisada (842 × 595 pt) con una imagen JPEG que la ocupa entera.
+function pdfDeImagen(jpg, w, h) {
+  const enc = new TextEncoder(), partes = [], offs = []; let largo = 0;
+  const add = x => { const b = typeof x === 'string' ? enc.encode(x) : x; partes.push(b); largo += b.length; };
+  const obj = (n, cuerpo) => { offs[n] = largo; add(`${n} 0 obj\n`); cuerpo(); add('\nendobj\n'); };
+  const contenido = 'q 842 0 0 595 0 0 cm /Im0 Do Q';
+  add('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  obj(1, () => add('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => add('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'));
+  obj(3, () => add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>'));
+  obj(4, () => { add(`<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`); add(jpg); add('\nendstream'); });
+  obj(5, () => add(`<< /Length ${contenido.length} >>\nstream\n${contenido}\nendstream`));
+  const xref = largo;
+  add(`xref\n0 6\n0000000000 65535 f \n${[1, 2, 3, 4, 5].map(n => String(offs[n]).padStart(10, '0') + ' 00000 n \n').join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  const out = new Uint8Array(largo); let p = 0; partes.forEach(b => { out.set(b, p); p += b.length; }); return out;
+}
+
 // % de aciertos por tema, con los casos resueltos ("Comprobar mis respuestas") y los exámenes; del más flojo al más firme.
 function statsTemas() {
   const tema = {}; TAGS.forEach(t => tema[t[0]] = { ok: 0, tot: 0 });
@@ -996,6 +1055,12 @@ function progreso() {
     <h3>Para repasar hoy</h3>
     ${repaso.length ? `<p class="hint">Casos que repasaste hace más de 10 días, o que todavía no viste.</p><div class="list">${repaso.map(c => `<a class="card" href="#${c.id}"><h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} — ${esc(c.titulo)}</h3><div class="meta">${seenFecha[c.id] ? 'Repasado por última vez el ' + fechaCorta(seenFecha[c.id]) : 'Todavía no lo repasaste'}</div></a>`).join('')}</div>` : `<p class="hint">${C.length ? '¡Estás al día! No hay casos pendientes de repaso por ahora.' : ''}</p>`}
     <h3>Por fascículo</h3><div class="list">${Object.entries(porF).map(([f, v]) => `<div class="card" style="cursor:default;padding:8px 12px">${nombreF(f)} · ${v.r} de ${v.t}${bar(pct(v.r, v.t))}</div>`).join('')}</div>
+    <h3>Constancias</h3>
+    <p class="hint">Cuando completás un fascículo (todos sus casos repasados) podés descargar una constancia en PDF, por ejemplo para tu portfolio.</p>
+    <div class="row" style="margin:6px 0 10px"><input id="cnombre" placeholder="Tu nombre y apellido, como querés que figure" value="${esc(nombreConstancia())}" autocomplete="name"></div>
+    <div class="list">${constanciasDisponibles().map((x, i) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(x.titulo)}</b> · ${x.hechos} de ${x.total} casos${x.completo
+      ? ` <button class="primary" data-const="${i}" style="margin-left:6px">Descargar constancia</button>`
+      : `<div class="meta">Te falta${x.total - x.hechos > 1 ? 'n' : ''} ${x.total - x.hechos} caso${x.total - x.hechos > 1 ? 's' : ''} para la constancia.</div>`}</div>`).join('')}</div>
     <h3>Repasar mis errores</h3>${misErrores().length ? `<p class="hint">Las preguntas que respondiste mal la última vez, en casos o exámenes. Cuando las acertás, salen de la lista.</p><div class="nav"><button class="primary" id="perr">Repasar mis errores (${misErrores().length} pregunta${misErrores().length == 1 ? '' : 's'})</button></div>` : '<p class="hint">No tenés preguntas pendientes: acá se juntan las que respondas mal en casos o exámenes.</p>'}
     <h3>Temas para reforzar</h3>${temas.length ? '<p class="hint">Ordenados del más flojo al más firme, con tus respuestas de casos y exámenes.</p>' : '<p class="hint">Resolvé casos o exámenes para ver acá tus temas más flojos.</p>'}
     <div class="list">${temas.map(([t, v]) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(t)}</b> · ${pct(v.ok, v.tot)} % correctas (${v.ok} de ${v.tot})${bar(pct(v.ok, v.tot))}<div style="margin-top:6px"><button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div></div>`).join('')}</div>
@@ -1006,6 +1071,15 @@ function progreso() {
     <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div></div>`;
   enlazarTemas();
   const pe = document.getElementById('perr'); if (pe) pe.onclick = repasarErrores;
+  const cn = document.getElementById('cnombre');
+  cn.onchange = () => { try { localStorage.setItem('bc_nombre_constancia', cn.value.trim()); } catch (e) {} };
+  app.querySelectorAll('button[data-const]').forEach(b => b.onclick = () => {
+    const nombre = cn.value.trim();
+    if (!nombre) { cn.focus(); cn.placeholder = 'Escribí acá tu nombre para la constancia'; return; }
+    try { localStorage.setItem('bc_nombre_constancia', nombre); } catch (e) {}
+    b.disabled = true; b.textContent = 'Preparando…';
+    descargarConstancia(constanciasDisponibles()[+b.dataset.const], nombre).finally(() => { b.disabled = false; b.textContent = 'Descargar constancia'; });
+  });
   const txtR = 'Mi progreso en el Banco de casos de arritmias (abrilo en el otro dispositivo):';
   if (navigator.share) document.getElementById('rshare').onclick = () => navigator.share({ title: 'Mi progreso', text: txtR, url: enlaceRespaldo() }).catch(() => {});
   document.getElementById('rcopy').onclick = async e => {
