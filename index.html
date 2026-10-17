@@ -143,8 +143,11 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 .dev{border-left:4px solid var(--acc);padding:4px 0 4px 14px;margin:18px 0}
 .dev p{margin:.5em 0}
 .dev .rh{font-weight:700;margin-top:1.1em}
-#lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:20;padding:10px}
-#lb img{max-width:100%;max-height:100%;background:#fff;border-radius:6px}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:20;padding:10px;touch-action:none;overflow:hidden}
+#lb img{max-width:100%;max-height:100%;background:#fff;border-radius:6px;transform-origin:0 0;user-select:none;-webkit-user-drag:none;cursor:zoom-in}
+#lb.ampliada img{cursor:grab}
+#lb .lbx{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(0,0,0,.65);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;z-index:2}
+#lb .lbayuda{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.55);padding:6px 12px;border-radius:99px;font-size:.82rem;white-space:nowrap;pointer-events:none;transition:opacity .4s}
 .opt.ok{border-color:#2e7d32;background:var(--ok)}
 .opt.bad{border-color:var(--acc)}
 .opt.miss{border-style:dashed;border-color:#2e7d32}
@@ -219,7 +222,7 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 <div id="nuevaVersion" hidden><span>Hay una versión nueva del banco.</span><button class="primary" type="button" onclick="location.reload()">Actualizar</button><button class="x" type="button" aria-label="Más tarde" onclick="this.parentNode.hidden=true">×</button></div>
 <div id="glpop" hidden role="dialog" aria-live="polite"><button class="x" type="button" aria-label="Cerrar" onclick="this.parentNode.hidden=true">×</button><div></div></div>
 <main id="app"></main>
-<div id="lb" onclick="this.style.display='none'"><img alt=""></div>
+<div id="lb"><img alt=""><button class="lbx" type="button" aria-label="Cerrar">×</button><div class="lbayuda">Pellizcá con dos dedos o tocá dos veces para ampliar</div></div>
 <script src="casos.js"></script>
 <script src="recursos.js"></script>
 <script src="valores.js"></script>
@@ -417,7 +420,78 @@ function fasciculos() {
 }
 
 const imgs = (arr) => arr.length ? `<div class="imgs">${arr.map(i => `<img src="${i.includes('/') ? i : 'imagenes_web/' + i}" loading="lazy" alt="Trazado" onclick="zoom(this)">`).join('')}</div>` : '';
-window.zoom = el => { const lb = document.getElementById('lb'); lb.querySelector('img').src = el.src; lb.style.display = 'flex'; };
+// ---------- Visor de imágenes: pellizcar con dos dedos (o rueda del mouse) para ampliar, doble toque, arrastrar para moverse ----------
+const LB = { s: 1, x: 0, y: 0, ptrs: new Map(), d: 0, mid: null, movido: false, tToque: 0 };
+const lbEl = document.getElementById('lb'), lbImg = lbEl.querySelector('img');
+lbImg.draggable = false;
+function lbAplicar() {
+  if (LB.s <= 1.01) { LB.s = 1; LB.x = LB.y = 0; }
+  else {   // que la imagen siempre cubra su lugar: no se puede arrastrar fuera de la pantalla
+    const w = lbImg.offsetWidth, h = lbImg.offsetHeight;
+    LB.x = Math.min(0, Math.max(w * (1 - LB.s), LB.x)); LB.y = Math.min(0, Math.max(h * (1 - LB.s), LB.y));
+  }
+  lbImg.style.transform = `translate(${LB.x}px,${LB.y}px) scale(${LB.s})`;
+  lbEl.classList.toggle('ampliada', LB.s > 1);
+}
+function lbZoom(f, cx, cy) {   // amplía por f alrededor del punto (cx, cy) de la pantalla
+  const r = lbImg.getBoundingClientRect(), bx = r.left - LB.x, by = r.top - LB.y;
+  const s2 = Math.min(8, Math.max(1, LB.s * f)), k = s2 / LB.s;
+  LB.x = (cx - bx) - (cx - bx - LB.x) * k; LB.y = (cy - by) - (cy - by - LB.y) * k; LB.s = s2; lbAplicar();
+}
+const lbCerrar = () => { lbEl.style.display = 'none'; document.body.style.overflow = ''; };
+window.zoom = el => {
+  lbImg.src = el.src; LB.s = 1; LB.x = LB.y = 0; LB.ptrs.clear(); lbAplicar();
+  lbEl.style.display = 'flex'; document.body.style.overflow = 'hidden';
+  const ay = lbEl.querySelector('.lbayuda'); ay.style.opacity = 1; clearTimeout(LB.tAyuda); LB.tAyuda = setTimeout(() => ay.style.opacity = 0, 2500);
+};
+lbEl.querySelector('.lbx').onclick = lbCerrar;
+lbEl.addEventListener('pointerdown', e => {
+  if (e.target.closest('.lbx')) return;
+  lbEl.setPointerCapture(e.pointerId); LB.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (LB.ptrs.size === 1) { LB.movido = false; LB.ini = { x: e.clientX, y: e.clientY }; }
+  if (LB.ptrs.size === 2) { const [a, b] = [...LB.ptrs.values()]; LB.d = Math.hypot(a.x - b.x, a.y - b.y); LB.mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; LB.movido = true; }
+});
+lbEl.addEventListener('pointermove', e => {
+  if (!LB.ptrs.has(e.pointerId)) return;
+  const prev = LB.ptrs.get(e.pointerId); LB.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (LB.ptrs.size === 2) {
+    const [a, b] = [...LB.ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y), mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    LB.x += mid.x - LB.mid.x; LB.y += mid.y - LB.mid.y;
+    if (LB.d) lbZoom(d / LB.d, mid.x, mid.y); else lbAplicar();
+    LB.d = d; LB.mid = mid;
+  } else if (LB.ptrs.size === 1) {
+    if (Math.hypot(e.clientX - LB.ini.x, e.clientY - LB.ini.y) > 8) LB.movido = true;
+    if (LB.s > 1) { LB.x += e.clientX - prev.x; LB.y += e.clientY - prev.y; lbAplicar(); }
+  }
+});
+const lbSoltar = e => {
+  if (!LB.ptrs.delete(e.pointerId) || LB.ptrs.size || LB.movido) { if (LB.ptrs.size < 2) LB.d = 0; return; }
+  // fue un toque (sin moverse): doble toque sobre la imagen amplía / vuelve; un toque afuera de la imagen cierra
+  const ahora = Date.now(), r = lbImg.getBoundingClientRect(), enImg = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  if (enImg && ahora - LB.tToque < 320) { LB.tToque = 0; if (LB.s > 1) { LB.s = 1; lbAplicar(); } else lbZoom(2.5, e.clientX, e.clientY); }
+  else { LB.tToque = ahora; if (!enImg && LB.s === 1) lbCerrar(); }
+};
+lbEl.addEventListener('pointerup', lbSoltar);
+lbEl.addEventListener('pointercancel', lbSoltar);
+lbEl.addEventListener('wheel', e => { e.preventDefault(); lbZoom(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY); }, { passive: false });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && lbEl.style.display === 'flex') lbCerrar(); });
+
+// ---------- Mis errores: última respuesta de cada pregunta que salió mal (en un caso o en un examen); al acertarla sale ----------
+const ERK = 'bc_errores';
+let errores = {};
+try { errores = JSON.parse(localStorage.getItem(ERK) || '{}'); } catch (e) {}
+function anotarErrores(casoId, lista) {   // lista: [{ k, ok }] de preguntas respondidas
+  const hoy = new Date().toISOString().slice(0, 10);
+  lista.forEach(r => { const key = casoId + ':' + r.k; if (r.ok) delete errores[key]; else errores[key] = hoy; });
+  try { localStorage.setItem(ERK, JSON.stringify(errores)); } catch (e) {}
+}
+const misErrores = () => Object.keys(errores).map(key => { const i = key.lastIndexOf(':'), c = C.find(x => x.id === key.slice(0, i)), k = +key.slice(i + 1);
+  return c && c.preguntas[k] && c.preguntas[k].k.r.length ? { c, q: c.preguntas[k], k } : null; }).filter(Boolean);
+function repasarErrores() {
+  const l = misErrores(); if (!l.length) return;
+  EX.qs = shuffle(l); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; EX.modo = 'errores';
+  if (location.hash === '#examen') exPreg(); else location.hash = 'examen';
+}
 
 // ---------- Respuestas anónimas (registro.js → endpointRespuestas): para saber qué preguntas fallan más en general ----------
 // Sin ningún dato de la persona. Solo el PRIMER intento de cada pregunta en este dispositivo (repetir un caso no cuenta).
@@ -553,7 +627,7 @@ function detail(id) {
     if (tot) { seenScore[c.id] = { ok, tot }; try { localStorage.setItem('bc_score', JSON.stringify(seenScore)); } catch (e) {} }
     document.getElementById('aviso').innerHTML = avisoTemas(); enlazarTemas();
     delete borr[c.id]; saveBorr();   // ya las comprobó: la próxima vez el caso arranca en blanco
-    enviarRespuestas(c.id, lista, 'caso');
+    enviarRespuestas(c.id, lista, 'caso'); anotarErrores(c.id, lista);
     s.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   if (c.semana && devBloqueada(c)) {   // hasta la fecha de devolución: ni la devolución ni "Comprobar mis respuestas" (que mostraría la correcta)
@@ -623,11 +697,12 @@ function exInicio() {
       <select id="exf"><option value="">Todos los fascículos</option>${fas.map(f => `<option value="${f}" ${EX.cfg.f == f ? 'selected' : ''}>${f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f}</option>`).join('')}</select>
     </div>
     <p class="hint">Preguntas disponibles con esos filtros: <b>${disp}</b></p>
-    <div class="nav"><button class="primary" id="exgo" ${disp ? '' : 'disabled'}>Empezar examen</button></div>
+    <div class="nav"><button class="primary" id="exgo" ${disp ? '' : 'disabled'}>Empezar examen</button>${misErrores().length ? `<button class="ghost" id="exerr">Repasar mis errores (${misErrores().length})</button>` : ''}</div>
     ${h.length ? `<h3>Últimos exámenes</h3><div class="list">${h.map(x => `<div class="card"><b>${x.ok} de ${x.n}</b> · ${fechaCorta(x.d)}<div class="meta">${esc(x.tag || 'Todos los temas')}${x.f ? ' · ' + (x.f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + x.f) : ''}</div></div>`).join('')}</div>` : ''}</div>`;
   const cfg = () => { EX.cfg = { n: +document.getElementById('exn').value, tag: document.getElementById('ext').value, f: document.getElementById('exf').value }; exInicio(); };
   ['exn', 'ext', 'exf'].forEach(id => document.getElementById(id).onchange = cfg);
-  document.getElementById('exgo').onclick = () => { EX.qs = exElegir(exPool(EX.cfg), EX.cfg.n); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; exPreg(); };
+  document.getElementById('exgo').onclick = () => { EX.qs = exElegir(exPool(EX.cfg), EX.cfg.n); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; EX.modo = ''; exPreg(); };
+  const be = document.getElementById('exerr'); if (be) be.onclick = repasarErrores;
 }
 function exPreg() {
   const t = EX.qs[EX.i], c = t.c, q = t.q, k = t.k, N = EX.qs.length, sel = EX.ans[EX.i] || [];
@@ -652,9 +727,9 @@ function exFin() {
   const res = EX.qs.map((t, i) => { const sel = EX.ans[i] || []; return { ...t, sel, ok: exCorrecta(t.q, sel) }; });
   const ok = res.filter(r => r.ok).length, N = res.length, mal = res.filter(r => !r.ok);
   if (!EX.guardado) { EX.guardado = true; const h = exHist(), tm = {}; res.forEach(r => r.c.tags.forEach(t => { const a = tm[t] = tm[t] || [0, 0]; a[1]++; if (r.ok) a[0]++; }));
-    h.push({ d: new Date().toISOString().slice(0, 10), ok, n: N, tag: EX.cfg.tag, f: EX.cfg.f, temas: tm }); try { localStorage.setItem(EXK, JSON.stringify(h.slice(-20))); } catch (e) {}
+    h.push({ d: new Date().toISOString().slice(0, 10), ok, n: N, tag: EX.modo === 'errores' ? 'Mis errores' : EX.cfg.tag, f: EX.modo === 'errores' ? '' : EX.cfg.f, temas: tm }); try { localStorage.setItem(EXK, JSON.stringify(h.slice(-20))); } catch (e) {}
     const porCaso = {}; res.filter(r => r.sel.length).forEach(r => (porCaso[r.c.id] = porCaso[r.c.id] || []).push({ k: r.k, sel: r.sel, ok: r.ok }));
-    Object.entries(porCaso).forEach(([id, l]) => enviarRespuestas(id, l, 'examen')); }
+    Object.entries(porCaso).forEach(([id, l]) => { enviarRespuestas(id, l, 'examen'); anotarErrores(id, l); }); }
   const temas = {}; mal.forEach(r => (r.c.tags.length ? r.c.tags : ['Sin etiqueta']).forEach(t => temas[t] = (temas[t] || 0) + 1));
   const orden = Object.entries(temas).sort((a, b) => b[1] - a[1]);
   app.innerHTML = `<div class="case"><h2>Resultado: ${ok} de ${N} (${Math.round(ok / N * 100)} %)</h2>
@@ -662,6 +737,7 @@ function exFin() {
     <div class="nav"><button class="primary" id="exnuevo">Nuevo examen</button>${mal.length ? '<button class="ghost" id="exrep">Repetir solo las falladas</button>' : ''}</div>
     <div class="list">${res.map((r, i) => `<div class="card" style="cursor:default"><h3>${r.ok ? '✓' : '✗'} ${i + 1}. ${esc(r.q.enun.slice(0, 140))}${r.q.enun.length > 140 ? '…' : ''}</h3>
       <div class="meta">Tu respuesta: ${r.sel.length ? r.sel.join(' + ') : 'sin responder'} · Correcta: ${r.q.k.r.join(r.q.multi ? ' + ' : ' o ')}${!r.q.multi && r.q.k.r.length > 1 ? ' (cualquiera vale)' : ''}</div>
+      ${(ex => ex ? `<details class="expl"${r.ok ? '' : ' open'}><summary>Ver explicación</summary>${ex.map(p => `<p>${esc(p)}</p>`).join('')}${(r.c.devimgs || []).length ? '<p class="hint">Las figuras están en la devolución completa del caso.</p>' : ''}</details>` : '')(devPorPregunta(r.c)[r.k + 1])}
       <div class="meta"><a href="#${r.c.id}">Ver caso: ${r.c.semana ? 'Semana ' + fechaCorta(r.c.fecha) : 'Fasc. ' + r.c.f + ' · Caso ' + r.c.n} — ${esc(r.c.titulo)}</a></div></div>`).join('')}</div></div>`;
   document.getElementById('exnuevo').onclick = () => { EX.fase = 'inicio'; window.scrollTo(0, 0); exInicio(); };
   if (mal.length) document.getElementById('exrep').onclick = () => { EX.qs = shuffle(mal.map(r => ({ c: r.c, q: r.q, k: r.k }))); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; exPreg(); };
@@ -811,7 +887,7 @@ const deB64url = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replac
 function enlaceRespaldo() {
   const ids = new Set([...Object.keys(seen).filter(k => seen[k]), ...Object.keys(seenScore)]);
   const d = { v: 2, c: [...ids].map(id => { const sc = seenScore[id]; return [id, seen[id] ? (seenFecha[id] || '') : 0, sc ? sc.ok : '', sc ? sc.tot : '']; }),
-    x: exHist().map(h => [h.d, h.ok, h.n, h.tag || '', h.f || '', h.temas || {}]), dv: Object.keys(devVista) };
+    x: exHist().map(h => [h.d, h.ok, h.n, h.tag || '', h.f || '', h.temas || {}]), dv: Object.keys(devVista), e: errores };
   try { const r = JSON.parse(localStorage.getItem(RGK) || 'null'); if (r) d.reg = r; } catch (e) {}
   return location.origin + location.pathname + '#respaldo=' + b64url(JSON.stringify(d));
 }
@@ -822,7 +898,7 @@ function importarRespaldo(cod) {
   if (d.v === 2) {   // del formato compacto al de siempre
     const seen2 = {}, score2 = {}, fecha2 = {};
     (d.c || []).forEach(([id, f, ok, tot]) => { if (f !== 0) { seen2[id] = true; if (f) fecha2[id] = f; } if (tot !== '') score2[id] = { ok, tot }; });
-    d = { seen: seen2, score: score2, fecha: fecha2, exam: (d.x || []).map(([dd, ok, n, tag, f, temas]) => ({ d: dd, ok, n, tag, f, temas })), dev: Object.fromEntries((d.dv || []).map(k => [k, true])), reg: d.reg };
+    d = { seen: seen2, score: score2, fecha: fecha2, exam: (d.x || []).map(([dd, ok, n, tag, f, temas]) => ({ d: dd, ok, n, tag, f, temas })), dev: Object.fromEntries((d.dv || []).map(k => [k, true])), reg: d.reg, err: d.e };
   }
   const n = Object.keys(d.seen || {}).filter(k => d.seen[k]).length;
   if (!confirm(`Este enlace trae tu progreso de otro dispositivo (${n} caso${n == 1 ? '' : 's'} repasado${n == 1 ? '' : 's'}). ¿Sumarlo al de este dispositivo? No se borra nada de lo que ya tenés acá.`)) return;
@@ -834,9 +910,10 @@ function importarRespaldo(cod) {
   (d.exam || []).forEach(x => { if (!ya.has(JSON.stringify(x))) ex.push(x); });
   ex.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
   Object.assign(devVista, d.dev || {});
+  Object.entries(d.err || {}).forEach(([k, f]) => { if (!errores[k] || f > errores[k]) errores[k] = f; });
   try {
     saveSeen(); localStorage.setItem('bc_score', JSON.stringify(seenScore)); localStorage.setItem('bc_seen_fecha', JSON.stringify(seenFecha));
-    localStorage.setItem(EXK, JSON.stringify(ex.slice(-20))); localStorage.setItem('bc_dev_vista', JSON.stringify(devVista));
+    localStorage.setItem(EXK, JSON.stringify(ex.slice(-20))); localStorage.setItem('bc_dev_vista', JSON.stringify(devVista)); localStorage.setItem(ERK, JSON.stringify(errores));
     if (d.reg && !localStorage.getItem(RGK)) {   // ya registrado en el otro: no se lo vuelve a pedir
       localStorage.setItem(RGK, JSON.stringify(d.reg));
       const ov = document.getElementById('rg'); if (ov && !registroPendiente()) { ov.remove(); document.body.style.overflow = ''; }
@@ -880,6 +957,7 @@ function progreso() {
     <h3>Para repasar hoy</h3>
     ${repaso.length ? `<p class="hint">Casos que repasaste hace más de 10 días, o que todavía no viste.</p><div class="list">${repaso.map(c => `<a class="card" href="#${c.id}"><h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} — ${esc(c.titulo)}</h3><div class="meta">${seenFecha[c.id] ? 'Repasado por última vez el ' + fechaCorta(seenFecha[c.id]) : 'Todavía no lo repasaste'}</div></a>`).join('')}</div>` : `<p class="hint">${C.length ? '¡Estás al día! No hay casos pendientes de repaso por ahora.' : ''}</p>`}
     <h3>Por fascículo</h3><div class="list">${Object.entries(porF).map(([f, v]) => `<div class="card" style="cursor:default;padding:8px 12px">${nombreF(f)} · ${v.r} de ${v.t}${bar(pct(v.r, v.t))}</div>`).join('')}</div>
+    <h3>Repasar mis errores</h3>${misErrores().length ? `<p class="hint">Las preguntas que respondiste mal la última vez, en casos o exámenes. Cuando las acertás, salen de la lista.</p><div class="nav"><button class="primary" id="perr">Repasar mis errores (${misErrores().length} pregunta${misErrores().length == 1 ? '' : 's'})</button></div>` : '<p class="hint">No tenés preguntas pendientes: acá se juntan las que respondas mal en casos o exámenes.</p>'}
     <h3>Temas para reforzar</h3>${temas.length ? '<p class="hint">Ordenados del más flojo al más firme, con tus respuestas de casos y exámenes.</p>' : '<p class="hint">Resolvé casos o exámenes para ver acá tus temas más flojos.</p>'}
     <div class="list">${temas.map(([t, v]) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(t)}</b> · ${pct(v.ok, v.tot)} % correctas (${v.ok} de ${v.tot})${bar(pct(v.ok, v.tot))}<div style="margin-top:6px"><button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div></div>`).join('')}</div>
     <h3>Exámenes</h3>${H.length ? `<div class="list">${H.slice(-10).reverse().map(h => `<div class="card" style="cursor:default;padding:8px 12px">${fechaCorta(h.d)} · <b>${h.ok} de ${h.n}</b> (${pct(h.ok, h.n)} %)${bar(pct(h.ok, h.n))}<div class="meta">${esc(h.tag || 'Todos los temas')}${h.f ? ' · ' + nombreF(h.f) : ''}</div></div>`).join('')}</div>` : '<p class="hint">Todavía no hiciste ningún examen.</p>'}
@@ -888,6 +966,7 @@ function progreso() {
     <div class="nav">${navigator.share ? '<button class="primary" id="rshare">Compartir el enlace</button>' : ''}<button class="${navigator.share ? 'ghost' : 'primary'}" id="rcopy">Copiar el enlace</button><button class="ghost" id="rwa">Mandármelo por WhatsApp</button></div>
     <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div></div>`;
   enlazarTemas();
+  const pe = document.getElementById('perr'); if (pe) pe.onclick = repasarErrores;
   const txtR = 'Mi progreso en el Banco de casos de arritmias (abrilo en el otro dispositivo):';
   if (navigator.share) document.getElementById('rshare').onclick = () => navigator.share({ title: 'Mi progreso', text: txtR, url: enlaceRespaldo() }).catch(() => {});
   document.getElementById('rcopy').onclick = async e => {
@@ -897,7 +976,7 @@ function progreso() {
     e.target.textContent = 'Enlace copiado ✓'; setTimeout(() => e.target.textContent = 'Copiar el enlace', 3000);
   };
   document.getElementById('rwa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(txtR + '\n' + enlaceRespaldo()), '_blank', 'noopener');
-  document.getElementById('pborrar').onclick = () => { if (confirm('¿Borrar tus casos repasados, puntajes y exámenes de este navegador?')) { seen = {}; seenScore = {}; seenFecha = {}; borr = {}; try { ['bc_seen', 'bc_score', 'bc_seen_fecha', BK, EXK].forEach(k => localStorage.removeItem(k)); } catch (e) {} progreso(); } };
+  document.getElementById('pborrar').onclick = () => { if (confirm('¿Borrar tus casos repasados, puntajes y exámenes de este navegador?')) { seen = {}; seenScore = {}; seenFecha = {}; borr = {}; errores = {}; try { ['bc_seen', 'bc_score', 'bc_seen_fecha', BK, ERK, EXK].forEach(k => localStorage.removeItem(k)); } catch (e) {} progreso(); } };
 }
 // ---------- Glosario (glosario.js) ----------
 let GL = { q: '' };
