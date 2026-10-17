@@ -351,6 +351,7 @@ function list() {
       </button>
     </div>
     ${heroSemana()}
+    ${avisoTemas()}
     <a class="card tint" href="#fasciculos" style="display:flex;align-items:center;gap:14px;margin-top:12px">
       <div style="flex:1"><h3 style="margin:0 0 3px">Fascículos</h3>
         <p class="snip" style="margin:0">Buscar y filtrar los 110 casos por fascículo o palabra clave.</p></div>
@@ -358,6 +359,7 @@ function list() {
     </a>
   </div>`;
   document.getElementById('btnColabora').onclick = e => copiarAlias(e.currentTarget);
+  enlazarTemas();
 }
 // ---------- Fascículos: buscar/filtrar casos por fascículo (incluye "Casos de la semana" = semana_archivo.js) ----------
 function fasciculos() {
@@ -413,7 +415,7 @@ function detail(id) {
     ${c.borrador ? '<div class="warn">Este fascículo todavía es un borrador: el contenido puede cambiar.</div>' : ''}
     <div class="vineta">${esc(c.vineta) || '<i>Ver imágenes.</i>'}</div>
     ${body}
-    <div class="score" id="score"></div>
+    <div class="score" id="score"></div><div id="aviso"></div>
     <div class="nav"><button class="primary" id="chk">Comprobar mis respuestas</button><button class="primary" id="rev">Ver devolución del caso</button>
       <span class="hint" id="mk" style="align-self:center"${seen[c.id] ? '' : ' hidden'}>✓ Repasado</span>
       <button class="ghost" id="wa">Compartir por WhatsApp</button></div>
@@ -446,6 +448,7 @@ function detail(id) {
     const s = document.getElementById('score'); s.style.display = 'block';
     s.innerHTML = tot ? `<b>${ok} de ${tot}</b> correctas${sinClave ? ` · ${sinClave} sin respuesta cargada` : ''}` : 'Este caso todavía no tiene respuestas cargadas.';
     if (tot) { seenScore[c.id] = { ok, tot }; try { localStorage.setItem('bc_score', JSON.stringify(seenScore)); } catch (e) {} }
+    document.getElementById('aviso').innerHTML = avisoTemas(); enlazarTemas();
     s.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   if (c.semana && devBloqueada(c)) {   // hasta la fecha de devolución: ni la devolución ni "Comprobar mis respuestas" (que mostraría la correcta)
@@ -686,15 +689,32 @@ const candidatosRepaso = () => {
   if (out.length < 5) { const usados = new Set(out.map(c => c.id)); out = out.concat(shuffle(C.filter(c => !seen[c.id] && !usados.has(c.id))).slice(0, 5 - out.length)); }
   return out;
 };
+// % de aciertos por tema, con los casos resueltos ("Comprobar mis respuestas") y los exámenes; del más flojo al más firme.
+function statsTemas() {
+  const tema = {}; TAGS.forEach(t => tema[t[0]] = { ok: 0, tot: 0 });
+  C.filter(c => seenScore[c.id]).forEach(c => c.tags.forEach(t => { tema[t].ok += seenScore[c.id].ok; tema[t].tot += seenScore[c.id].tot; }));
+  exHist().forEach(h => Object.entries(h.temas || {}).forEach(([t, v]) => { if (tema[t]) { tema[t].ok += v[0]; tema[t].tot += v[1]; } }));
+  return Object.entries(tema).filter(([, v]) => v.tot).sort((a, b) => a[1].ok / a[1].tot - b[1].ok / b[1].tot);
+}
+// Aviso de temas para reforzar: recién después de varios casos/exámenes, y solo temas con suficientes preguntas y < 60 % de aciertos.
+const AVISO = { minResueltos: 3, minPreguntas: 3, pct: 60 };
+function avisoTemas() {
+  if (C.filter(c => seenScore[c.id]).length + exHist().length < AVISO.minResueltos) return '';
+  const flojos = statsTemas().filter(([, v]) => v.tot >= AVISO.minPreguntas && v.ok / v.tot * 100 < AVISO.pct).slice(0, 3);
+  if (!flojos.length) return '';
+  return `<div class="vineta" style="margin-top:12px;border-left:4px solid var(--acc)"><b>Te sugerimos reforzar ${flojos.length > 1 ? 'estos temas' : 'este tema'}</b>
+    <p class="hint" style="margin:4px 0 8px">Es donde más te equivocaste en los casos y exámenes que resolviste.</p>
+    ${flojos.map(([t, v]) => `<div style="margin-top:6px">${esc(t)} · ${Math.round(v.ok / v.tot * 100)} % correctas (${v.ok} de ${v.tot}) <button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div>`).join('')}
+    <p class="hint" style="margin:8px 0 0"><a href="#progreso">Ver todos mis temas en Mi progreso →</a></p></div>`;
+}
+// Botones "Repasar este tema": abren Fascículos filtrado por ese tema.
+const enlazarTemas = () => app.querySelectorAll('button[data-tag]').forEach(b => b.onclick = () => { state.tag = b.dataset.tag; state.q = ''; state.f = ''; state.solo = false; location.hash = 'fasciculos'; });
 function progreso() {
   const ids = new Set(C.map(c => c.id)), rev = Object.keys(seen).filter(k => ids.has(k) && seen[k]).length, pct = (a, b) => b ? Math.round(a / b * 100) : 0;
   const bar = p => `<div style="height:8px;background:var(--chip);border-radius:9px"><div style="height:8px;width:${p}%;background:var(--acc2);border-radius:9px"></div></div>`;
   const porF = {}; C.forEach(c => { const f = porF[c.f] = porF[c.f] || { t: 0, r: 0 }; f.t++; if (seen[c.id]) f.r++; });
   const sc = C.filter(c => seenScore[c.id]), okT = sc.reduce((a, c) => a + seenScore[c.id].ok, 0), totT = sc.reduce((a, c) => a + seenScore[c.id].tot, 0);
-  const tema = {}; TAGS.forEach(t => tema[t[0]] = { ok: 0, tot: 0 });
-  sc.forEach(c => c.tags.forEach(t => { tema[t].ok += seenScore[c.id].ok; tema[t].tot += seenScore[c.id].tot; }));
-  const H = exHist(); H.forEach(h => Object.entries(h.temas || {}).forEach(([t, v]) => { if (tema[t]) { tema[t].ok += v[0]; tema[t].tot += v[1]; } }));
-  const temas = Object.entries(tema).filter(([, v]) => v.tot).sort((a, b) => pct(a[1].ok, a[1].tot) - pct(b[1].ok, b[1].tot));
+  const H = exHist(), temas = statsTemas();
   const nombreF = f => f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f;
   const repaso = candidatosRepaso();
   app.innerHTML = `<div class="case"><h2>Mi progreso</h2>
@@ -708,7 +728,7 @@ function progreso() {
     <div class="list">${temas.map(([t, v]) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(t)}</b> · ${pct(v.ok, v.tot)} % correctas (${v.ok} de ${v.tot})${bar(pct(v.ok, v.tot))}<div style="margin-top:6px"><button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div></div>`).join('')}</div>
     <h3>Exámenes</h3>${H.length ? `<div class="list">${H.slice(-10).reverse().map(h => `<div class="card" style="cursor:default;padding:8px 12px">${fechaCorta(h.d)} · <b>${h.ok} de ${h.n}</b> (${pct(h.ok, h.n)} %)${bar(pct(h.ok, h.n))}<div class="meta">${esc(h.tag || 'Todos los temas')}${h.f ? ' · ' + nombreF(h.f) : ''}</div></div>`).join('')}</div>` : '<p class="hint">Todavía no hiciste ningún examen.</p>'}
     <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div></div>`;
-  app.querySelectorAll('button[data-tag]').forEach(b => b.onclick = () => { state.tag = b.dataset.tag; state.q = ''; state.f = ''; state.solo = false; location.hash = 'fasciculos'; });
+  enlazarTemas();
   document.getElementById('pborrar').onclick = () => { if (confirm('¿Borrar tus casos repasados, puntajes y exámenes de este navegador?')) { seen = {}; seenScore = {}; seenFecha = {}; try { ['bc_seen', 'bc_score', 'bc_seen_fecha', EXK].forEach(k => localStorage.removeItem(k)); } catch (e) {} progreso(); } };
 }
 // ---------- Glosario (glosario.js) ----------
