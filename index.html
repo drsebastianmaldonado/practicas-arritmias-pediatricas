@@ -156,6 +156,11 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
 .retomado{margin:10px 0}
 /* glosario dentro de los casos: término tocable + ficha abajo de la pantalla */
 .glt{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:help;text-decoration:underline dotted var(--acc2);text-underline-offset:3px}
+#nuevaVersion{position:fixed;left:50%;top:12px;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));z-index:40;display:flex;align-items:center;gap:10px;
+  background:var(--card);color:var(--ink);border:1px solid var(--acc2);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#nuevaVersion[hidden]{display:none}
+#nuevaVersion span{flex:1;font-size:.92rem}
+#nuevaVersion .x{background:none;border:0;color:var(--mute);font-size:1.3rem;cursor:pointer;line-height:1;padding:4px}
 #glpop{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));z-index:30;
   background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px 40px 12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 #glpop[hidden]{display:none}
@@ -211,6 +216,7 @@ button{font:inherit;border:0;border-radius:10px;padding:11px 16px;cursor:pointer
   </nav>
 </header>
 <div class="navbackdrop" id="navBackdrop" hidden></div>
+<div id="nuevaVersion" hidden><span>Hay una versión nueva del banco.</span><button class="primary" type="button" onclick="location.reload()">Actualizar</button><button class="x" type="button" aria-label="Más tarde" onclick="this.parentNode.hidden=true">×</button></div>
 <div id="glpop" hidden role="dialog" aria-live="polite"><button class="x" type="button" aria-label="Cerrar" onclick="this.parentNode.hidden=true">×</button><div></div></div>
 <main id="app"></main>
 <div id="lb" onclick="this.style.display='none'"><img alt=""></div>
@@ -1073,7 +1079,15 @@ window.addEventListener('hashchange', route); route();
 if (registroPendiente()) mostrarRegistro(); else { reintentarRegistro(); enviarVisita(); }
 // Service worker: permite instalar el banco como app (funciona en HTTPS o en localhost; en un archivo abierto directo no hace nada).
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  // Aviso de versión nueva: si la página quedó abierta (p. ej. instalada como app) y se publicó algo, el service worker
+  // nuevo toma el control solo (skipWaiting) y acá se ofrece recargar. No recarga sola para no cortar lo que se está haciendo.
+  const habiaControl = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (habiaControl) document.getElementById('nuevaVersion').hidden = false; });
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').then(reg => {
+    const revisar = () => reg.update().catch(() => {});
+    setInterval(revisar, 30 * 60 * 1000);   // cada 30 minutos
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') revisar(); });   // al volver a la app
+  }).catch(() => {}));
 }
 </script>
 </body>
