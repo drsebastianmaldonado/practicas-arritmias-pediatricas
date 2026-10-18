@@ -419,7 +419,7 @@ function heroSemana() {
     <p class="hint" style="margin:0 0 14px">Todavía no hay un caso de la semana cargado.</p>
     <a href="#fasciculos"><button class="primary" type="button">Explorar por fascículo →</button></a></div>`;
 }
-// Tarjetas de las secciones de "Casos" (en la portada) y de "Herramientas" (su página), en el estilo suave de Recursos
+// Secciones de "Casos" (en la portada) y de "Herramientas" (su página): nombre, descripción (se ve al pasar el mouse) y color
 const SECC_CASOS = [
   ['fasciculos', 'Fascículos', 'Los 110 casos por fascículo, con buscador y filtros.', '#3d8bd9'],
   ['diagnosticos', 'Índice por diagnóstico', 'Los casos agrupados por diagnóstico (mejor después de resolverlos).', '#8a63d2'],
@@ -434,11 +434,10 @@ const SECC_HERRAMIENTAS = [
   ['valores', 'QTc y valores por edad', 'Calculador de QTc y valores normales del ECG pediátrico.', '#2aa198'],
   ['endocarditis', 'Profilaxis de endocarditis', 'Indicaciones y esquemas, con el PDF original.', '#6b7a99']
 ];
-// Versión compacta (portada): botones chicos de a dos, solo con el nombre, así el contacto queda cerca del caso de la semana
+// Botones chicos de a dos, solo con el nombre
 const botonesSecc = L => `<div class="hubmini">${L.map(([h, t, d, k]) => `<a class="hubbtn" style="--k:${k}" href="#${h}" title="${esc(d)}">${esc(t.replace(/^(Índice por|Modo|Patrones de) /, '').replace(/^diagnóstico$/, 'Diagnósticos').replace(/^referencia$/, 'Patrones').replace(/^examen$/, 'Examen'))}</a>`).join('')}</div>`;
-const tarjetasSecc = L => `<div class="hubgrid">${L.map(([h, t, d, k]) => `<a class="card rescard" style="--k:${k}" href="#${h}"><h3>${esc(t)}</h3><p class="snip">${esc(d)}</p><div class="meta">Abrir →</div></a>`).join('')}</div>`;
 function herramientas() {
-  app.innerHTML = `<div class="case"><h2>Herramientas</h2><p class="hint">Calculadoras y tablas de consulta rápida. Herramientas de apoyo: no reemplazan el juicio clínico.</p>${tarjetasSecc(SECC_HERRAMIENTAS)}</div>`;
+  app.innerHTML = `<div class="case"><h2>Herramientas</h2><p class="hint">Calculadoras y tablas de consulta rápida. Herramientas de apoyo: no reemplazan el juicio clínico.</p>${botonesSecc(SECC_HERRAMIENTAS)}</div>`;
 }
 function list() {
   app.innerHTML = `<div class="case">
