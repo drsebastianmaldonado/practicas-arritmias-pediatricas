@@ -40,6 +40,7 @@ var PETTERSEN = {
 window.PARAMETROS_Z = [
   {
     id: 'pettersen',
+    grupo: 'Estructuras cardíacas',
     titulo: 'Z-score de estructuras cardíacas por ecocardiografía (Pettersen · Detroit)',
     nota: 'Población: 782 pacientes sanos de 1 día a 18 años, Children\'s Hospital of Michigan (Detroit). Se excluyeron pacientes con cardiopatía, síndromes genéticos u obesidad. La superficie corporal se calcula solo a partir del peso, con la fórmula de Dreyer (BSA = 0,1 × peso^(2/3)): es la opción "Weight ONLY" de la calculadora oficial de este mismo estudio en parameterz.com/parameterz.blogspot.com, tomada directamente del código fuente de esa calculadora (que también confirmó, coeficiente por coeficiente, la Tabla 2 transcripta más abajo).',
     fuente: 'Pettersen MD, Du W, Skeens ME, Humes RA. Regression equations for calculation of z scores of cardiac structures in a large cohort of healthy infants, children, and adolescents: an echocardiographic study. J Am Soc Echocardiogr. 2008;21(8):922-934. Coeficientes transcritos de la Tabla 2 del artículo original y verificados contra la calculadora oficial: https://parameterz.blogspot.com/2008/09/z-scores-of-cardiac-structures.html',
@@ -65,6 +66,7 @@ window.PARAMETROS_Z = [
   },
   {
     id: 'dallaire',
+    grupo: 'Arterias coronarias',
     titulo: 'Z-score de arterias coronarias (Dallaire & Dahdah · Montreal)',
     nota: 'Población: 1033 niños sanos de 2 meses a 18 años evaluados en el Hospital Sainte-Justine (Montreal, Canadá) entre 2001 y 2008 por soplo, síncope o dolor torácico considerados benignos, con ecocardiograma normal. Diámetros medidos de borde interno a borde interno. Los autores calcularon estos coeficientes con la fórmula de Haycock (peso + talla) y recomiendan usarla; a pedido del autor, acá se calcula en cambio solo a partir del peso, con la fórmula de Dreyer (BSA = 0,1 × peso^(2/3)) — la opción "Weight ONLY" de la calculadora oficial de este mismo estudio en parameterz.blogspot.com. Al no depender de la talla, es menos preciso que con Haycock.',
     fuente: 'Dallaire F, Dahdah N. New equations and a critical appraisal of coronary artery Z scores in healthy children. J Am Soc Echocardiogr. 2011;24(1):60-74. Coeficientes transcritos de la Tabla 5 del artículo original (modelo con raíz cuadrada de la superficie corporal, el que los autores recomiendan como principal) y verificados contra la calculadora oficial: https://parameterz.blogspot.com/2010/11/montreal-coronary-artery-z-scores.html',
