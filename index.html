@@ -1352,14 +1352,17 @@ function progreso() {
   document.getElementById('pborrar').onclick = () => { if (confirm('¿Borrar tus casos repasados, puntajes y exámenes de este navegador?')) { seen = {}; seenScore = {}; seenFecha = {}; borr = {}; errores = {}; try { ['bc_seen', 'bc_score', 'bc_seen_fecha', BK, ERK, EXK].forEach(k => localStorage.removeItem(k)); } catch (e) {} progreso(); } };
 }
 // ---------- Glosario (glosario.js) ----------
-let GL = { q: '' };
+let GL = { q: '', abiertas: new Set() };   // abiertas: categorías desplegadas
 function glosario() {
   const G = window.GLOSARIO || [], nq = norm(GL.q.trim());
   const res = G.filter(x => !nq || nq.split(/\s+/).every(w => norm(x.sigla + ' ' + x.termino + ' ' + x.definicion).includes(w)));
   app.innerHTML = `<div class="case"><h2>Glosario</h2>
     <p class="hint">Siglas y términos que aparecen en los casos del banco.</p>
     ${G.length ? `<input type="search" id="glq" placeholder="Buscar sigla o término…" value="${esc(GL.q)}"><div class="count">${res.length} de ${G.length} términos</div>` : '<p class="hint">Todavía no se cargó el glosario.</p>'}
-    <div class="list">${res.map(x => `<div class="card tint" style="cursor:default;--k:${colorHash(x.sigla)}"><h3>${esc(x.sigla)}${x.termino ? ' — ' + esc(x.termino) : ''}</h3>${x.definicion ? `<p class="snip">${esc(x.definicion)}</p>` : ''}${x.buscar ? `<button class="ghost" data-q="${esc(x.buscar)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></div>`;
+    ${[...new Set(G.map(x => x.categoria || 'Otros'))].map((cat, i) => { const xs = res.filter(x => (x.categoria || 'Otros') === cat); return xs.length ? `<details class="dgsec glsec" data-cat="${esc(cat)}" style="--k:${COLOR_FASC[i % COLOR_FASC.length]}"${nq || GL.abiertas.has(cat) ? ' open' : ''}><summary class="dgcat"><span>${esc(cat)}</span><span class="dgn">${xs.length}</span></summary>
+    <div class="list">${xs.map(x => `<div class="card tint suave" style="cursor:default;--k:${COLOR_FASC[i % COLOR_FASC.length]}"><h3>${esc(x.sigla)}${x.termino ? ' — ' + esc(x.termino) : ''}</h3>${x.definicion ? `<p class="snip">${esc(x.definicion)}</p>` : ''}${x.buscar ? `<button class="ghost" data-q="${esc(x.buscar)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></details>` : ''; }).join('')}</div>`;
+  // Solo se ven los títulos de las categorías; al tocar uno se despliegan sus términos (buscando, se abren las que tienen resultados)
+  app.querySelectorAll('details.glsec').forEach(d => d.ontoggle = () => { if (!nq) d.open ? GL.abiertas.add(d.dataset.cat) : GL.abiertas.delete(d.dataset.cat); });
   const q = document.getElementById('glq');
   if (q) q.oninput = e => { GL.q = e.target.value; const p = e.target.selectionStart; glosario(); const n = document.getElementById('glq'); n.focus(); n.setSelectionRange(p, p); };
   app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = 'fasciculos'; });
