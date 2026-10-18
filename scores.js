@@ -9,6 +9,11 @@
 //   interpretacion[].corto: (opcional) texto breve que acompaña al rango en los cortes que se ven bajo el resultado
 //   excluyentes:    (opcional) pares de criterios que no se suman juntos: "grupo.opción" o "grupo" entero (desde 0);
 //                   al tildar uno, el otro queda bloqueado
+//   opciones[].e:   (opcional) etiqueta que se muestra en lugar del puntaje, p. ej. "mayor" / "menor"
+//   evaluar:        (opcional) reglas propias en vez de sumar puntos: recibe, por grupo, la lista de opciones tildadas
+//                   y devuelve { titulo, lectura, activo } (activo = posición en "cortes", la lista de resultados posibles)
+// En las calculadoras con fórmula, campos[].rango = [mín, máx] avisa si un dato parece mal cargado, y parcial(v)
+// muestra lo que ya se puede calcular mientras faltan datos.
 window.SCORES = [
   {
     id: "schwartz",
@@ -80,6 +85,124 @@ window.SCORES = [
       { desde: 0,   t: "No diagnóstico", corto: "no diagnóstico" }
     ]
   },
+  {
+    id: "deportista",
+    titulo: "ECG del deportista: criterios internacionales (2017)",
+    nota: "Para deportistas de 12 a 35 años. Tildá los hallazgos del ECG: los normales no requieren estudio; un solo hallazgo limítrofe tampoco; dos o más limítrofes, o cualquier hallazgo anormal, requieren evaluación adicional.",
+    fuente: "Sharma S, Drezner JA, Baggish A, et al. International recommendations for electrocardiographic interpretation in athletes. J Am Coll Cardiol. 2017;69:1057-75 (y Eur Heart J. 2018;39:1466-80).",
+    verificado: false,
+    grupos: [
+      { t: "Hallazgos normales (adaptación al entrenamiento)", tipo: "suma",
+        opciones: [
+          { t: "Aumento del voltaje del QRS (criterios de voltaje de HVI o HVD aislados)", e: "normal" },
+          { t: "Bloqueo incompleto de rama derecha", e: "normal" },
+          { t: "Repolarización precoz / elevación del ST", e: "normal" },
+          { t: "Elevación del ST seguida de inversión de la onda T en V1-V4 en deportistas de raza negra", e: "normal" },
+          { t: "Inversión de la onda T en V1-V3 en menores de 16 años", e: "normal" },
+          { t: "Bradicardia o arritmia sinusal", e: "normal" },
+          { t: "Ritmo auricular ectópico o ritmo de la unión", e: "normal" },
+          { t: "Bloqueo AV de 1.er grado", e: "normal" },
+          { t: "Bloqueo AV de 2.º grado Mobitz I (Wenckebach)", e: "normal" }
+        ] },
+      { t: "Hallazgos limítrofes", tipo: "suma", nota: "Uno solo, aislado, no requiere estudio; dos o más, sí.",
+        opciones: [
+          { t: "Desviación del eje a la izquierda (−30° a −90°)", e: "limítrofe" },
+          { t: "Agrandamiento auricular izquierdo", e: "limítrofe" },
+          { t: "Desviación del eje a la derecha (> 120°)", e: "limítrofe" },
+          { t: "Agrandamiento auricular derecho", e: "limítrofe" },
+          { t: "Bloqueo completo de rama derecha", e: "limítrofe" }
+        ] },
+      { t: "Hallazgos anormales", tipo: "suma", nota: "Inversión de la onda T: ≥ 1 mm en ≥ 2 derivaciones contiguas, sin contar aVR, III ni V1. No cuentan como anormales la inversión en V1-V3 en menores de 16 años, la T bifásica solo en V3, ni la elevación del punto J con ST convexo seguida de T negativa en V1-V4 en deportistas de raza negra.",
+        opciones: [
+          { t: "Inversión de la onda T anterior (V2-V4)", e: "anormal" },
+          { t: "Inversión de la onda T lateral (I y aVL, V5 y/o V6)", e: "anormal" },
+          { t: "Inversión de la onda T inferolateral (II y aVF, V5-V6, I y aVL)", e: "anormal" },
+          { t: "Inversión de la onda T inferior (II y aVF)", e: "anormal" },
+          { t: "Infradesnivel del ST ≥ 0,5 mm en ≥ 2 derivaciones contiguas", e: "anormal" },
+          { t: "Ondas Q patológicas (Q/R ≥ 0,25 o ≥ 40 ms en ≥ 2 derivaciones, sin contar III ni aVR)", e: "anormal" },
+          { t: "Bloqueo completo de rama izquierda", e: "anormal" },
+          { t: "Trastorno inespecífico de la conducción intraventricular con QRS ≥ 140 ms", e: "anormal" },
+          { t: "Onda épsilon", e: "anormal" },
+          { t: "Preexcitación ventricular (PR < 120 ms con onda delta y QRS ≥ 120 ms)", e: "anormal" },
+          { t: "QT prolongado: QTc ≥ 470 ms en varones o ≥ 480 ms en mujeres", e: "anormal" },
+          { t: "Patrón de Brugada tipo 1", e: "anormal" },
+          { t: "Bradicardia sinusal profunda (< 30 lpm) o pausas sinusales ≥ 3 s", e: "anormal" },
+          { t: "Bloqueo AV de 1.er grado profundo (PR ≥ 400 ms)", e: "anormal" },
+          { t: "Bloqueo AV de 2.º grado Mobitz II", e: "anormal" },
+          { t: "Bloqueo AV de 3.er grado", e: "anormal" },
+          { t: "Taquiarritmias auriculares (TSV, fibrilación o aleteo auricular)", e: "anormal" },
+          { t: "≥ 2 extrasístoles ventriculares en un trazado de 10 s", e: "anormal" },
+          { t: "Arritmias ventriculares (duplas, tripletas o TV no sostenida)", e: "anormal" }
+        ] }
+    ],
+    cortes: ["No requiere estudio", "Requiere evaluación adicional"],
+    evaluar: sel => {
+      const lim = sel[1].length, anor = sel[2].length, n = (k, a, b) => k + " " + (k === 1 ? a : b);
+      const titulo = `Hallazgos anormales: ${anor} · limítrofes: ${lim}`;
+      if (anor) return { titulo, activo: 1, lectura: `ECG anormal (${n(anor, "hallazgo anormal", "hallazgos anormales")}): requiere evaluación adicional.` };
+      if (lim >= 2) return { titulo, activo: 1, lectura: "Dos o más hallazgos limítrofes: requiere evaluación adicional." };
+      return { titulo, activo: 0, lectura: lim ? "Un hallazgo limítrofe aislado: no requiere estudio adicional si el deportista está asintomático y sin antecedentes familiares." : "Sin hallazgos que requieran estudio (en deportista asintomático y sin antecedentes familiares)." };
+    }
+  },
+  {
+    id: "arvc",
+    titulo: "Miocardiopatía arritmogénica del VD: criterios del Task Force (2010)",
+    nota: "Cada categoría cuenta una sola vez (si hay un criterio mayor y uno menor en la misma categoría, cuenta el mayor). Definitivo: 2 mayores, o 1 mayor + 2 menores, o 4 menores de categorías distintas. Limítrofe: 1 mayor + 1 menor, o 3 menores. Posible: 1 mayor o 2 menores.",
+    fuente: "Marcus FI, McKenna WJ, Sherrill D, et al. Diagnosis of arrhythmogenic right ventricular cardiomyopathy/dysplasia: proposed modification of the Task Force Criteria. Circulation. 2010;121:1533-41.",
+    verificado: false,
+    grupos: [
+      { t: "I. Disfunción y alteraciones estructurales del VD", tipo: "max",
+        opciones: [
+          { t: "Eco: aquinesia, disquinesia o aneurisma regional del VD + (diástole) TSVD PLAX ≥ 32 mm (≥ 19 mm/m²), o PSAX ≥ 36 mm (≥ 21 mm/m²), o cambio fraccional de área ≤ 33 %", e: "mayor" },
+          { t: "RMN: aquinesia, disquinesia o contracción disincrónica regional del VD + VFDVD ≥ 110 ml/m² (varones) o ≥ 100 ml/m² (mujeres), o FEVD ≤ 40 %", e: "mayor" },
+          { t: "Angiografía del VD: aquinesia, disquinesia o aneurisma regional", e: "mayor" },
+          { t: "Eco: aquinesia o disquinesia regional del VD + TSVD PLAX 29 a < 32 mm (16 a < 19 mm/m²), o PSAX 32 a < 36 mm (18 a < 21 mm/m²), o cambio fraccional de área > 33 % a ≤ 40 %", e: "menor" },
+          { t: "RMN: aquinesia, disquinesia o contracción disincrónica regional del VD + VFDVD 100 a < 110 ml/m² (varones) o 90 a < 100 ml/m² (mujeres), o FEVD > 40 % a ≤ 45 %", e: "menor" }
+        ] },
+      { t: "II. Caracterización tisular (biopsia endomiocárdica)", tipo: "max",
+        opciones: [
+          { t: "Miocitos residuales < 60 % por morfometría (o < 50 % estimado), con reemplazo fibroso de la pared libre del VD en ≥ 1 muestra", e: "mayor" },
+          { t: "Miocitos residuales 60-75 % por morfometría (o 50-65 % estimado), con reemplazo fibroso de la pared libre del VD en ≥ 1 muestra", e: "menor" }
+        ] },
+      { t: "III. Alteraciones de la repolarización", tipo: "max",
+        opciones: [
+          { t: "T negativas en V1, V2 y V3 (o más allá) en mayores de 14 años, sin bloqueo completo de rama derecha", e: "mayor" },
+          { t: "T negativas en V1 y V2 en mayores de 14 años sin bloqueo completo de rama derecha, o en V4, V5 o V6", e: "menor" },
+          { t: "T negativas en V1 a V4 en mayores de 14 años con bloqueo completo de rama derecha", e: "menor" }
+        ] },
+      { t: "IV. Alteraciones de la despolarización / conducción", tipo: "max",
+        opciones: [
+          { t: "Onda épsilon en derivaciones precordiales derechas (V1 a V3)", e: "mayor" },
+          { t: "Potenciales tardíos en el ECG de señal promediada (≥ 1 de 3 parámetros) sin QRS ≥ 110 ms en el ECG estándar", e: "menor" },
+          { t: "Duración de la activación terminal del QRS ≥ 55 ms (del nadir de la S al final del QRS) en V1, V2 o V3, sin bloqueo completo de rama derecha", e: "menor" }
+        ] },
+      { t: "V. Arritmias", tipo: "max",
+        opciones: [
+          { t: "TV sostenida o no sostenida con morfología de BRI y eje superior (QRS negativo o indeterminado en II, III y aVF, positivo en aVL)", e: "mayor" },
+          { t: "TV sostenida o no sostenida del tracto de salida del VD (BRI con eje inferior) o de eje desconocido", e: "menor" },
+          { t: "> 500 extrasístoles ventriculares en 24 h (Holter)", e: "menor" }
+        ] },
+      { t: "VI. Antecedentes familiares / genética", tipo: "max",
+        opciones: [
+          { t: "Familiar de 1.er grado con diagnóstico confirmado por criterios actuales del Task Force", e: "mayor" },
+          { t: "Familiar de 1.er grado con diagnóstico confirmado por anatomía patológica (autopsia o cirugía)", e: "mayor" },
+          { t: "Mutación patogénica (o probablemente patogénica) asociada a la enfermedad en el paciente", e: "mayor" },
+          { t: "Familiar de 1.er grado con diagnóstico en el que no se puede confirmar si cumple los criterios actuales", e: "menor" },
+          { t: "Muerte súbita prematura (< 35 años) por sospecha de la enfermedad en un familiar de 1.er grado", e: "menor" },
+          { t: "Familiar de 2.º grado con diagnóstico confirmado (anatomía patológica o criterios actuales)", e: "menor" }
+        ] }
+    ],
+    cortes: ["No cumple criterios", "Posible", "Limítrofe", "Definitivo"],
+    evaluar: sel => {
+      let M = 0, m = 0;
+      sel.forEach(g => { if (g.some(o => o.e === "mayor")) M++; else if (g.length) m++; });
+      const titulo = `Criterios mayores: ${M} · menores: ${m} (de categorías distintas)`;
+      if (M >= 2 || (M === 1 && m >= 2) || m >= 4) return { titulo, activo: 3, lectura: "Diagnóstico definitivo." };
+      if ((M === 1 && m === 1) || m === 3) return { titulo, activo: 2, lectura: "Diagnóstico limítrofe." };
+      if (M === 1 || m === 2) return { titulo, activo: 1, lectura: "Diagnóstico posible." };
+      return { titulo, activo: 0, lectura: "No cumple criterios diagnósticos." };
+    }
+  },
   // ---- Calculadoras con fórmula: "campos" (datos a ingresar) + "calc" (devuelve { titulo, valor (%), lectura, aviso }) ----
   {
     id: "hcmkids",
@@ -88,15 +211,22 @@ window.SCORES = [
     fuente: "Norrish G, et al. Development of a novel risk prediction model for sudden cardiac death in childhood hypertrophic cardiomyopathy (HCM Risk-Kids). JAMA Cardiol. 2019;4:918-927. Ecuaciones (superficie corporal, Z-scores, índice pronóstico y riesgo) tomadas del código de la calculadora oficial, hcmriskkids.org, y coinciden con la ecuación publicada en la validación externa (Eur J Prev Cardiol 2022, PMC8967478).",
     verificado: true,
     campos: [
-      { id: "age", t: "Edad (años)", tipo: "num", paso: 1, min: 0 },
+      { id: "age", t: "Edad (años)", tipo: "num", paso: 1, min: 0, rango: [0, 18] },
       { id: "sexo", t: "Sexo", tipo: "sel", opciones: [["", "Elegir…"], ["F", "Femenino"], ["M", "Masculino"]] },
-      { id: "peso", t: "Peso (kg)", tipo: "num", paso: 0.1, min: 0 },
-      { id: "mwt", t: "Espesor parietal máximo del ventrículo izquierdo en la ecocardiografía (mm)", tipo: "num", paso: 0.1, min: 0 },
-      { id: "la", t: "Diámetro de la aurícula izquierda, eje largo paraesternal, modo M o 2D (mm)", tipo: "num", paso: 0.1, min: 0 },
-      { id: "grad", t: "Gradiente máximo del tracto de salida del VI, en reposo o con Valsalva (mmHg; 4 × V²)", tipo: "num", paso: 1, min: 0 },
+      { id: "peso", t: "Peso (kg)", tipo: "num", paso: 0.1, min: 0, rango: [2, 150] },
+      { id: "mwt", t: "Espesor parietal máximo del ventrículo izquierdo en la ecocardiografía (mm)", tipo: "num", paso: 0.1, min: 0, rango: [3, 60] },
+      { id: "la", t: "Diámetro de la aurícula izquierda, eje largo paraesternal, modo M o 2D (mm)", tipo: "num", paso: 0.1, min: 0, rango: [5, 80] },
+      { id: "grad", t: "Gradiente máximo del tracto de salida del VI, en reposo o con Valsalva (mmHg; 4 × V²)", tipo: "num", paso: 1, min: 0, rango: [0, 200] },
       { id: "sinc", t: "Síncope inexplicado", tipo: "si" },
       { id: "nsvt", t: "TV no sostenida (≥ 3 latidos ventriculares consecutivos a ≥ 120 lpm, < 30 s, en Holter de al menos 24 h)", tipo: "si" }
     ],
+    parcial: v => {   // Z-scores que ya se pueden calcular mientras faltan datos (mismas fórmulas que calc)
+      if (!(v.peso > 0)) return "";
+      const bsa = 0.1023 * Math.pow(v.peso, 0.68), f = x => x.toFixed(2).replace(".", ","), out = [];
+      if (v.mwt > 0) out.push("Z-score del espesor parietal: " + f(((v.mwt / 10) / Math.pow(bsa, 0.4) - 0.58) / 0.09));
+      if (v.la > 0 && v.sexo) out.push("Z-score de la aurícula izquierda: " + f(v.sexo === "M" ? ((v.la / (10.665 * Math.pow(v.peso, 0.255))) - 1) / 0.118 : ((v.la / (10.74 * Math.pow(v.peso, 0.246))) - 1) / 0.124));
+      return out.join(" · ");
+    },
     calc: v => {
       const bsa = 0.1023 * Math.pow(v.peso, 0.68);
       const zMwt = ((v.mwt / 10) / Math.pow(bsa, 0.4) - 0.58) / 0.09;
@@ -120,10 +250,10 @@ window.SCORES = [
     fuente: "O'Mahony C, et al. A novel clinical risk prediction model for sudden cardiac death in hypertrophic cardiomyopathy (HCM Risk-SCD). Eur Heart J. 2014;35:2010-20. Ecuación y umbrales según la revisión de Arq Bras Cardiol 2018 (PMC6023627).",
     verificado: true,
     campos: [
-      { id: "age", t: "Edad en la evaluación clínica (años)", tipo: "num", paso: 1, min: 0 },
-      { id: "mwt", t: "Espesor parietal máximo del ventrículo izquierdo (mm)", tipo: "num", paso: 1, min: 0 },
-      { id: "la", t: "Diámetro de la aurícula izquierda (mm)", tipo: "num", paso: 1, min: 0 },
-      { id: "grad", t: "Gradiente máximo del tracto de salida del VI, en reposo o con Valsalva (mmHg)", tipo: "num", paso: 1, min: 0 },
+      { id: "age", t: "Edad en la evaluación clínica (años)", tipo: "num", paso: 1, min: 0, rango: [10, 100] },
+      { id: "mwt", t: "Espesor parietal máximo del ventrículo izquierdo (mm)", tipo: "num", paso: 1, min: 0, rango: [5, 60] },
+      { id: "la", t: "Diámetro de la aurícula izquierda (mm)", tipo: "num", paso: 1, min: 0, rango: [15, 80] },
+      { id: "grad", t: "Gradiente máximo del tracto de salida del VI, en reposo o con Valsalva (mmHg)", tipo: "num", paso: 1, min: 0, rango: [0, 200] },
       { id: "fam", t: "Antecedente familiar de muerte súbita", tipo: "si" },
       { id: "nsvt", t: "TV no sostenida", tipo: "si" },
       { id: "sinc", t: "Síncope inexplicado", tipo: "si" }
