@@ -475,7 +475,7 @@ const lbCerrar = () => { lbEl.style.display = 'none'; document.body.style.overfl
 // por ejemplo "HOLTER" entre las imágenes de la ergometría y la del Holter.
 const imgsT = (lista, fmt = t => esc(t)) => {
   let html = '', grupo = [];
-  lista.forEach(m => { if (m.t) { html += imgs(grupo); grupo = []; html += `<p class="ctx">${fmt(m.t)}</p>`; } grupo.push(m.a); });
+  lista.forEach(m => { if (m.t) { html += imgs(grupo); grupo = []; html += `<p class="ctx">${fmt(m.t)}</p>`; } if (m.a) grupo.push(m.a); });
   return html + imgs(grupo);
 };
 window.zoom = el => {
