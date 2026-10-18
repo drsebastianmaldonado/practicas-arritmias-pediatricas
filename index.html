@@ -154,7 +154,7 @@ details.dgsec>summary.dgcat{margin:8px 0}
 .pdfpreview{display:none}
 @media (min-width:760px){.pdfpreview{display:block;width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:12px}}
 /* Recursos: dos columnas de secciones en pantallas anchas (una sola en celular); las secciones con imágenes ocupan todo el ancho */
-@media (min-width:760px){ .recgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;align-items:start} .recsec.ancho{grid-column:1/-1} }
+/* Recursos: secciones plegables una debajo de la otra (en dos columnas, al abrir una quedaban desparejas) */
 .rescard,.suave,.card.tint.suave,.q.tint.suave{background:color-mix(in srgb,var(--k) 6%,var(--card));border-color:color-mix(in srgb,var(--k) 22%,var(--line))}
 .rescard:hover{border-color:var(--k)}
 .recetqs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
@@ -863,6 +863,7 @@ const etiquetasRecurso = r => [
   /modo pr[aá]ctica/i.test(r.d || '') ? '<span class="recetq">Modo práctica</span>' : '',
   esExterno(r.u) ? '<span class="recetq">Sitio externo ↗</span>' : ''
 ].join('');
+const recAbiertas = new Set();
 function recursos() {
   const R = (window.RECURSOS || []).map(r => Object.assign({}, r, { s: ALIAS_SECCION[r.s] || r.s }));
   if (!recVistos) { recVistos = R.map(r => r.u); guardarRecVistos(); }
@@ -877,8 +878,10 @@ function recursos() {
     .filter(g => g[1].length);
   app.innerHTML = `<div class="case"><h2>Recursos</h2><div class="recgrid">` + grupos.map(([nombre, xs, color]) => {
     const conImg = xs.some(r => /\.(jpe?g|png|gif|webp)$/i.test(r.u));
-    return `<section class="recsec${conImg ? ' ancho' : ''}" style="--k:${color}"><h3 class="dgcat">${esc(nombre)}</h3><div class="list">${xs.map(item).join('')}</div></section>`;
+    return `<details class="dgsec recsec${conImg ? ' ancho' : ''}" data-cat="${esc(nombre)}" style="--k:${color}"${recAbiertas.has(nombre) ? ' open' : ''}><summary class="dgcat"><span>${esc(nombre)}</span><span class="dgn">${xs.length}</span></summary><div class="list">${xs.map(item).join('')}</div></details>`;
   }).join('') + '</div></div>';
+  // Solo se ven los títulos de las secciones; al tocar uno se despliegan sus recursos (las abiertas se recuerdan)
+  app.querySelectorAll('details.recsec').forEach(d => d.ontoggle = () => { d.open ? recAbiertas.add(d.dataset.cat) : recAbiertas.delete(d.dataset.cat); });
   app.querySelectorAll('a.rescard[target]').forEach(a => a.addEventListener('click', () => marcarRecVisto(a.getAttribute('href'))));
 }
 // Un recurso propio (HTML dentro de recursos\) se muestra dentro de la app, con "Volver" siempre a mano: en la app
