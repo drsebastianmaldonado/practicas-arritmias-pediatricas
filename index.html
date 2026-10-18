@@ -128,6 +128,13 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 .tint .opt input{width:22px;height:22px;margin:0;accent-color:var(--k);flex-shrink:0}
 .tint .opt.sel{border-color:var(--k);background:color-mix(in srgb,var(--k) 26%,var(--card));box-shadow:inset 5px 0 0 var(--k);font-weight:600}
 .tint .score{border:2px solid var(--k);background:color-mix(in srgb,var(--k) 12%,var(--card));font-size:1.08rem}
+/* calculadoras: el resultado queda fijo abajo mientras se tildan criterios; cortes con el rango del paciente resaltado */
+.calcres{position:sticky;bottom:8px;z-index:4;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+.cortes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.corte{font-size:.8rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--mute)}
+.corte.on{color:#fff;font-weight:700;border-color:transparent}
+.corte.on.n0{background:#2e7d32}.corte.on.n1{background:#b26a00}.corte.on.n2{background:#c62828}
+.tint .opt.bloq{opacity:.45;cursor:not-allowed}
 /* Botón de descarga de PDF: rojo, con ícono, para que se note */
 .pdfbtn{display:inline-flex;align-items:center;gap:10px;background:#c62828;color:#fff;text-decoration:none;font-weight:700;font-size:1.02rem;padding:13px 22px;border-radius:12px;box-shadow:0 3px 12px rgba(198,40,40,.4);min-height:48px;border:0;cursor:pointer}
 .pdfbtn:hover{filter:brightness(1.12)}
@@ -961,9 +968,24 @@ function calculadoras(L, opts) {
       ${(s.grupos || []).map((g, gi) => `<h4 style="margin:16px 0 4px">${esc(g.t)}</h4>${g.nota ? `<div class="hint">${esc(g.nota)}</div>` : ''}
         ${g.opciones.map((o, oi) => `<label class="opt"><input type="${g.tipo === 'uno' ? 'radio' : 'checkbox'}" name="s${si}g${gi}" data-s="${si}" data-g="${gi}" data-o="${oi}"><span>${esc(o.t)} <b>(${pf(o.p)})</b></span></label>`).join('')}
         ${g.tipo === 'uno' ? `<label class="opt"><input type="radio" name="s${si}g${gi}" data-s="${si}" data-g="${gi}" data-o="-1" checked><span>Ninguno</span></label>` : ''}`).join('')}
-      <div class="score" style="display:block" id="sc${si}"></div>
+      <div class="score calcres" style="display:block" id="sc${si}"></div>
       <div class="nav"><button class="ghost" data-reset="${si}">Reiniciar</button></div>
       <p class="hint">Fuente: ${esc(s.fuente)}</p>${s.pie ? `<p class="hint">${esc(s.pie)}</p>` : ''}</details>`).join('')}</div>`;
+  // Cortes: la lista va de menor a mayor gravedad; el primero se pinta verde, el último rojo y los del medio naranja
+  const cortesHtml = (lista, activo) => `<div class="cortes">${lista.map((c, i) => `<span class="corte n${i === 0 ? 0 : i === lista.length - 1 ? 2 : 1}${i === activo ? ' on' : ''}">${esc(c)}</span>`).join('')}</div>`;
+  const rangos = s => {   // de "interpretacion" (de mayor a menor) a textos "≤ 1 · 1,5–3 · ≥ 3,5" (paso entre puntajes: 0,5)
+    const asc = [...s.interpretacion].reverse(), paso = s.paso || 0.5;
+    return asc.map((x, i) => (i === asc.length - 1 ? '≥ ' + pf(x.desde) : i === 0 ? '≤ ' + pf(asc[1].desde - paso) : pf(x.desde) + '–' + pf(asc[i + 1].desde - paso)) + (x.corto ? ' ' + x.corto : ''));
+  };
+  // Criterios excluyentes (scores.js, "excluyentes": pares "grupo.opción" o "grupo"): tildar uno bloquea el otro
+  const excl = si => {
+    const s = L[si]; if (!s.excluyentes) return;
+    const ins = sel => { const [g, o] = String(sel).split('.'); return [...app.querySelectorAll(`input[data-s="${si}"][data-g="${g}"]`)].filter(i => i.dataset.o !== '-1' && (o == null || i.dataset.o === o)); };
+    s.excluyentes.forEach(([a, b]) => {
+      const A = ins(a), B = ins(b), aOn = A.some(i => i.checked), bOn = B.some(i => i.checked);
+      [[A, bOn], [B, aOn]].forEach(([lista, bloq]) => lista.forEach(i => { i.disabled = bloq; const l = i.closest('.opt'); l.classList.toggle('bloq', bloq); l.title = bloq ? 'No se suma junto con lo que ya tildaste (son excluyentes)' : ''; }));
+    });
+  };
   const calc = si => {
     const s = L[si], box0 = document.getElementById('sc' + si);
     if (s.campos) {   // calculadora con formula (campos + calc)
@@ -975,26 +997,26 @@ function calculadoras(L, opts) {
       if (falta) { box0.innerHTML = 'Completá todos los datos para calcular el resultado.'; return; }
       const r = s.calc(v), dec = r.decimales != null ? r.decimales : 1, unidad = r.unidad != null ? r.unidad : ' %';
       const val = typeof r.valor === 'number' ? pf(r.valor.toFixed(dec)) + unidad : esc(r.valor);
-      box0.innerHTML = `<b>${esc(r.titulo)}: ${val}</b><br>${esc(r.lectura)}${r.detalle ? `<br><span class="hint">${esc(r.detalle)}</span>` : ''}${r.aviso ? `<br><span class="hint">${esc(r.aviso)}</span>` : ''}`; return;
+      box0.innerHTML = `<b>${esc(r.titulo)}: ${val}</b><br>${esc(r.lectura)}${r.cortes ? cortesHtml(r.cortes.map(c => c.t), r.cortes.findIndex(c => c.on)) : ''}${r.detalle ? `<br><span class="hint">${esc(r.detalle)}</span>` : ''}${r.aviso ? `<br><span class="hint">${esc(r.aviso)}</span>` : ''}`; return;
     }
     const pts = s.grupos.map((g, gi) => {
       const on = [...app.querySelectorAll(`input[data-s="${si}"][data-g="${gi}"]`)].filter(i => i.checked && i.dataset.o !== '-1').map(i => g.opciones[+i.dataset.o].p);
       return g.tipo === 'max' ? Math.max(0, ...on) : on.reduce((a, b) => a + b, 0); });
     const total = pts.reduce((a, b) => a + b, 0), box = document.getElementById('sc' + si);
-    let lectura;
+    let lectura, activo = -1;
     if (s.requiereGrupo != null && pts[s.requiereGrupo] === 0) lectura = s.sinRequisito || 'Falta un criterio obligatorio.';
-    else lectura = (s.interpretacion.find(x => total >= x.desde) || {}).t || '';
-    box.innerHTML = `<b>Puntaje total: ${pf(total)}</b><br>${esc(lectura)}`;
+    else { const it = s.interpretacion.find(x => total >= x.desde); lectura = (it || {}).t || ''; activo = it ? s.interpretacion.length - 1 - s.interpretacion.indexOf(it) : -1; }
+    box.innerHTML = `<b>Puntaje total: ${pf(total)}</b><br>${esc(lectura)}${cortesHtml(rangos(s), activo)}`;
   };
   app.querySelectorAll('input[type=number][data-s]').forEach(i => i.oninput = () => calc(+i.dataset.s));
   app.querySelectorAll('select[data-s]').forEach(i => i.onchange = () => calc(+i.dataset.s));
   app.querySelectorAll('input[data-s]').forEach(i => i.onchange = () => {
     i.closest('details').querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked && l.querySelector('input').dataset.o !== '-1'));
-    calc(+i.dataset.s); });
+    excl(+i.dataset.s); calc(+i.dataset.s); });
   app.querySelectorAll('button[data-reset]').forEach(b => b.onclick = () => { const si = +b.dataset.reset;
     app.querySelectorAll(`input[data-s="${si}"]`).forEach(i => { i.checked = i.dataset.o === '-1'; if (i.type === 'number') i.value = ''; });
-    app.querySelectorAll(`select[data-s="${si}"]`).forEach(x => { x.selectedIndex = 0; }); b.closest('details').querySelectorAll('.opt').forEach(l => l.classList.remove('sel')); calc(si); });
-  L.forEach((s, si) => calc(si));
+    app.querySelectorAll(`select[data-s="${si}"]`).forEach(x => { x.selectedIndex = 0; }); b.closest('details').querySelectorAll('.opt').forEach(l => l.classList.remove('sel')); excl(si); calc(si); });
+  L.forEach((s, si) => { excl(si); calc(si); });
 }
 function scores() { calculadoras(window.SCORES || [], { titulo: 'Scores clínicos',
   intro: 'Herramientas de apoyo para la práctica: no reemplazan el juicio clínico. Tildá los criterios que presenta el paciente.',
