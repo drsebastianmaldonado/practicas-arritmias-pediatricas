@@ -120,6 +120,14 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 .dgcat{margin:20px 0 8px;padding:9px 14px;border-radius:12px;font-size:1.02rem;background:linear-gradient(100deg,color-mix(in srgb,var(--k) 32%,var(--card)),color-mix(in srgb,var(--k) 5%,var(--card)) 90%)}
 .q.dgitem{background:linear-gradient(145deg,color-mix(in srgb,var(--k) 12%,var(--card)),color-mix(in srgb,var(--k) 3%,var(--card)))}
 .q.dgitem[open]{border-color:var(--k)}
+details.dgsec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px}
+details.dgsec>summary::-webkit-details-marker{display:none}
+details.dgsec>summary>span:first-child{flex:1}
+details.dgsec>summary::after{content:'';width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .15s;opacity:.7}
+details.dgsec[open]>summary::after{transform:rotate(225deg);margin:4px 4px 0 0}
+.dgn{font-size:.8rem;font-weight:700;padding:1px 9px;border-radius:99px;background:color-mix(in srgb,var(--k) 25%,var(--card))}
+details.dgsec{margin-bottom:4px}
+details.dgsec>summary.dgcat{margin:8px 0}
 .card.tint,.q.tint{--k:var(--acc2);background:linear-gradient(145deg,color-mix(in srgb,var(--k) 13%,var(--card)),color-mix(in srgb,var(--k) 3%,var(--card)))}
 .card.tint:hover,.q.tint[open]{border-color:var(--k)}
 /* Scores / Parámetros Z: opciones bien visibles (casilla grande, borde marcado, resaltado fuerte al tildar) y resultado destacado */
@@ -1120,7 +1128,7 @@ function parametrosZ() { calculadoras(window.PARAMETROS_Z || [], { titulo: 'Par�
   intro: 'Calculan el Z-score de una medida ecocardiográfica a partir del valor medido y los datos antropométricos del paciente, según la referencia indicada en cada una. Herramienta de apoyo: no reemplaza el juicio clínico.',
   vacio: 'Todavía no se cargó ninguna fórmula acá.' }); }
 // ---------- Índice por diagnóstico (diagnosticos.js, generado por publicar_diagnosticos.ps1 desde diagnosticos.txt) ----------
-let DG = { q: '' };
+let DG = { q: '', abiertas: new Set() };   // abiertas: categorías desplegadas (se mantienen al volver a dibujar)
 // Un tono por categoría, apagado a propósito: solo tiñe el degradé del título y de cada diagnóstico.
 const COLOR_DIAG = {
   'Taquicardias de QRS angosto': '#3d8bd9', 'Taquicardias de QRS ancho': '#8a63d2', 'Taquicardia ventricular': '#e0584f',
@@ -1143,8 +1151,10 @@ function diagnosticos() {
   app.innerHTML = `<div class="case"><h2>Índice por diagnóstico</h2>
     <p class="hint">Este índice muestra el diagnóstico de cada caso: si querés practicar, resolvé el caso antes de mirarlo.</p>
     ${D.length ? `<input type="search" id="dq" placeholder="Buscar diagnóstico…" value="${esc(DG.q)}">` : '<p class="hint">Todavía no se cargó el índice.</p>'}
-    ${cats.map(cat => { const ds = D.filter(d => d.c === cat && ok(d)); return ds.length ? `<section style="--k:${COLOR_DIAG[cat] || 'var(--acc2)'}"><h3 class="dgcat">${esc(cat)}</h3>` + ds.map(d => `<details class="q dgitem"><summary style="cursor:pointer"><b>${esc(d.d)}</b> · ${d.casos.filter(id => byId[id]).length} caso(s)</summary><div class="list" style="margin-top:8px">${d.casos.map(li).join('')}</div></details>`).join('') + '</section>' : ''; }).join('')}
+    ${cats.map(cat => { const ds = D.filter(d => d.c === cat && ok(d)); return ds.length ? `<details class="dgsec" data-cat="${esc(cat)}" style="--k:${COLOR_DIAG[cat] || 'var(--acc2)'}"${nq || DG.abiertas.has(cat) ? ' open' : ''}><summary class="dgcat"><span>${esc(cat)}</span><span class="dgn">${ds.length}</span></summary>` + ds.map(d => `<details class="q dgitem"><summary style="cursor:pointer"><b>${esc(d.d)}</b> · ${d.casos.filter(id => byId[id]).length} caso(s)</summary><div class="list" style="margin-top:8px">${d.casos.map(li).join('')}</div></details>`).join('') + '</details>' : ''; }).join('')}
     ${!nq && D.length && sin.length ? `<h3>Casos sin diagnóstico asignado (${sin.length})</h3><details class="q"><summary style="cursor:pointer">Ver la lista</summary><div class="list" style="margin-top:8px">${sin.map(c => li(c.id)).join('')}</div></details>` : ''}</div>`;
+  // Solo se ven los títulos de las categorías; al tocar uno se despliegan sus diagnósticos (con una búsqueda, se abren las que tienen resultados)
+  app.querySelectorAll('details.dgsec').forEach(d => d.ontoggle = () => { if (!nq) d.open ? DG.abiertas.add(d.dataset.cat) : DG.abiertas.delete(d.dataset.cat); });
   const q = document.getElementById('dq');
   if (q) q.oninput = e => { DG.q = e.target.value; const p = e.target.selectionStart; diagnosticos(); const n = document.getElementById('dq'); n.focus(); n.setSelectionRange(p, p); };
 }
