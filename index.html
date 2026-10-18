@@ -1166,9 +1166,16 @@ function verScore(id) {
   window.scrollTo(0, 0);
 }
 // ---------- Parámetros Z (parametros_z.js): Z-score de medidas ecocardiográficas a partir del valor medido y los datos antropométricos ----------
-function parametrosZ() { calculadoras(window.PARAMETROS_Z || [], { titulo: 'Parámetros Z',
+function parametrosZ() { calculadoras(window.PARAMETROS_Z || [], { titulo: 'Parámetros Z', botones: 'z=',
   intro: 'Calculan el Z-score de una medida ecocardiográfica a partir del valor medido y los datos antropométricos del paciente, según la referencia indicada en cada una. Herramienta de apoyo: no reemplaza el juicio clínico.',
   vacio: 'Todavía no se cargó ninguna fórmula acá.' }); }
+// Un parámetro Z abierto: su pantalla (#z=id), con la calculadora desplegada y "Volver a Parámetros Z"
+function verZ(id) {
+  const s = (window.PARAMETROS_Z || []).find(x => x.id === id);
+  if (!s) { location.hash = 'parametrosZ'; return; }
+  calculadoras([s], { titulo: (s.boton || [s.titulo])[0], volver: ['parametrosZ', 'Volver a Parámetros Z'], intro: '', vacio: '' });
+  window.scrollTo(0, 0);
+}
 // ---------- Índice por diagnóstico (diagnosticos.js, generado por publicar_diagnosticos.ps1 desde diagnosticos.txt) ----------
 let DG = { q: '', abiertas: new Set() };   // abiertas: categorías desplegadas (se mantienen al volver a dibujar)
 // Un tono por categoría, apagado a propósito: solo tiñe el degradé del título y de cada diagnóstico.
@@ -1183,7 +1190,7 @@ const COLOR_DIAG = {
 const COLOR_PAT = { 'Bloqueos AV': '#2aa198', 'Canalopatías': '#c9588f', 'Preexcitación': '#4fb286', 'Repolarización': '#b86bb8',
   'Ritmo y conducción': '#5f7fa6', 'Taquicardia de QRS ancho': '#8a63d2', 'Taquicardia de QRS angosto': '#3d8bd9' };
 // Scores agrupados (scores.js, "grupo"): título de sección con degradé y calculadoras en un tono suave del mismo color
-const COLOR_GRUPO_CALC = { 'Canalopatías': '#c9588f', 'Deportistas': '#4a9d5b', 'Miocardiopatías': '#b0753f', 'Calculadoras externas': '#6b7a99', 'Estructuras cardíacas': '#3d8bd9', 'Arterias coronarias': '#e0584f' };
+const COLOR_GRUPO_CALC = { 'Canalopatías': '#c9588f', 'Deportistas': '#4a9d5b', 'Miocardiopatías': '#b0753f', 'Calculadoras externas': '#6b7a99' };
 const COLOR_CALC = { schwartz: '#2aa198', shanghai: '#c9588f', hcmkids: '#b0753f', hcmscd: '#d9a02f', deportista: '#4a9d5b', arvc: '#8a63d2', pettersen: '#3d8bd9', dallaire: '#e0584f' };
 const colorHash = s => { const P = Object.values(COLOR_DIAG).slice(0, 12); return P[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % P.length]; };
 function diagnosticos() {
@@ -1540,6 +1547,10 @@ function route() { const h = location.hash.slice(1); document.body.classList.tog
     document.getElementById('navCasos').classList.remove('active'); document.getElementById('navHerramientas').classList.add('active');
     document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
     verScore(h.slice(6)); return; }
+  if (h.startsWith('z=')) {
+    document.getElementById('navCasos').classList.remove('active'); document.getElementById('navHerramientas').classList.add('active');
+    document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
+    verZ(h.slice(2)); return; }
   if (h.startsWith('patron=')) {
     document.getElementById('navCasos').classList.add('active'); document.getElementById('navHerramientas').classList.remove('active');
     document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
