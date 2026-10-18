@@ -725,7 +725,7 @@ function detail(id) {
     <div class="nav"><button class="primary" id="chk">Comprobar mis respuestas</button><button class="ghost" id="rev">Ver devolución del caso</button>
       <button class="ghost" id="reset">Empezar de nuevo</button>
       <span class="hint" id="mk" style="align-self:center"${seen[c.id] ? '' : ' hidden'}>✓ Repasado</span></div>
-    <div id="dev" hidden><div class="dev"><h3>Devolución</h3>${dev}${imgs(c.devimgs)}</div></div>
+    <div id="dev" hidden><div class="dev"><h3>Devolución</h3>${dev}${imgs(c.devimgs)}${calcRel(c)}</div></div>
     <div class="nav">${mismo(prev) ? `<a href="#${prev.id}"><button class="ghost">← Caso anterior</button></a>` : ''}${mismo(next) ? `<a href="#${next.id}"><button class="ghost" id="csig">Caso siguiente →</button></a>` : ''}</div></div>`;
   const pintarSel = () => app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
   const marcadas = k => [...app.querySelectorAll(`input[name="q${k}"]:checked`)].map(i => i.dataset.l);
@@ -812,6 +812,7 @@ function detail(id) {
     document.getElementById('chk').className = 'primary'; const cs = document.getElementById('csig'); if (cs) cs.className = 'ghost';   // vuelve a destacarse "Comprobar"
     irPaso(0, false); window.scrollTo(0, 0);
   };
+  app.querySelectorAll('button[data-calc]').forEach(b => b.onclick = () => { abrirCalc = b.dataset.calc; location.hash = 'scores'; });
   document.getElementById('rev').onclick = e => { const d = document.getElementById('dev'); d.hidden = !d.hidden; e.target.textContent = d.hidden ? 'Ver devolución del caso' : 'Ocultar devolución'; if (!d.hidden) d.scrollIntoView({behavior:'smooth'}); };
   window.scrollTo(0, 0);
 }
@@ -949,6 +950,22 @@ function patrones() {
   app.querySelectorAll('.chip[data-c]').forEach(el => el.onclick = () => { PT.cat = PT.cat === el.dataset.c ? '' : el.dataset.c; patrones(); });
   app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = 'fasciculos'; });
 }
+// ---------- Calculadoras relacionadas con un caso: van en la devolución para no adelantar el diagnóstico ----------
+// Se eligen por el índice de diagnósticos (diagnosticos.js) o por palabras del caso; el botón abre esa calculadora en Scores.
+let abrirCalc = '';
+const CALC_REL = [
+  { id: 'schwartz', t: 'Score de Schwartz', diag: /QT largo/i, txt: /s[ií]ndrome de QT largo/i },
+  { id: 'shanghai', t: 'Score de Shanghai', diag: /Brugada/i, txt: /s[ií]ndrome de Brugada|patr[oó]n (tipo 1 )?de Brugada/i },
+  { id: 'hcmkids', t: 'HCM Risk-Kids', txt: /miocardiopat[ií]a hipertr[oó]fica/i },
+  { id: 'arvc', t: 'Criterios de miocardiopatía arritmogénica', txt: /arritmog[eé]nica/i },
+  { id: 'deportista', t: 'ECG del deportista', txt: /apto f[ií]sico|pre ?deportiv|deportista|atleta/i }
+];
+function calcRel(c) {
+  const dx = (window.DIAGNOSTICOS || []).filter(d => d.casos.includes(c.id)).map(d => d.d).join(' ');
+  const txt = [c.titulo, c.vineta, ...c.preguntas.map(q => q.ctx || ''), ...(c.dev || [])].join(' ');
+  const l = CALC_REL.filter(r => (window.SCORES || []).some(x => x.id === r.id) && ((r.diag && r.diag.test(dx)) || r.txt.test(txt)));
+  return l.length ? `<p class="hint" style="margin:16px 0 4px">Calculadoras relacionadas con este caso:</p><div class="row" style="margin-top:0">${l.map(r => `<button type="button" class="ghost" data-calc="${r.id}">${esc(r.t)} →</button>`).join('')}</div>` : '';
+}
 // ---------- Scores clínicos (scores.js): calculadoras por criterios con puntaje ----------
 // Motor genérico de calculadoras por criterios (grupos con puntaje) o por fórmula (campos + calc). Lo usan
 // tanto "Scores clínicos" (scores.js) como "Parámetros Z" (parametros_z.js): cada uno pasa su propia lista.
@@ -966,7 +983,7 @@ function calculadoras(L, opts) {
         ? `<label style="display:block;margin:12px 0 2px;font-size:.92rem">${esc(c.t)}</label><select data-s="${si}" data-c="${c.id}">${c.opciones.map(o => `<option value="${esc(o[0])}">${esc(o[1])}</option>`).join('')}</select>`
         : `<label style="display:block;margin:12px 0 2px;font-size:.92rem">${esc(c.t)}</label><input type="number" inputmode="decimal" step="${c.paso || 'any'}" ${c.min != null ? `min="${c.min}"` : ''} data-s="${si}" data-c="${c.id}">`).join('')}
       ${(s.grupos || []).map((g, gi) => `<h4 style="margin:16px 0 4px">${esc(g.t)}</h4>${g.nota ? `<div class="hint">${esc(g.nota)}</div>` : ''}
-        ${g.opciones.map((o, oi) => `<label class="opt"><input type="${g.tipo === 'uno' ? 'radio' : 'checkbox'}" name="s${si}g${gi}" data-s="${si}" data-g="${gi}" data-o="${oi}"><span>${esc(o.t)} <b>(${pf(o.p)})</b></span></label>`).join('')}
+        ${g.opciones.map((o, oi) => `<label class="opt"><input type="${g.tipo === 'uno' ? 'radio' : 'checkbox'}" name="s${si}g${gi}" data-s="${si}" data-g="${gi}" data-o="${oi}"><span>${esc(o.t)} <b>(${o.e != null ? esc(o.e) : pf(o.p)})</b></span></label>`).join('')}
         ${g.tipo === 'uno' ? `<label class="opt"><input type="radio" name="s${si}g${gi}" data-s="${si}" data-g="${gi}" data-o="-1" checked><span>Ninguno</span></label>` : ''}`).join('')}
       <div class="score calcres" style="display:block" id="sc${si}"></div>
       <div class="nav"><button class="ghost" data-reset="${si}">Reiniciar</button></div>
@@ -993,14 +1010,22 @@ function calculadoras(L, opts) {
       s.campos.forEach(c => { const i = app.querySelector(`[data-s="${si}"][data-c="${c.id}"]`);
         if (c.tipo === 'si') v[c.id] = i.checked ? 1 : 0;
         else if (c.tipo === 'sel') { if (i.value === '') falta = true; v[c.id] = i.value; }
-        else { if (i.value === '' || isNaN(+i.value)) falta = true; v[c.id] = +i.value; } });
-      if (falta) { box0.innerHTML = 'Completá todos los datos para calcular el resultado.'; return; }
+        else { if (i.value === '' || isNaN(+i.value)) falta = true; v[c.id] = i.value === '' ? NaN : +i.value; } });
+      // "rango": valores esperables; fuera de eso se avisa (p. ej. un cero de más), pero igual se calcula
+      const fuera = s.campos.filter(c => c.rango && !isNaN(v[c.id]) && (v[c.id] < c.rango[0] || v[c.id] > c.rango[1]))
+        .map(c => `Revisá «${c.t.replace(/\s*\(.*$/, '')}»: ${pf(v[c.id])} está fuera de lo esperable (${pf(c.rango[0])} a ${pf(c.rango[1])}).`);
+      const avisoRango = fuera.length ? `<div class="warn" style="margin:8px 0 0">⚠ ${fuera.map(esc).join('<br>⚠ ')}</div>` : '';
+      if (falta) { const par = s.parcial ? s.parcial(v) : ''; box0.innerHTML = (par ? esc(par) + '<br><span class="hint">Completá el resto de los datos para calcular el riesgo.</span>' : 'Completá todos los datos para calcular el resultado.') + avisoRango; return; }
       const r = s.calc(v), dec = r.decimales != null ? r.decimales : 1, unidad = r.unidad != null ? r.unidad : ' %';
       const val = typeof r.valor === 'number' ? pf(r.valor.toFixed(dec)) + unidad : esc(r.valor);
-      box0.innerHTML = `<b>${esc(r.titulo)}: ${val}</b><br>${esc(r.lectura)}${r.cortes ? cortesHtml(r.cortes.map(c => c.t), r.cortes.findIndex(c => c.on)) : ''}${r.detalle ? `<br><span class="hint">${esc(r.detalle)}</span>` : ''}${r.aviso ? `<br><span class="hint">${esc(r.aviso)}</span>` : ''}`; return;
+      box0.innerHTML = `<b>${esc(r.titulo)}: ${val}</b><br>${esc(r.lectura)}${r.cortes ? cortesHtml(r.cortes.map(c => c.t), r.cortes.findIndex(c => c.on)) : ''}${r.detalle ? `<br><span class="hint">${esc(r.detalle)}</span>` : ''}${r.aviso ? `<br><span class="hint">${esc(r.aviso)}</span>` : ''}${avisoRango}`; return;
     }
-    const pts = s.grupos.map((g, gi) => {
-      const on = [...app.querySelectorAll(`input[data-s="${si}"][data-g="${gi}"]`)].filter(i => i.checked && i.dataset.o !== '-1').map(i => g.opciones[+i.dataset.o].p);
+    const sel = s.grupos.map((g, gi) => [...app.querySelectorAll(`input[data-s="${si}"][data-g="${gi}"]`)].filter(i => i.checked && i.dataset.o !== '-1').map(i => g.opciones[+i.dataset.o]));
+    if (s.evaluar) {   // reglas propias (scores.js): recibe lo tildado por grupo y devuelve { titulo, lectura, activo }
+      const r = s.evaluar(sel);
+      box0.innerHTML = `<b>${esc(r.titulo)}</b><br>${esc(r.lectura)}${s.cortes ? cortesHtml(s.cortes, r.activo) : ''}`; return;
+    }
+    const pts = s.grupos.map((g, gi) => { const on = sel[gi].map(o => o.p);
       return g.tipo === 'max' ? Math.max(0, ...on) : on.reduce((a, b) => a + b, 0); });
     const total = pts.reduce((a, b) => a + b, 0), box = document.getElementById('sc' + si);
     let lectura, activo = -1;
@@ -1017,6 +1042,8 @@ function calculadoras(L, opts) {
     app.querySelectorAll(`input[data-s="${si}"]`).forEach(i => { i.checked = i.dataset.o === '-1'; if (i.type === 'number') i.value = ''; });
     app.querySelectorAll(`select[data-s="${si}"]`).forEach(x => { x.selectedIndex = 0; }); b.closest('details').querySelectorAll('.opt').forEach(l => l.classList.remove('sel')); excl(si); calc(si); });
   L.forEach((s, si) => { excl(si); calc(si); });
+  const k = abrirCalc ? L.findIndex(s => s.id === abrirCalc) : -1; abrirCalc = '';
+  if (k >= 0) { const d = app.querySelectorAll('details.q')[k]; d.open = true; setTimeout(() => d.scrollIntoView({ block: 'start' }), 60); }
 }
 function scores() { calculadoras(window.SCORES || [], { titulo: 'Scores clínicos',
   intro: 'Herramientas de apoyo para la práctica: no reemplazan el juicio clínico. Tildá los criterios que presenta el paciente.',
@@ -1036,7 +1063,7 @@ const COLOR_DIAG = {
 };
 const COLOR_PAT = { 'Bloqueos AV': '#2aa198', 'Canalopatías': '#c9588f', 'Preexcitación': '#4fb286', 'Repolarización': '#b86bb8',
   'Ritmo y conducción': '#5f7fa6', 'Taquicardia de QRS ancho': '#8a63d2', 'Taquicardia de QRS angosto': '#3d8bd9' };
-const COLOR_CALC = { schwartz: '#2aa198', shanghai: '#c9588f', hcmkids: '#b0753f', hcmscd: '#d9a02f', pettersen: '#3d8bd9', dallaire: '#e0584f' };
+const COLOR_CALC = { schwartz: '#2aa198', shanghai: '#c9588f', hcmkids: '#b0753f', hcmscd: '#d9a02f', deportista: '#4a9d5b', arvc: '#8a63d2', pettersen: '#3d8bd9', dallaire: '#e0584f' };
 const colorHash = s => { const P = Object.values(COLOR_DIAG).slice(0, 12); return P[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % P.length]; };
 function diagnosticos() {
   const D = window.DIAGNOSTICOS || [], nq = norm(DG.q.trim()), byId = Object.fromEntries(C.map(c => [c.id, c]));
