@@ -987,7 +987,8 @@ function calculadoras(L, opts) {
         ${g.tipo === 'uno' ? `<label class="opt"><input type="radio" name="s${si}g${gi}" data-s="${si}" data-g="${gi}" data-o="-1" checked><span>Ninguno</span></label>` : ''}`).join('')}
       <div class="score calcres" style="display:block" id="sc${si}"></div>
       <div class="nav"><button class="ghost" data-reset="${si}">Reiniciar</button></div>
-      <p class="hint">Fuente: ${esc(s.fuente)}</p>${s.pie ? `<p class="hint">${esc(s.pie)}</p>` : ''}</details>`).join('')}</div>`;
+      <p class="hint">Fuente: ${esc(s.fuente)}</p>${s.pie ? `<p class="hint">${esc(s.pie)}</p>` : ''}</details>`).join('')}
+    ${(opts.enlaces || []).length ? `<h3 style="margin:22px 0 6px">Calculadoras externas</h3>${opts.enlaces.map(e => `<div class="q"><b>${esc(e.t)}</b>${e.nota ? `<p class="hint" style="margin:6px 0">${esc(e.nota)}</p>` : ''}<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer"><button type="button" class="ghost">Abrir la calculadora oficial ↗</button></a></div>`).join('')}` : ''}</div>`;
   // Cortes: la lista va de menor a mayor gravedad; el primero se pinta verde, el último rojo y los del medio naranja
   const cortesHtml = (lista, activo) => `<div class="cortes">${lista.map((c, i) => `<span class="corte n${i === 0 ? 0 : i === lista.length - 1 ? 2 : 1}${i === activo ? ' on' : ''}">${esc(c)}</span>`).join('')}</div>`;
   const rangos = s => {   // de "interpretacion" (de mayor a menor) a textos "≤ 1 · 1,5–3 · ≥ 3,5" (paso entre puntajes: 0,5)
@@ -1047,7 +1048,7 @@ function calculadoras(L, opts) {
 }
 function scores() { calculadoras(window.SCORES || [], { titulo: 'Scores clínicos',
   intro: 'Herramientas de apoyo para la práctica: no reemplazan el juicio clínico. Tildá los criterios que presenta el paciente.',
-  vacio: 'Todavía no se cargó ningún score.' }); }
+  vacio: 'Todavía no se cargó ningún score.', enlaces: window.SCORES_ENLACES }); }
 // ---------- Parámetros Z (parametros_z.js): Z-score de medidas ecocardiográficas a partir del valor medido y los datos antropométricos ----------
 function parametrosZ() { calculadoras(window.PARAMETROS_Z || [], { titulo: 'Parámetros Z',
   intro: 'Calculan el Z-score de una medida ecocardiográfica a partir del valor medido y los datos antropométricos del paciente, según la referencia indicada en cada una. Herramienta de apoyo: no reemplaza el juicio clínico.',

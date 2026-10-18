@@ -269,3 +269,10 @@ window.SCORES = [
     }
   }
 ];
+
+// Calculadoras que no se pueden reproducir acá (ecuación no publicada en abierto): se muestran como enlace a la oficial.
+window.SCORES_ENLACES = [
+  { t: "PRIMaCY (muerte súbita a 5 años en miocardiopatía hipertrófica pediátrica)",
+    nota: "Modelo pediátrico (diagnóstico antes de los 18 años) desarrollado en SickKids con el registro SHaRe; alternativa a HCM Risk-Kids. Su ecuación no está publicada en abierto, por eso se usa la calculadora oficial. Miron A, et al. Circulation. 2020;142:217-29.",
+    url: "https://tedrogersresearch.ca/primacy/" }
+];
