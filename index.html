@@ -160,6 +160,12 @@ details.dgsec>summary.dgcat{margin:8px 0}
 .hubgrid{display:grid;gap:10px}
 @media (min-width:640px){ .hubgrid{grid-template-columns:1fr 1fr} }
 .hubgrid .card{margin:0}
+.hubmini{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (min-width:640px){ .hubmini{grid-template-columns:repeat(5,1fr)} }
+.hubbtn{display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:12px;text-decoration:none;color:var(--ink);font-weight:600;font-size:.95rem;
+  background:color-mix(in srgb,var(--k) 8%,var(--card));border:1px solid color-mix(in srgb,var(--k) 28%,var(--line))}
+.hubbtn::before{content:'';width:10px;height:10px;border-radius:50%;background:var(--k);flex-shrink:0}
+.hubbtn:hover{border-color:var(--k)}
 .recetqs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
 .recetqs:empty{display:none}
 .recetq{font-size:.74rem;font-weight:600;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--k) 18%,var(--card));color:var(--ink);border:1px solid color-mix(in srgb,var(--k) 40%,var(--line))}
@@ -427,6 +433,8 @@ const SECC_HERRAMIENTAS = [
   ['valores', 'QTc y valores por edad', 'Calculador de QTc y valores normales del ECG pediátrico.', '#2aa198'],
   ['endocarditis', 'Profilaxis de endocarditis', 'Indicaciones y esquemas, con el PDF original.', '#6b7a99']
 ];
+// Versión compacta (portada): botones chicos de a dos, solo con el nombre, así el contacto queda cerca del caso de la semana
+const botonesSecc = L => `<div class="hubmini">${L.map(([h, t, d, k]) => `<a class="hubbtn" style="--k:${k}" href="#${h}" title="${esc(d)}">${esc(t.replace(/^(Índice por|Modo|Patrones de) /, '').replace(/^diagnóstico$/, 'Diagnósticos').replace(/^referencia$/, 'Patrones').replace(/^examen$/, 'Examen'))}</a>`).join('')}</div>`;
 const tarjetasSecc = L => `<div class="hubgrid">${L.map(([h, t, d, k]) => `<a class="card rescard" style="--k:${k}" href="#${h}"><h3>${esc(t)}</h3><p class="snip">${esc(d)}</p><div class="meta">Abrir →</div></a>`).join('')}</div>`;
 function herramientas() {
   app.innerHTML = `<div class="case"><h2>Herramientas</h2><p class="hint">Calculadoras y tablas de consulta rápida. Herramientas de apoyo: no reemplazan el juicio clínico.</p>${tarjetasSecc(SECC_HERRAMIENTAS)}</div>`;
@@ -436,8 +444,6 @@ function list() {
     <h2 style="margin:4px 0 2px">Banco de casos</h2>
     <p class="hint" style="margin:0 0 14px">El caso de la semana. Desde acá recorrés los 110 casos por fascículo, incluidos los de semanas anteriores.</p>
     ${heroSemana()}
-    ${avisoTemas()}
-    <div style="margin-top:12px">${tarjetasSecc(SECC_CASOS)}</div>
     <div class="ctarow" style="margin-top:14px">
       <a class="wa-cta" href="https://wa.me/5491131860600" target="_blank" rel="noopener noreferrer">
         <span class="wa-logo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.39a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.13.82.84-3.05-.2-.31a8.2 8.2 0 0 1-1.26-4.29c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.23 3.7 8.23 8.24 0 4.55-3.7 8.15-8.24 8.15zm4.52-6.14c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.15-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.25 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.1-.23-.16-.48-.28z"></path></svg></span>
@@ -448,6 +454,9 @@ function list() {
         <span><b>Colaborá con el banco</b><small>Alias: ${ALIAS_COLABORA} — tocá para copiar</small></span>
       </button>
     </div>
+    ${avisoTemas()}
+    <h3 style="margin:18px 0 8px">Secciones</h3>
+    ${botonesSecc(SECC_CASOS)}
   </div>`;
   document.getElementById('btnColabora').onclick = e => copiarAlias(e.currentTarget);
   enlazarTemas();
