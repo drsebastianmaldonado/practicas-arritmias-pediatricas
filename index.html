@@ -1188,12 +1188,23 @@ function diagnosticos() {
   app.innerHTML = `<div class="case"><h2>Índice por diagnóstico</h2>
     <p class="hint">Este índice muestra el diagnóstico de cada caso: si querés practicar, resolvé el caso antes de mirarlo.</p>
     ${D.length ? `<input type="search" id="dq" placeholder="Buscar diagnóstico…" value="${esc(DG.q)}">` : '<p class="hint">Todavía no se cargó el índice.</p>'}
-    ${cats.map(cat => { const ds = D.filter(d => d.c === cat && ok(d)); return ds.length ? `<details class="dgsec" data-cat="${esc(cat)}" style="--k:${COLOR_DIAG[cat] || 'var(--acc2)'}"${nq || DG.abiertas.has(cat) ? ' open' : ''}><summary class="dgcat"><span>${esc(cat)}</span><span class="dgn">${ds.length}</span></summary>` + ds.map(d => `<details class="q dgitem"><summary style="cursor:pointer"><b>${esc(d.d)}</b> · ${d.casos.filter(id => byId[id]).length} caso(s)</summary><div class="list" style="margin-top:8px">${d.casos.map(li).join('')}</div></details>`).join('') + '</details>' : ''; }).join('')}
+    ${cats.map(cat => { const ds = D.filter(d => d.c === cat && ok(d)); return ds.length ? `<details class="dgsec" data-cat="${esc(cat)}" style="--k:${COLOR_DIAG[cat] || 'var(--acc2)'}"${nq || DG.abiertas.has(cat) ? ' open' : ''}><summary class="dgcat"><span>${esc(cat)}</span><span class="dgn">${ds.length}</span></summary><div class="hubmini patmini">` + ds.map(d => { const n = d.casos.filter(id => byId[id]).length; return `<a class="hubbtn recbtn" style="--k:${COLOR_DIAG[cat] || 'var(--acc2)'}" href="#diagnostico=${D.indexOf(d)}"><span class="rbt">${esc(d.d)}</span><span class="rbmarks"><span class="rbx">${n} caso${n === 1 ? '' : 's'}</span></span></a>`; }).join('') + '</div></details>' : ''; }).join('')}
     ${!nq && D.length && sin.length ? `<h3>Casos sin diagnóstico asignado (${sin.length})</h3><details class="q"><summary style="cursor:pointer">Ver la lista</summary><div class="list" style="margin-top:8px">${sin.map(c => li(c.id)).join('')}</div></details>` : ''}</div>`;
   // Solo se ven los títulos de las categorías; al tocar uno se despliegan sus diagnósticos (con una búsqueda, se abren las que tienen resultados)
   app.querySelectorAll('details.dgsec').forEach(d => d.ontoggle = () => { if (!nq) d.open ? DG.abiertas.add(d.dataset.cat) : DG.abiertas.delete(d.dataset.cat); });
   const q = document.getElementById('dq');
   if (q) q.oninput = e => { DG.q = e.target.value; const p = e.target.selectionStart; diagnosticos(); const n = document.getElementById('dq'); n.focus(); n.setSelectionRange(p, p); };
+}
+// Un diagnóstico abierto: su pantalla (#diagnostico=N) con los casos que lo tienen y "Volver al índice"
+function verDiagnostico(i) {
+  const D = window.DIAGNOSTICOS || [], d = D[+i];
+  if (!d) { location.hash = 'diagnosticos'; return; }
+  const byId = Object.fromEntries(C.map(c => [c.id, c])), cs = d.casos.map(id => byId[id]).filter(Boolean), k = COLOR_DIAG[d.c] || 'var(--acc2)';
+  app.innerHTML = `<div class="case"><div class="recbarra"><a href="#diagnosticos"><button type="button" class="ghost">← Volver al índice</button></a></div>
+    <div class="meta">${esc(d.c)}</div><h2 style="margin:4px 0 6px">${esc(d.d)}</h2>
+    <p class="hint">${cs.length} caso${cs.length === 1 ? '' : 's'} con este diagnóstico. Si querés practicar, resolvelos antes de mirar la devolución.</p>
+    <div class="list">${cs.map(c => `<a class="card suave ${seen[c.id] ? 'done' : ''}" style="--k:${k}" href="#${c.id}"><h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} — ${esc(c.titulo)}${seen[c.id] ? ' ✓' : ''}</h3><div class="meta">${c.preguntas.length} pregunta${c.preguntas.length == 1 ? '' : 's'}</div></a>`).join('')}</div></div>`;
+  window.scrollTo(0, 0);
 }
 // ---------- Mi progreso: resumen personal (se guarda solo en este navegador) ----------
 // Repaso espaciado: casos ya repasados hace 10 días o más (los más atrasados primero), completado con casos nunca vistos si faltan.
@@ -1514,6 +1525,10 @@ function route() { const h = location.hash.slice(1); document.body.classList.tog
     document.getElementById('navCasos').classList.remove('active'); document.getElementById('navHerramientas').classList.remove('active');
     document.querySelectorAll('.navlink').forEach(a => a.classList.toggle('active', a.dataset.t === 'recursos'));
     verRecurso(h.slice(8)); return; }
+  if (h.startsWith('diagnostico=')) {
+    document.getElementById('navCasos').classList.add('active'); document.getElementById('navHerramientas').classList.remove('active');
+    document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
+    verDiagnostico(h.slice(12)); return; }
   if (h.startsWith('patron=')) {
     document.getElementById('navCasos').classList.add('active'); document.getElementById('navHerramientas').classList.remove('active');
     document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
