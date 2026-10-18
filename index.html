@@ -830,7 +830,7 @@ function detail(id) {
     document.getElementById('chk').className = 'primary'; const cs = document.getElementById('csig'); if (cs) cs.className = 'ghost';   // vuelve a destacarse "Comprobar"
     irPaso(0, false); window.scrollTo(0, 0);
   };
-  app.querySelectorAll('button[data-calc]').forEach(b => b.onclick = () => { abrirCalc = b.dataset.calc; location.hash = 'scores'; });
+  app.querySelectorAll('button[data-calc]').forEach(b => b.onclick = () => { location.hash = 'score=' + b.dataset.calc; });
   document.getElementById('rev').onclick = e => { const d = document.getElementById('dev'); d.hidden = !d.hidden; e.target.textContent = d.hidden ? 'Ver devolución del caso' : 'Ocultar devolución'; if (!d.hidden) d.scrollIntoView({behavior:'smooth'}); };
   window.scrollTo(0, 0);
 }
@@ -1068,20 +1068,21 @@ function calcRel(c) {
 // Scores agrupados: cada grupo es una sección plegable (título con degradé + cantidad); las abiertas se recuerdan
 const calcAbiertas = new Set();
 const grupoCalc = (nombre, n, html) => `<details class="dgsec calcsec" data-cat="${esc(nombre)}" style="--k:${COLOR_GRUPO_CALC[nombre] || 'var(--acc2)'}"${calcAbiertas.has(nombre) ? ' open' : ''}><summary class="dgcat"><span>${esc(nombre)}</span><span class="dgn">${n}</span></summary>${html}</details>`;
-function agruparCalc(L, htmls) {   // las calculadoras sin grupo (p. ej. Parámetros Z) quedan sueltas, como antes
+function agruparCalc(L, htmls, botones) {   // las calculadoras sin grupo quedan sueltas; con "botones", cada grupo es una grilla de botones chicos
   let out = '';
   for (let i = 0; i < L.length;) {
     const g = L[i].grupo; let j = i; while (j < L.length && L[j].grupo === g) j++;
-    out += g ? grupoCalc(g, j - i, htmls.slice(i, j).join('')) : htmls.slice(i, j).join(''); i = j;
+    const html = botones ? `<div class="hubmini patmini">${htmls.slice(i, j).join('')}</div>` : htmls.slice(i, j).join('');
+    out += g ? grupoCalc(g, j - i, html) : html; i = j;
   }
   return out;
 }
 function calculadoras(L, opts) {
   const pf = n => String(n).replace('.', ',');
-  app.innerHTML = `<div class="case"><h2>${esc(opts.titulo)}</h2>
-    <p class="hint">${esc(opts.intro)}</p>
+  app.innerHTML = `<div class="case">${opts.volver ? `<div class="recbarra"><a href="#${opts.volver[0]}"><button type="button" class="ghost">← ${esc(opts.volver[1])}</button></a></div>` : ''}<h2>${esc(opts.titulo)}</h2>
+    ${opts.intro ? `<p class="hint">${esc(opts.intro)}</p>` : ''}
     ${L.length ? '' : `<p class="hint">${esc(opts.vacio)}</p>`}
-    ${agruparCalc(L, L.map((s, si) => `<details class="q tint suave" style="--k:${(s.grupo && COLOR_GRUPO_CALC[s.grupo]) || COLOR_CALC[s.id] || 'var(--acc2)'}" ${L.length === 1 ? 'open' : ''}><summary style="cursor:pointer;font-weight:700;font-size:1.05rem">${esc(s.titulo)}</summary>
+    ${opts.botones ? agruparCalc(L, L.map(s => { const [a, b] = s.boton || s.titulo.split(/ \((.*)\)$/); return `<a class="hubbtn btn2" style="--k:${COLOR_GRUPO_CALC[s.grupo] || COLOR_CALC[s.id] || 'var(--acc2)'}" href="#${opts.botones}${s.id}"><span class="rbt"><b>${esc(a)}</b>${b ? `<small>${esc(b)}</small>` : ''}</span></a>`; }), true) : agruparCalc(L, L.map((s, si) => `<details class="q tint suave" style="--k:${s._color || (s.grupo && COLOR_GRUPO_CALC[s.grupo]) || COLOR_CALC[s.id] || 'var(--acc2)'}" ${L.length === 1 ? 'open' : ''}><summary style="cursor:pointer;font-weight:700;font-size:1.05rem">${esc(s.titulo)}</summary>
       ${s.verificado ? '' : '<div class="warn" style="margin-top:10px">Borrador: criterios y puntajes pendientes de verificación por el autor.</div>'}
       ${s.nota ? `<p class="hint" style="margin-top:10px">${esc(s.nota)}</p>` : ''}
       ${(s.campos || []).map(c => c.tipo === 'si'
@@ -1150,13 +1151,20 @@ function calculadoras(L, opts) {
   app.querySelectorAll('button[data-reset]').forEach(b => b.onclick = () => { const si = +b.dataset.reset;
     app.querySelectorAll(`input[data-s="${si}"]`).forEach(i => { i.checked = i.dataset.o === '-1'; if (i.type === 'number') i.value = ''; });
     app.querySelectorAll(`select[data-s="${si}"]`).forEach(x => { x.selectedIndex = 0; }); b.closest('details').querySelectorAll('.opt').forEach(l => l.classList.remove('sel')); excl(si); calc(si); });
-  L.forEach((s, si) => { excl(si); calc(si); });
+  if (!opts.botones) L.forEach((s, si) => { excl(si); calc(si); });   // con botones, las calculadoras se abren en su propia pantalla
   const k = abrirCalc ? L.findIndex(s => s.id === abrirCalc) : -1; abrirCalc = '';
   if (k >= 0) { const d = app.querySelectorAll('details.q')[k], g = d.closest('details.calcsec'); if (g) g.open = true; d.open = true; setTimeout(() => d.scrollIntoView({ block: 'start' }), 60); }
 }
-function scores() { calculadoras(window.SCORES || [], { titulo: 'Scores clínicos',
-  intro: 'Herramientas de apoyo para la práctica: no reemplazan el juicio clínico. Tildá los criterios que presenta el paciente.',
+function scores() { calculadoras(window.SCORES || [], { titulo: 'Scores clínicos', botones: 'score=',
+  intro: 'Herramientas de apoyo para la práctica: no reemplazan el juicio clínico. Elegí un score para abrirlo.',
   vacio: 'Todavía no se cargó ningún score.', enlaces: window.SCORES_ENLACES }); }
+// Un score abierto: su pantalla (#score=id), con la calculadora desplegada y "Volver a Scores"
+function verScore(id) {
+  const s = (window.SCORES || []).find(x => x.id === id);
+  if (!s) { location.hash = 'scores'; return; }
+  calculadoras([Object.assign({}, s, { grupo: undefined, _color: COLOR_GRUPO_CALC[s.grupo] })], { titulo: s.grupo || 'Scores clínicos', volver: ['scores', 'Volver a Scores'], intro: '', vacio: '' });
+  window.scrollTo(0, 0);
+}
 // ---------- Parámetros Z (parametros_z.js): Z-score de medidas ecocardiográficas a partir del valor medido y los datos antropométricos ----------
 function parametrosZ() { calculadoras(window.PARAMETROS_Z || [], { titulo: 'Parámetros Z',
   intro: 'Calculan el Z-score de una medida ecocardiográfica a partir del valor medido y los datos antropométricos del paciente, según la referencia indicada en cada una. Herramienta de apoyo: no reemplaza el juicio clínico.',
@@ -1528,6 +1536,10 @@ function route() { const h = location.hash.slice(1); document.body.classList.tog
     document.getElementById('navCasos').classList.add('active'); document.getElementById('navHerramientas').classList.remove('active');
     document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
     verDiagnostico(h.slice(12)); return; }
+  if (h.startsWith('score=')) {
+    document.getElementById('navCasos').classList.remove('active'); document.getElementById('navHerramientas').classList.add('active');
+    document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
+    verScore(h.slice(6)); return; }
   if (h.startsWith('patron=')) {
     document.getElementById('navCasos').classList.add('active'); document.getElementById('navHerramientas').classList.remove('active');
     document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
