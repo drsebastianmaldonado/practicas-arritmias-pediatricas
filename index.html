@@ -147,7 +147,7 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 @media (min-width:760px){.pdfpreview{display:block;width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:12px}}
 /* Recursos: dos columnas de secciones en pantallas anchas (una sola en celular); las secciones con imágenes ocupan todo el ancho */
 @media (min-width:760px){ .recgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;align-items:start} .recsec.ancho{grid-column:1/-1} }
-.rescard{--k:var(--acc2);background:linear-gradient(145deg,color-mix(in srgb,var(--k) 22%,var(--card)),color-mix(in srgb,var(--k) 5%,var(--card)))}
+.rescard{background:color-mix(in srgb,var(--k) 6%,var(--card));border-color:color-mix(in srgb,var(--k) 22%,var(--line))}
 .rescard:hover{border-color:var(--k)}
 .recetqs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
 .recetqs:empty{display:none}
@@ -826,18 +826,13 @@ function detail(id) {
 
 // Las secciones de recursos.js (las que usa agregar_recurso.ps1) se agrupan en pocas secciones visibles. Una sección
 // nueva que no esté en ningún grupo aparece igual, con su propio nombre, al final.
+// Cada grupo tiene un color: el título de la sección lo lleva en degradé y sus tarjetas, en un tono suave y parejo.
 const GRUPOS_RECURSOS = [
-  ['Simulador y práctica', ['Simulador de arritmias']],
-  ['Algoritmos diagnósticos', ['Algoritmo de TSV', 'Algoritmo de disociación AV', 'Localizador de vía accesoria', 'Localizador de arritmia ventricular', 'Diagnóstico diferencial']],
-  ['Algoritmos de manejo', ['Algoritmos clínicos', 'Marcapasos transitorio']],
-  ['Bibliotecas externas', ['Bibliotecas de imágenes (externas)']]
+  ['Simulador y práctica', ['Simulador de arritmias'], '#e0584f'],
+  ['Algoritmos diagnósticos', ['Algoritmo de TSV', 'Algoritmo de disociación AV', 'Localizador de vía accesoria', 'Localizador de arritmia ventricular', 'Diagnóstico diferencial'], '#3d8bd9'],
+  ['Algoritmos de manejo', ['Algoritmos clínicos', 'Marcapasos transitorio'], '#12a58f'],
+  ['Bibliotecas externas', ['Bibliotecas de imágenes (externas)'], '#6b7a99']
 ];
-// Un color distinto por sección, solo para el degradé de las tarjetas de Recursos (no afecta el resto del banco).
-const COLOR_SECCION = {
-  'Simulador de arritmias': '#ff6b57', 'Algoritmo de TSV': '#1faa4a', 'Algoritmo de disociación AV': '#7a3fd0',
-  'Localizador de arritmia ventricular': '#d97a00', 'Diagnóstico diferencial': '#3db6f5', 'Algoritmos clínicos': '#e0352b',
-  'Marcapasos transitorio': '#0a74f0', 'Localizador de vía accesoria': '#12a58f', 'Bibliotecas de imágenes (externas)': '#5b6b8c'
-};
 // Nombres viejos de sección que puede traer recursos.js (agregar_recurso.ps1) → nombre actual
 const ALIAS_SECCION = { 'Algoritmo de disociación VA': 'Algoritmo de disociación AV' };
 const esExterno = u => /^https?:/i.test(u);
@@ -858,18 +853,17 @@ function recursos() {
   const R = (window.RECURSOS || []).map(r => Object.assign({}, r, { s: ALIAS_SECCION[r.s] || r.s }));
   if (!recVistos) { recVistos = R.map(r => r.u); guardarRecVistos(); }
   const item = r => {
-    const k = COLOR_SECCION[r.s] || 'var(--acc2)';
     return /\.(jpe?g|png|gif|webp)$/i.test(r.u)
       ? `<div class="q"><h4>${esc(r.t)}</h4>${r.d ? `<p class="hint">${esc(r.d)}</p>` : ''}<div class="imgs"><img src="${esc(r.u)}" alt="${esc(r.t)}" onclick="zoom(this)"></div></div>`
-      : `<a class="card rescard" style="--k:${k}" href="${esPaginaPropia(r.u) ? '#recurso=' + esc(r.u) : esc(r.u)}"${esExterno(r.u) ? ' target="_blank" rel="noopener noreferrer"' : ''}><h3>${esc(r.t)}</h3>${r.d ? `<p class="snip">${esc(r.d)}</p>` : ''}<div class="recetqs">${etiquetasRecurso(r)}</div><div class="meta">${/\.pdf$/i.test(r.u) ? `<span class="pdftag">${PDF_ICO.replace('<svg ', '<svg width="14" height="14" ')} PDF · Descargar</span>` : 'Abrir'}</div></a>`;
+      : `<a class="card rescard" href="${esPaginaPropia(r.u) ? '#recurso=' + esc(r.u) : esc(r.u)}"${esExterno(r.u) ? ' target="_blank" rel="noopener noreferrer"' : ''}><h3>${esc(r.t)}</h3>${r.d ? `<p class="snip">${esc(r.d)}</p>` : ''}<div class="recetqs">${etiquetasRecurso(r)}</div><div class="meta">${/\.pdf$/i.test(r.u) ? `<span class="pdftag">${PDF_ICO.replace('<svg ', '<svg width="14" height="14" ')} PDF · Descargar</span>` : 'Abrir'}</div></a>`;
   };
   const enGrupo = new Set(GRUPOS_RECURSOS.flatMap(g => g[1]));
-  const grupos = GRUPOS_RECURSOS.map(([nombre, secs]) => [nombre, secs.flatMap(sec => R.filter(r => r.s === sec))])
-    .concat([...new Set(R.map(r => r.s).filter(x => !enGrupo.has(x)))].map(sec => [sec, R.filter(r => r.s === sec)]))
+  const grupos = GRUPOS_RECURSOS.map(([nombre, secs, color]) => [nombre, secs.flatMap(sec => R.filter(r => r.s === sec)), color])
+    .concat([...new Set(R.map(r => r.s).filter(x => !enGrupo.has(x)))].map(sec => [sec, R.filter(r => r.s === sec), 'var(--acc2)']))
     .filter(g => g[1].length);
-  app.innerHTML = `<div class="case"><h2>Recursos</h2><div class="recgrid">` + grupos.map(([nombre, xs]) => {
+  app.innerHTML = `<div class="case"><h2>Recursos</h2><div class="recgrid">` + grupos.map(([nombre, xs, color]) => {
     const conImg = xs.some(r => /\.(jpe?g|png|gif|webp)$/i.test(r.u));
-    return `<section class="recsec${conImg ? ' ancho' : ''}"><h3>${esc(nombre)}</h3><div class="list">${xs.map(item).join('')}</div></section>`;
+    return `<section class="recsec${conImg ? ' ancho' : ''}" style="--k:${color}"><h3 class="dgcat">${esc(nombre)}</h3><div class="list">${xs.map(item).join('')}</div></section>`;
   }).join('') + '</div></div>';
   app.querySelectorAll('a.rescard[target]').forEach(a => a.addEventListener('click', () => marcarRecVisto(a.getAttribute('href'))));
 }
