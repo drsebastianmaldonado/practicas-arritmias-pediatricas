@@ -972,6 +972,7 @@ function exFin() {
   if (mal.length) document.getElementById('exrep').onclick = () => { EX.qs = shuffle(mal.map(r => ({ c: r.c, q: r.q, k: r.k }))); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; exPreg(); };
 }
 // ---------- Valores por edad (valores.js, lo completa el autor) y calculador de QTc ----------
+const valAbiertas = new Set();
 function valores() {
   const V = window.VALORES || { filas: [], columnas: [] };
   app.innerHTML = `<div class="case"><h2>Calculador de QTc</h2>
@@ -979,8 +980,10 @@ function valores() {
       <div id="qtres" class="hint" style="margin-top:10px">Ingresá el QT y la frecuencia cardíaca (o el intervalo RR).</div></div>
     <p class="hint">Herramienta de apoyo: no reemplaza el juicio clínico. Bazett tiende a sobrecorregir con frecuencias altas, por eso conviene compararlo con las otras fórmulas.</p>
     ${V.tablas && V.tablas.length ? `<h2>Valores normales por edad</h2>${V.fuente ? `<p class="hint">Fuente: ${esc(V.fuente)}</p>` : ''}
-      ${V.tablas.map(t => `<h3>${esc(t.titulo)}</h3><div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%;background:var(--card)"><thead><tr>${t.columnas.map(c => `<th style="text-align:left;padding:8px;border:1px solid var(--line);white-space:nowrap">${esc(c[1])}</th>`).join('')}</tr></thead>
-      <tbody>${t.filas.map(f => `<tr>${t.columnas.map(c => `<td style="padding:8px;border:1px solid var(--line);white-space:nowrap">${esc(f[c[0]] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>${t.nota ? `<p class="hint">${esc(t.nota)}</p>` : ''}`).join('')}` : ''}</div>`;
+      ${V.tablas.map((t, i) => `<details class="dgsec valsec" data-cat="${esc(t.titulo)}" style="--k:${COLOR_FASC[i % COLOR_FASC.length]}"${valAbiertas.has(t.titulo) ? ' open' : ''}><summary class="dgcat"><span>${esc(t.titulo)}</span></summary><div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%;background:var(--card)"><thead><tr>${t.columnas.map(c => `<th style="text-align:left;padding:8px;border:1px solid var(--line);white-space:nowrap">${esc(c[1])}</th>`).join('')}</tr></thead>
+      <tbody>${t.filas.map(f => `<tr>${t.columnas.map(c => `<td style="padding:8px;border:1px solid var(--line);white-space:nowrap">${esc(f[c[0]] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>${t.nota ? `<p class="hint">${esc(t.nota)}</p>` : ''}</details>`).join('')}` : ''}</div>`;
+  // Cada tabla de valores normales es plegable: se ven solo los títulos y las abiertas se recuerdan
+  app.querySelectorAll('details.valsec').forEach(d => d.ontoggle = () => { d.open ? valAbiertas.add(d.dataset.cat) : valAbiertas.delete(d.dataset.cat); });
   const $ = id => document.getElementById(id);
   const calc = () => { const qt = +$('qt').value, fc = +$('fc').value, rrms = +$('rr').value;
     const rr = rrms > 0 ? rrms / 1000 : fc > 0 ? 60 / fc : 0;
