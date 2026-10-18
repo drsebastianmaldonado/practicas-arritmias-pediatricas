@@ -147,7 +147,7 @@ input[type=search],input[type=number],select{width:100%;padding:11px 12px;border
 @media (min-width:760px){.pdfpreview{display:block;width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:12px}}
 /* Recursos: dos columnas de secciones en pantallas anchas (una sola en celular); las secciones con imágenes ocupan todo el ancho */
 @media (min-width:760px){ .recgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;align-items:start} .recsec.ancho{grid-column:1/-1} }
-.rescard{background:color-mix(in srgb,var(--k) 6%,var(--card));border-color:color-mix(in srgb,var(--k) 22%,var(--line))}
+.rescard,.suave,.card.tint.suave,.q.tint.suave{background:color-mix(in srgb,var(--k) 6%,var(--card));border-color:color-mix(in srgb,var(--k) 22%,var(--line))}
 .rescard:hover{border-color:var(--k)}
 .recetqs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
 .recetqs:empty{display:none}
@@ -986,9 +986,10 @@ function patrones() {
     ${P.length ? `<input type="search" id="pq" placeholder="Buscar patrón…" value="${esc(PT.q)}">
       ${cats.length > 1 ? `<div class="chips">${cats.map(c => `<span class="chip ${PT.cat === c ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</span>`).join('')}</div>` : ''}
       <div class="count">${res.length} de ${P.length} patrones</div>` : '<p class="hint">Todavía no se cargó ningún patrón.</p>'}
-    <div class="list">${res.map(p => `<div class="card tint" style="cursor:default;--k:${COLOR_PAT[p.c] || 'var(--acc2)'}"><h3>${esc(p.t)}</h3>${p.c ? `<div class="meta">${esc(p.c)}</div>` : ''}${imgs(p.imgs)}
+    ${[...cats, ''].map(cat => { const xs = res.filter(p => (p.c || '') === cat); return xs.length ? `<section style="--k:${COLOR_PAT[cat] || 'var(--acc2)'}">${cat ? `<h3 class="dgcat">${esc(cat)}</h3>` : ''}
+    <div class="list">${xs.map(p => `<div class="card tint suave" style="cursor:default;--k:${COLOR_PAT[cat] || 'var(--acc2)'}"><h3>${esc(p.t)}</h3>${imgs(p.imgs)}
       <ul>${p.k.map(k => `<li>${esc(k)}</li>`).join('')}</ul>${p.d ? `<p class="snip"><b>Diagnóstico diferencial:</b> ${esc(p.d)}</p>` : ''}
-      ${p.q ? `<button class="ghost" data-q="${esc(p.q)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></div>`;
+      ${p.q ? `<button class="ghost" data-q="${esc(p.q)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></section>` : ''; }).join('')}</div>`;
   const q = document.getElementById('pq');
   if (q) q.oninput = e => { PT.q = e.target.value; const c = e.target.selectionStart; patrones(); const n = document.getElementById('pq'); n.focus(); n.setSelectionRange(c, c); };
   app.querySelectorAll('.chip[data-c]').forEach(el => el.onclick = () => { PT.cat = PT.cat === el.dataset.c ? '' : el.dataset.c; patrones(); });
@@ -1038,7 +1039,7 @@ function calculadoras(L, opts) {
   app.innerHTML = `<div class="case"><h2>${esc(opts.titulo)}</h2>
     <p class="hint">${esc(opts.intro)}</p>
     ${L.length ? '' : `<p class="hint">${esc(opts.vacio)}</p>`}
-    ${L.map((s, si) => `<details class="q tint" style="--k:${COLOR_CALC[s.id] || 'var(--acc2)'}" ${L.length === 1 ? 'open' : ''}><summary style="cursor:pointer;font-weight:700;font-size:1.05rem">${esc(s.titulo)}</summary>
+    ${L.map((s, si) => `${s.grupo && s.grupo !== (L[si - 1] || {}).grupo ? `<h3 class="dgcat" style="--k:${COLOR_GRUPO_CALC[s.grupo] || 'var(--acc2)'}">${esc(s.grupo)}</h3>` : ''}<details class="q tint suave" style="--k:${(s.grupo && COLOR_GRUPO_CALC[s.grupo]) || COLOR_CALC[s.id] || 'var(--acc2)'}" ${L.length === 1 ? 'open' : ''}><summary style="cursor:pointer;font-weight:700;font-size:1.05rem">${esc(s.titulo)}</summary>
       ${s.verificado ? '' : '<div class="warn" style="margin-top:10px">Borrador: criterios y puntajes pendientes de verificación por el autor.</div>'}
       ${s.nota ? `<p class="hint" style="margin-top:10px">${esc(s.nota)}</p>` : ''}
       ${(s.campos || []).map(c => c.tipo === 'si'
@@ -1052,7 +1053,7 @@ function calculadoras(L, opts) {
       <div class="score calcres" style="display:block" id="sc${si}"></div>
       <div class="nav"><button class="ghost" data-reset="${si}">Reiniciar</button></div>
       <p class="hint">Fuente: ${esc(s.fuente)}</p>${s.pie ? `<p class="hint">${esc(s.pie)}</p>` : ''}</details>`).join('')}
-    ${(opts.enlaces || []).length ? `<h3 style="margin:22px 0 6px">Calculadoras externas</h3>${opts.enlaces.map(e => `<div class="q"><b>${esc(e.t)}</b>${e.nota ? `<p class="hint" style="margin:6px 0">${esc(e.nota)}</p>` : ''}<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer"><button type="button" class="ghost">Abrir la calculadora oficial ↗</button></a></div>`).join('')}` : ''}</div>`;
+    ${(opts.enlaces || []).length ? `<h3 class="dgcat" style="--k:${COLOR_GRUPO_CALC['Calculadoras externas']}">Calculadoras externas</h3>${opts.enlaces.map(e => `<div class="q tint suave" style="--k:${COLOR_GRUPO_CALC['Calculadoras externas']}"><b>${esc(e.t)}</b>${e.nota ? `<p class="hint" style="margin:6px 0">${esc(e.nota)}</p>` : ''}<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer"><button type="button" class="ghost">Abrir la calculadora oficial ↗</button></a></div>`).join('')}` : ''}</div>`;
   // Cortes: la lista va de menor a mayor gravedad; el primero se pinta verde, el último rojo y los del medio naranja
   const cortesHtml = (lista, activo) => `<div class="cortes">${lista.map((c, i) => `<span class="corte n${i === 0 ? 0 : i === lista.length - 1 ? 2 : 1}${i === activo ? ' on' : ''}">${esc(c)}</span>`).join('')}</div>`;
   const rangos = s => {   // de "interpretacion" (de mayor a menor) a textos "≤ 1 · 1,5–3 · ≥ 3,5" (paso entre puntajes: 0,5)
@@ -1128,6 +1129,8 @@ const COLOR_DIAG = {
 };
 const COLOR_PAT = { 'Bloqueos AV': '#2aa198', 'Canalopatías': '#c9588f', 'Preexcitación': '#4fb286', 'Repolarización': '#b86bb8',
   'Ritmo y conducción': '#5f7fa6', 'Taquicardia de QRS ancho': '#8a63d2', 'Taquicardia de QRS angosto': '#3d8bd9' };
+// Scores agrupados (scores.js, "grupo"): título de sección con degradé y calculadoras en un tono suave del mismo color
+const COLOR_GRUPO_CALC = { 'Canalopatías': '#c9588f', 'Deportistas': '#4a9d5b', 'Miocardiopatías': '#b0753f', 'Calculadoras externas': '#6b7a99' };
 const COLOR_CALC = { schwartz: '#2aa198', shanghai: '#c9588f', hcmkids: '#b0753f', hcmscd: '#d9a02f', deportista: '#4a9d5b', arvc: '#8a63d2', pettersen: '#3d8bd9', dallaire: '#e0584f' };
 const colorHash = s => { const P = Object.values(COLOR_DIAG).slice(0, 12); return P[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % P.length]; };
 function diagnosticos() {

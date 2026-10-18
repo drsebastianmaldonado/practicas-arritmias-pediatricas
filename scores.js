@@ -1,4 +1,5 @@
 // Scores clínicos (pestaña "Scores"). Cada score se define acá; para agregar uno nuevo copiá un bloque.
+//   grupo:      sección en la que aparece (Canalopatías, Deportistas, Miocardiopatías); los de un mismo grupo van juntos
 //   verificado: false  ->  la página muestra "criterios pendientes de verificación". Poné true cuando hayas controlado cada
 //                          puntaje contra la publicación original (y corregí "fuente" si hace falta).
 //   grupos[].tipo:  "uno"   = se elige una sola opción (o ninguna)
@@ -17,6 +18,7 @@
 window.SCORES = [
   {
     id: "schwartz",
+    grupo: "Canalopatías",
     titulo: "Score de Schwartz (síndrome de QT largo)",
     fuente: "Schwartz PJ, Crotti L. QTc behavior during exercise and genetic testing for the long-QT syndrome. Circulation. 2011;124:2181-5 (actualización del score de 1993).",
     verificado: true,
@@ -50,6 +52,7 @@ window.SCORES = [
   },
   {
     id: "shanghai",
+    grupo: "Canalopatías",
     titulo: "Score de Shanghai (síndrome de Brugada)",
     fuente: "Antzelevitch C, Yan GX, Ackerman MJ, et al. J-wave syndromes expert consensus conference report: emerging concepts and gaps in knowledge. Heart Rhythm. 2016;13:e295-324.",
     verificado: true,
@@ -87,6 +90,7 @@ window.SCORES = [
   },
   {
     id: "deportista",
+    grupo: "Deportistas",
     titulo: "ECG del deportista: criterios internacionales (2017)",
     nota: "Para deportistas de 12 a 35 años. Tildá los hallazgos del ECG: los normales no requieren estudio; un solo hallazgo limítrofe tampoco; dos o más limítrofes, o cualquier hallazgo anormal, requieren evaluación adicional.",
     fuente: "Sharma S, Drezner JA, Baggish A, et al. International recommendations for electrocardiographic interpretation in athletes. J Am Coll Cardiol. 2017;69:1057-75 (y Eur Heart J. 2018;39:1466-80).",
@@ -146,6 +150,7 @@ window.SCORES = [
   },
   {
     id: "arvc",
+    grupo: "Miocardiopatías",
     titulo: "Miocardiopatía arritmogénica del VD: criterios del Task Force (2010)",
     nota: "Cada categoría cuenta una sola vez (si hay un criterio mayor y uno menor en la misma categoría, cuenta el mayor). Definitivo: 2 mayores, o 1 mayor + 2 menores, o 4 menores de categorías distintas. Limítrofe: 1 mayor + 1 menor, o 3 menores. Posible: 1 mayor o 2 menores.",
     fuente: "Marcus FI, McKenna WJ, Sherrill D, et al. Diagnosis of arrhythmogenic right ventricular cardiomyopathy/dysplasia: proposed modification of the Task Force Criteria. Circulation. 2010;121:1533-41.",
@@ -206,6 +211,7 @@ window.SCORES = [
   // ---- Calculadoras con fórmula: "campos" (datos a ingresar) + "calc" (devuelve { titulo, valor (%), lectura, aviso }) ----
   {
     id: "hcmkids",
+    grupo: "Miocardiopatías",
     titulo: "HCM Risk-Kids (muerte súbita a 5 años en miocardiopatía hipertrófica pediátrica)",
     nota: "Modelo para pacientes de 1 a 16 años con miocardiopatía hipertrófica. Ingresás los valores absolutos (mm) y la calculadora obtiene los Z-scores con edad-sexo-peso, igual que la calculadora oficial. No está validado en menores de 1 año, mayores de 16, con TV sostenida o FV previas, ni en miocardiopatías sindrómicas (errores innatos del metabolismo, RASopatías, enfermedad neuromuscular).",
     fuente: "Norrish G, et al. Development of a novel risk prediction model for sudden cardiac death in childhood hypertrophic cardiomyopathy (HCM Risk-Kids). JAMA Cardiol. 2019;4:918-927. Ecuaciones (superficie corporal, Z-scores, índice pronóstico y riesgo) tomadas del código de la calculadora oficial, hcmriskkids.org, y coinciden con la ecuación publicada en la validación externa (Eur J Prev Cardiol 2022, PMC8967478).",
@@ -245,6 +251,7 @@ window.SCORES = [
   },
   {
     id: "hcmscd",
+    grupo: "Miocardiopatías",
     titulo: "HCM Risk-SCD (muerte súbita a 5 años en miocardiopatía hipertrófica del adulto)",
     nota: "Modelo de la guía ESC 2014 para pacientes de 16 años o más. No está validado en niños (para ellos, usar HCM Risk-Kids), deportistas de alto rendimiento ni enfermedades metabólicas o de depósito.",
     fuente: "O'Mahony C, et al. A novel clinical risk prediction model for sudden cardiac death in hypertrophic cardiomyopathy (HCM Risk-SCD). Eur Heart J. 2014;35:2010-20. Ecuación y umbrales según la revisión de Arq Bras Cardiol 2018 (PMC6023627).",
