@@ -216,6 +216,11 @@ details.sec>summary .meta{font-weight:400;margin-left:auto}
 .score{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:12px 0;display:none}
 .semana{border:2px solid var(--acc);margin:6px 0 14px}
 .semana img{width:100%;max-height:340px;object-fit:contain;background:#fff;border-radius:8px;margin-bottom:8px;display:block}
+.offline{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 14px;background:var(--card)}
+.offline summary{cursor:pointer;font-weight:600}
+.offrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.offrow button{padding:6px 12px;font-size:.88rem}
+.offrow .okoff{font-size:.88rem;color:var(--mute)}
 .warn{background:#fff3cd;color:#5c4400;border-radius:10px;padding:8px 12px;margin:10px 0;font-size:.9rem}
 </style>
 </head>
@@ -459,6 +464,7 @@ function fasciculos() {
   app.innerHTML = `<div class="case">
     <h2 style="margin:4px 0 2px">Fascículos</h2>
     <p class="hint" style="margin:0 0 14px">Los 110 casos organizados por fascículo, incluidos los de semanas anteriores.</p>
+    <div id="offline"></div>
     <div class="bar" style="position:static;border-bottom:0;padding:0">
       <input type="search" id="q" placeholder="Buscar: diagnóstico, fármaco, palabra clave…" value="${esc(state.q)}">
       <div class="row">
@@ -478,6 +484,63 @@ function fasciculos() {
   document.getElementById('f').onchange = e => { state.f = e.target.value; fasciculos(); };
   document.getElementById('solo').onchange = e => { state.solo = !!e.target.value; fasciculos(); };
   const ct = document.getElementById('clearTag'); if (ct) ct.onclick = () => { state.tag = ''; fasciculos(); };
+  pintarOffline();
+}
+// ---------- Usar sin internet: guardar de antemano las imágenes de los fascículos elegidos ----------
+// La app (HTML y datos) ya la guarda sw.js al instalarse; acá se bajan las imágenes de los casos y sus devoluciones al
+// mismo caché donde sw.js va guardando lo que se ve, así sw.js las encuentra cuando no hay conexión.
+const CACHE_OFF = 'banco-datos';   // = CACHE_DATOS de sw.js
+const OFF = { abierto: false, bajando: null, hecho: 0, total: 0, fallas: 0 };
+const nombreFasc = f => f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f;
+const urlsFasc = f => [...new Set(C.filter(c => c.f == f).flatMap(c => c.imgs.map(m => m.a).filter(Boolean).concat(c.devimgs || [])))]
+  .map(i => new URL(i.includes('/') ? i : 'imagenes_web/' + i, location.href).href);
+async function pintarOffline() {
+  const box = document.getElementById('offline');
+  if (!box || !('caches' in window) || !('serviceWorker' in navigator) || !/^https:|^http:\/\/localhost/.test(location.href)) return;
+  if (!navigator.serviceWorker.controller) { box.innerHTML = '<p class="hint" style="margin:0 0 14px">Para descargar fascículos y usarlos sin internet, cerrá y volvé a abrir la app.</p>'; return; }
+  let guardadas = new Set(), mb = 0;
+  try { guardadas = new Set((await (await caches.open(CACHE_OFF)).keys()).map(r => r.url)); } catch (e) {}
+  try { mb = Math.round(((await navigator.storage.estimate()).usage || 0) / 1048576); } catch (e) {}
+  if (box !== document.getElementById('offline')) return;   // se volvió a dibujar la pantalla mientras tanto
+  const filas = [...new Set(C.map(c => c.f))].map(f => { const u = urlsFasc(f); return { f, total: u.length, ya: u.filter(x => guardadas.has(x)).length }; });
+  box.innerHTML = `<details class="offline"${OFF.abierto ? ' open' : ''}><summary>📥 Usar sin internet</summary>
+    <p class="hint">Descargá los fascículos que quieras tener guardados para hacer los casos sin conexión (en un viaje, en la guardia…). Conviene hacerlo con wifi.</p>
+    ${filas.map(e => `<div class="offrow"><span>${nombreFasc(e.f)}</span>${OFF.bajando === e.f ? `<span class="okoff" id="offprog">Descargando ${OFF.hecho} de ${OFF.total}…</span>`
+      : e.ya >= e.total ? '<span class="okoff">✓ Disponible sin internet</span>'
+      : `<button type="button" class="ghost" data-off="${e.f}"${OFF.bajando != null ? ' disabled' : ''}>Descargar${e.ya ? ` (faltan ${e.total - e.ya})` : ''}</button>`}</div>`).join('')}
+    ${OFF.fallas ? `<p class="warn">No se pudieron descargar ${OFF.fallas} imágenes. Revisá la conexión y tocá Descargar de nuevo.</p>` : ''}
+    <div class="row">${filas.some(e => e.ya < e.total) ? `<button type="button" class="primary" id="offTodos"${OFF.bajando != null ? ' disabled' : ''}>Descargar todos</button>` : ''}
+      ${guardadas.size && OFF.bajando == null ? '<button type="button" class="ghost" id="offBorrar">Borrar lo descargado</button>' : ''}</div>
+    ${mb ? `<p class="hint">Espacio que ocupa la app en este dispositivo: ${mb} MB.</p>` : ''}
+  </details>`;
+  const det = box.querySelector('details'); det.ontoggle = () => { OFF.abierto = det.open; };
+  box.querySelectorAll('button[data-off]').forEach(b => b.onclick = () => bajarOffline([filas.find(e => String(e.f) === b.dataset.off).f]));
+  const todos = document.getElementById('offTodos'); if (todos) todos.onclick = () => bajarOffline(filas.filter(e => e.ya < e.total).map(e => e.f));
+  const borrar = document.getElementById('offBorrar'); if (borrar) borrar.onclick = async () => {
+    if (!confirm('¿Borrar los fascículos descargados? Vas a poder volver a descargarlos cuando quieras.')) return;
+    await caches.delete(CACHE_OFF); OFF.fallas = 0; pintarOffline();
+  };
+}
+async function bajarOffline(lista) {
+  if (OFF.bajando != null) return;
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}   // que el navegador no lo borre solo
+  const cache = await caches.open(CACHE_OFF);
+  OFF.fallas = 0;
+  for (const f of lista) {
+    const ya = new Set((await cache.keys()).map(r => r.url));
+    const faltan = urlsFasc(f).filter(u => !ya.has(u));
+    Object.assign(OFF, { bajando: f, hecho: 0, total: faltan.length }); await pintarOffline();
+    let i = 0;
+    const tarea = async () => {
+      while (i < faltan.length) {
+        const u = faltan[i++];
+        try { const r = await fetch(u, { cache: 'no-cache' }); if (r.ok) await cache.put(u, r); else OFF.fallas++; } catch (e) { OFF.fallas++; }
+        OFF.hecho++; const pr = document.getElementById('offprog'); if (pr) pr.textContent = `Descargando ${OFF.hecho} de ${OFF.total}…`;
+      }
+    };
+    await Promise.all([tarea(), tarea(), tarea(), tarea()]);
+  }
+  OFF.bajando = null; pintarOffline();
 }
 
 const imgs = (arr) => arr.length ? `<div class="imgs">${arr.map(i => `<img src="${i.includes('/') ? i : 'imagenes_web/' + i}" loading="lazy" alt="Trazado" onclick="zoom(this)">`).join('')}</div>` : '';
