@@ -992,7 +992,7 @@ function valores() {
   $('fc').oninput = () => { $('rr').value = ''; calc(); }; $('rr').oninput = () => { $('fc').value = ''; calc(); }; $('qt').oninput = calc;
 }
 // ---------- Patrones de referencia (patrones.js, generado por publicar_patrones.ps1) ----------
-let PT = { cat: '', q: '' };
+let PT = { cat: '', q: '', abiertas: new Set() };   // abiertas: categorías desplegadas
 function patrones() {
   const P = window.PATRONES || [], cats = [...new Set(P.map(p => p.c).filter(Boolean))], nq = norm(PT.q.trim());
   const res = P.filter(p => (!PT.cat || p.c === PT.cat) && (!nq || nq.split(/\s+/).every(w => norm(p.t + ' ' + p.k.join(' ') + ' ' + (p.d || '')).includes(w))));
@@ -1000,10 +1000,12 @@ function patrones() {
     ${P.length ? `<input type="search" id="pq" placeholder="Buscar patrón…" value="${esc(PT.q)}">
       ${cats.length > 1 ? `<div class="chips">${cats.map(c => `<span class="chip ${PT.cat === c ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</span>`).join('')}</div>` : ''}
       <div class="count">${res.length} de ${P.length} patrones</div>` : '<p class="hint">Todavía no se cargó ningún patrón.</p>'}
-    ${[...cats, ''].map(cat => { const xs = res.filter(p => (p.c || '') === cat); return xs.length ? `<section style="--k:${COLOR_PAT[cat] || 'var(--acc2)'}">${cat ? `<h3 class="dgcat">${esc(cat)}</h3>` : ''}
+    ${[...cats, ''].map(cat => { const xs = res.filter(p => (p.c || '') === cat); return xs.length ? `<details class="dgsec patsec" data-cat="${esc(cat)}" style="--k:${COLOR_PAT[cat] || 'var(--acc2)'}"${nq || PT.cat || PT.abiertas.has(cat) ? ' open' : ''}><summary class="dgcat"><span>${esc(cat || 'Otros')}</span><span class="dgn">${xs.length}</span></summary>
     <div class="list">${xs.map(p => `<div class="card tint suave" style="cursor:default;--k:${COLOR_PAT[cat] || 'var(--acc2)'}"><h3>${esc(p.t)}</h3>${imgs(p.imgs)}
       <ul>${p.k.map(k => `<li>${esc(k)}</li>`).join('')}</ul>${p.d ? `<p class="snip"><b>Diagnóstico diferencial:</b> ${esc(p.d)}</p>` : ''}
-      ${p.q ? `<button class="ghost" data-q="${esc(p.q)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></section>` : ''; }).join('')}</div>`;
+      ${p.q ? `<button class="ghost" data-q="${esc(p.q)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></details>` : ''; }).join('')}</div>`;
+  // Solo se ven los títulos de las categorías; al tocar uno se despliegan sus patrones (buscando o filtrando, se abren solas)
+  app.querySelectorAll('details.patsec').forEach(d => d.ontoggle = () => { if (!(nq || PT.cat)) d.open ? PT.abiertas.add(d.dataset.cat) : PT.abiertas.delete(d.dataset.cat); });
   const q = document.getElementById('pq');
   if (q) q.oninput = e => { PT.q = e.target.value; const c = e.target.selectionStart; patrones(); const n = document.getElementById('pq'); n.focus(); n.setSelectionRange(c, c); };
   app.querySelectorAll('.chip[data-c]').forEach(el => el.onclick = () => { PT.cat = PT.cat === el.dataset.c ? '' : el.dataset.c; patrones(); });
