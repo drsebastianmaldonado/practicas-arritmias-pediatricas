@@ -176,6 +176,7 @@ details.dgsec>summary.dgcat{margin:8px 0}
 .glbtn::before{margin-top:6px}
 .glbtn .rbt{flex:1;min-width:0;overflow-wrap:break-word}
 .glbtn small{display:block;font-weight:400;color:var(--mute);font-size:.8rem;margin-top:2px}
+@media (min-width:640px){ .hubmini.patmini{grid-template-columns:repeat(3,minmax(0,1fr))} }
 @media (min-width:640px){ .hubmini.glmini{grid-template-columns:repeat(3,minmax(0,1fr))} }
 .recbtn .rbx{font-size:.8rem;color:var(--mute);font-weight:600}
 @media (min-width:640px){ .hubmini.recmini{grid-template-columns:repeat(3,minmax(0,1fr))} }
@@ -996,6 +997,18 @@ function valores() {
       <tr><td style="padding:4px 14px 4px 0">Hodges</td><td><b>${r(qt + 1.75 * (f - 60))} ms</b></td></tr></tbody></table>`; };
   $('fc').oninput = () => { $('rr').value = ''; calc(); }; $('rr').oninput = () => { $('fc').value = ''; calc(); }; $('qt').oninput = calc;
 }
+// Un patrón abierto: su propia pantalla (#patron=N) con trazado, características, diferencial y "Volver a Patrones"
+function verPatron(i) {
+  const P = window.PATRONES || [], p = P[+i];
+  if (!p) { location.hash = 'patrones'; return; }
+  const k = COLOR_PAT[p.c] || 'var(--acc2)';
+  app.innerHTML = `<div class="case"><div class="recbarra"><a href="#patrones"><button type="button" class="ghost">← Volver a Patrones</button></a></div>
+    <div class="card tint suave" style="cursor:default;--k:${k}">${p.c ? `<div class="meta">${esc(p.c)}</div>` : ''}<h2 style="margin:4px 0 10px">${esc(p.t)}</h2>${imgs(p.imgs)}
+      <ul>${p.k.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${p.d ? `<p class="snip"><b>Diagnóstico diferencial:</b> ${esc(p.d)}</p>` : ''}
+      ${p.q ? `<button class="ghost" data-q="${esc(p.q)}">Ver casos del banco</button>` : ''}</div></div>`;
+  window.scrollTo(0, 0);
+  app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = 'fasciculos'; });
+}
 // ---------- Patrones de referencia (patrones.js, generado por publicar_patrones.ps1) ----------
 let PT = { cat: '', q: '', abiertas: new Set() };   // abiertas: categorías desplegadas
 function patrones() {
@@ -1006,9 +1019,7 @@ function patrones() {
       ${cats.length > 1 ? `<div class="chips">${cats.map(c => `<span class="chip ${PT.cat === c ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</span>`).join('')}</div>` : ''}
       <div class="count">${res.length} de ${P.length} patrones</div>` : '<p class="hint">Todavía no se cargó ningún patrón.</p>'}
     ${[...cats, ''].map(cat => { const xs = res.filter(p => (p.c || '') === cat); return xs.length ? `<details class="dgsec patsec" data-cat="${esc(cat)}" style="--k:${COLOR_PAT[cat] || 'var(--acc2)'}"${nq || PT.cat || PT.abiertas.has(cat) ? ' open' : ''}><summary class="dgcat"><span>${esc(cat || 'Otros')}</span><span class="dgn">${xs.length}</span></summary>
-    <div class="list">${xs.map(p => `<div class="card tint suave" style="cursor:default;--k:${COLOR_PAT[cat] || 'var(--acc2)'}"><h3>${esc(p.t)}</h3>${imgs(p.imgs)}
-      <ul>${p.k.map(k => `<li>${esc(k)}</li>`).join('')}</ul>${p.d ? `<p class="snip"><b>Diagnóstico diferencial:</b> ${esc(p.d)}</p>` : ''}
-      ${p.q ? `<button class="ghost" data-q="${esc(p.q)}">Ver casos del banco</button>` : ''}</div>`).join('')}</div></details>` : ''; }).join('')}</div>`;
+    <div class="hubmini patmini">${xs.map(p => `<a class="hubbtn recbtn" style="--k:${COLOR_PAT[cat] || 'var(--acc2)'}" href="#patron=${P.indexOf(p)}"><span class="rbt">${esc(p.t)}</span></a>`).join('')}</div></details>` : ''; }).join('')}</div>`;
   // Solo se ven los títulos de las categorías; al tocar uno se despliegan sus patrones (buscando o filtrando, se abren solas)
   app.querySelectorAll('details.patsec').forEach(d => d.ontoggle = () => { if (!(nq || PT.cat)) d.open ? PT.abiertas.add(d.dataset.cat) : PT.abiertas.delete(d.dataset.cat); });
   const q = document.getElementById('pq');
@@ -1503,6 +1514,10 @@ function route() { const h = location.hash.slice(1); document.body.classList.tog
     document.getElementById('navCasos').classList.remove('active'); document.getElementById('navHerramientas').classList.remove('active');
     document.querySelectorAll('.navlink').forEach(a => a.classList.toggle('active', a.dataset.t === 'recursos'));
     verRecurso(h.slice(8)); return; }
+  if (h.startsWith('patron=')) {
+    document.getElementById('navCasos').classList.add('active'); document.getElementById('navHerramientas').classList.remove('active');
+    document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
+    verPatron(h.slice(7)); return; }
   if (h.startsWith('respaldo=')) { history.replaceState(null, '', location.pathname + location.search); importarRespaldo(h.slice(9)); location.hash = 'progreso'; return; }
   const enCasos = h === '' || NAV_GRUPOS.Casos.includes(h) || (h && !VISTAS[h] && h !== 'estadisticas');   // '' o un caso (#f1c2, #semana…) cuentan como "Casos"
   document.getElementById('navCasos').classList.toggle('active', enCasos);
