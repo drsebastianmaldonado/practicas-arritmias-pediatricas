@@ -6,6 +6,9 @@
 //                   "max"   = se pueden tildar varias pero cuenta solo el puntaje más alto
 //   interpretacion: de mayor a menor; se usa la primera con  total >= desde
 //   requiereGrupo:  (opcional) número de grupo (desde 0) que debe tener puntaje > 0; si no, se muestra sinRequisito
+//   interpretacion[].corto: (opcional) texto breve que acompaña al rango en los cortes que se ven bajo el resultado
+//   excluyentes:    (opcional) pares de criterios que no se suman juntos: "grupo.opción" o "grupo" entero (desde 0);
+//                   al tildar uno, el otro queda bloqueado
 window.SCORES = [
   {
     id: "schwartz",
@@ -23,7 +26,7 @@ window.SCORES = [
           { t: "Onda T mellada en 3 derivaciones", p: 1 },
           { t: "Frecuencia cardíaca baja para la edad (solo niños)", p: 0.5 }
         ] },
-      { t: "Historia clínica · síncope", tipo: "uno", nota: "El síncope y las torsades de pointes son mutuamente excluyentes.",
+      { t: "Historia clínica · síncope", tipo: "uno", nota: "El síncope y las torsades de pointes son mutuamente excluyentes: al tildar uno, el otro queda bloqueado.",
         opciones: [ { t: "Síncope con estrés", p: 2 }, { t: "Síncope sin estrés", p: 1 } ] },
       { t: "Historia clínica · sordera", tipo: "suma",
         opciones: [ { t: "Sordera congénita", p: 0.5 } ] },
@@ -34,10 +37,11 @@ window.SCORES = [
         ] }
     ],
     interpretacion: [
-      { desde: 3.5, t: "Probabilidad alta de síndrome de QT largo" },
-      { desde: 1.5, t: "Probabilidad intermedia" },
-      { desde: 0,   t: "Probabilidad baja" }
-    ]
+      { desde: 3.5, t: "Probabilidad alta de síndrome de QT largo", corto: "alta" },
+      { desde: 1.5, t: "Probabilidad intermedia", corto: "intermedia" },
+      { desde: 0,   t: "Probabilidad baja", corto: "baja" }
+    ],
+    excluyentes: [["1.1", "2"]]   // torsades de pointes (grupo 1, opción 1) y síncope (grupo 2)
   },
   {
     id: "shanghai",
@@ -71,9 +75,9 @@ window.SCORES = [
     requiereGrupo: 0,
     sinRequisito: "Para usar el score se necesita al menos un hallazgo de ECG (categoría I).",
     interpretacion: [
-      { desde: 3.5, t: "Síndrome de Brugada probable / definitivo" },
-      { desde: 2,   t: "Síndrome de Brugada posible" },
-      { desde: 0,   t: "No diagnóstico" }
+      { desde: 3.5, t: "Síndrome de Brugada probable / definitivo", corto: "probable / definitivo" },
+      { desde: 2,   t: "Síndrome de Brugada posible", corto: "posible" },
+      { desde: 0,   t: "No diagnóstico", corto: "no diagnóstico" }
     ]
   },
   // ---- Calculadoras con fórmula: "campos" (datos a ingresar) + "calc" (devuelve { titulo, valor (%), lectura, aviso }) ----
@@ -104,6 +108,7 @@ window.SCORES = [
       const fuera = (v.age < 1 || v.age > 16) ? "Atención: el modelo solo está validado de 1 a 16 años. " : "";
       return { titulo: "Riesgo de muerte súbita a 5 años", valor: r,
         lectura: r >= 6 ? "Riesgo alto (≥ 6 % a 5 años, umbral usado en la validación del modelo)." : "Por debajo del umbral de 6 % a 5 años.",
+        cortes: [{ t: "< 6 %", on: r < 6 }, { t: "≥ 6 % alto", on: r >= 6 }],
         detalle: `Z-score del espesor parietal: ${f(zMwt)} · Z-score de la aurícula izquierda: ${f(zLa)} · superficie corporal: ${f(bsa)} m² · índice pronóstico: ${f(pi)}`,
         aviso: fuera + "Riesgo = 1 − 0,949437808 ^ exp(índice pronóstico). Herramienta de apoyo: no reemplaza el juicio clínico." };
     }
@@ -129,6 +134,7 @@ window.SCORES = [
       const r = (1 - Math.pow(0.998, Math.exp(pi))) * 100;
       return { titulo: "Riesgo de muerte súbita a 5 años", valor: r,
         lectura: r >= 6 ? "Riesgo alto (≥ 6 %): se debe considerar el CDI." : r >= 4 ? "Riesgo intermedio (4 a < 6 %): se puede considerar el CDI." : "Riesgo bajo (< 4 %): en general no se considera el CDI.",
+        cortes: [{ t: "< 4 % bajo", on: r < 4 }, { t: "4 a < 6 % intermedio", on: r >= 4 && r < 6 }, { t: "≥ 6 % alto", on: r >= 6 }],
         aviso: (v.age < 16 ? "Atención: el modelo no está validado en menores de 16 años; usar HCM Risk-Kids. " : "") + "Riesgo = 1 − 0,998 ^ exp(índice pronóstico). Herramienta de apoyo: no reemplaza el juicio clínico." };
     }
   }
