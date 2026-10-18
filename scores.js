@@ -90,7 +90,7 @@ window.SCORES = [
     titulo: "ECG del deportista: criterios internacionales (2017)",
     nota: "Para deportistas de 12 a 35 años. Tildá los hallazgos del ECG: los normales no requieren estudio; un solo hallazgo limítrofe tampoco; dos o más limítrofes, o cualquier hallazgo anormal, requieren evaluación adicional.",
     fuente: "Sharma S, Drezner JA, Baggish A, et al. International recommendations for electrocardiographic interpretation in athletes. J Am Coll Cardiol. 2017;69:1057-75 (y Eur Heart J. 2018;39:1466-80).",
-    verificado: false,
+    verificado: true,
     grupos: [
       { t: "Hallazgos normales (adaptación al entrenamiento)", tipo: "suma",
         opciones: [
@@ -149,7 +149,7 @@ window.SCORES = [
     titulo: "Miocardiopatía arritmogénica del VD: criterios del Task Force (2010)",
     nota: "Cada categoría cuenta una sola vez (si hay un criterio mayor y uno menor en la misma categoría, cuenta el mayor). Definitivo: 2 mayores, o 1 mayor + 2 menores, o 4 menores de categorías distintas. Limítrofe: 1 mayor + 1 menor, o 3 menores. Posible: 1 mayor o 2 menores.",
     fuente: "Marcus FI, McKenna WJ, Sherrill D, et al. Diagnosis of arrhythmogenic right ventricular cardiomyopathy/dysplasia: proposed modification of the Task Force Criteria. Circulation. 2010;121:1533-41.",
-    verificado: false,
+    verificado: true,
     grupos: [
       { t: "I. Disfunción y alteraciones estructurales del VD", tipo: "max",
         opciones: [
