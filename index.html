@@ -1053,12 +1053,23 @@ function calcRel(c) {
 // ---------- Scores clínicos (scores.js): calculadoras por criterios con puntaje ----------
 // Motor genérico de calculadoras por criterios (grupos con puntaje) o por fórmula (campos + calc). Lo usan
 // tanto "Scores clínicos" (scores.js) como "Parámetros Z" (parametros_z.js): cada uno pasa su propia lista.
+// Scores agrupados: cada grupo es una sección plegable (título con degradé + cantidad); las abiertas se recuerdan
+const calcAbiertas = new Set();
+const grupoCalc = (nombre, n, html) => `<details class="dgsec calcsec" data-cat="${esc(nombre)}" style="--k:${COLOR_GRUPO_CALC[nombre] || 'var(--acc2)'}"${calcAbiertas.has(nombre) ? ' open' : ''}><summary class="dgcat"><span>${esc(nombre)}</span><span class="dgn">${n}</span></summary>${html}</details>`;
+function agruparCalc(L, htmls) {   // las calculadoras sin grupo (p. ej. Parámetros Z) quedan sueltas, como antes
+  let out = '';
+  for (let i = 0; i < L.length;) {
+    const g = L[i].grupo; let j = i; while (j < L.length && L[j].grupo === g) j++;
+    out += g ? grupoCalc(g, j - i, htmls.slice(i, j).join('')) : htmls.slice(i, j).join(''); i = j;
+  }
+  return out;
+}
 function calculadoras(L, opts) {
   const pf = n => String(n).replace('.', ',');
   app.innerHTML = `<div class="case"><h2>${esc(opts.titulo)}</h2>
     <p class="hint">${esc(opts.intro)}</p>
     ${L.length ? '' : `<p class="hint">${esc(opts.vacio)}</p>`}
-    ${L.map((s, si) => `${s.grupo && s.grupo !== (L[si - 1] || {}).grupo ? `<h3 class="dgcat" style="--k:${COLOR_GRUPO_CALC[s.grupo] || 'var(--acc2)'}">${esc(s.grupo)}</h3>` : ''}<details class="q tint suave" style="--k:${(s.grupo && COLOR_GRUPO_CALC[s.grupo]) || COLOR_CALC[s.id] || 'var(--acc2)'}" ${L.length === 1 ? 'open' : ''}><summary style="cursor:pointer;font-weight:700;font-size:1.05rem">${esc(s.titulo)}</summary>
+    ${agruparCalc(L, L.map((s, si) => `<details class="q tint suave" style="--k:${(s.grupo && COLOR_GRUPO_CALC[s.grupo]) || COLOR_CALC[s.id] || 'var(--acc2)'}" ${L.length === 1 ? 'open' : ''}><summary style="cursor:pointer;font-weight:700;font-size:1.05rem">${esc(s.titulo)}</summary>
       ${s.verificado ? '' : '<div class="warn" style="margin-top:10px">Borrador: criterios y puntajes pendientes de verificación por el autor.</div>'}
       ${s.nota ? `<p class="hint" style="margin-top:10px">${esc(s.nota)}</p>` : ''}
       ${(s.campos || []).map(c => c.tipo === 'si'
@@ -1071,8 +1082,9 @@ function calculadoras(L, opts) {
         ${g.tipo === 'uno' ? `<label class="opt"><input type="radio" name="s${si}g${gi}" data-s="${si}" data-g="${gi}" data-o="-1" checked><span>Ninguno</span></label>` : ''}`).join('')}
       <div class="score calcres" style="display:block" id="sc${si}"></div>
       <div class="nav"><button class="ghost" data-reset="${si}">Reiniciar</button></div>
-      <p class="hint">Fuente: ${esc(s.fuente)}</p>${s.pie ? `<p class="hint">${esc(s.pie)}</p>` : ''}</details>`).join('')}
-    ${(opts.enlaces || []).length ? `<h3 class="dgcat" style="--k:${COLOR_GRUPO_CALC['Calculadoras externas']}">Calculadoras externas</h3>${opts.enlaces.map(e => `<div class="q tint suave" style="--k:${COLOR_GRUPO_CALC['Calculadoras externas']}"><b>${esc(e.t)}</b>${e.nota ? `<p class="hint" style="margin:6px 0">${esc(e.nota)}</p>` : ''}<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer"><button type="button" class="ghost">Abrir la calculadora oficial ↗</button></a></div>`).join('')}` : ''}</div>`;
+      <p class="hint">Fuente: ${esc(s.fuente)}</p>${s.pie ? `<p class="hint">${esc(s.pie)}</p>` : ''}</details>`))}
+    ${(opts.enlaces || []).length ? grupoCalc('Calculadoras externas', opts.enlaces.length, opts.enlaces.map(e => `<div class="q tint suave" style="--k:${COLOR_GRUPO_CALC['Calculadoras externas']}"><b>${esc(e.t)}</b>${e.nota ? `<p class="hint" style="margin:6px 0">${esc(e.nota)}</p>` : ''}<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer"><button type="button" class="ghost">Abrir la calculadora oficial ↗</button></a></div>`).join('')) : ''}</div>`;
+  app.querySelectorAll('details.calcsec').forEach(d => d.ontoggle = () => { d.open ? calcAbiertas.add(d.dataset.cat) : calcAbiertas.delete(d.dataset.cat); });
   // Cortes: la lista va de menor a mayor gravedad; el primero se pinta verde, el último rojo y los del medio naranja
   const cortesHtml = (lista, activo) => `<div class="cortes">${lista.map((c, i) => `<span class="corte n${i === 0 ? 0 : i === lista.length - 1 ? 2 : 1}${i === activo ? ' on' : ''}">${esc(c)}</span>`).join('')}</div>`;
   const rangos = s => {   // de "interpretacion" (de mayor a menor) a textos "≤ 1 · 1,5–3 · ≥ 3,5" (paso entre puntajes: 0,5)
@@ -1128,7 +1140,7 @@ function calculadoras(L, opts) {
     app.querySelectorAll(`select[data-s="${si}"]`).forEach(x => { x.selectedIndex = 0; }); b.closest('details').querySelectorAll('.opt').forEach(l => l.classList.remove('sel')); excl(si); calc(si); });
   L.forEach((s, si) => { excl(si); calc(si); });
   const k = abrirCalc ? L.findIndex(s => s.id === abrirCalc) : -1; abrirCalc = '';
-  if (k >= 0) { const d = app.querySelectorAll('details.q')[k]; d.open = true; setTimeout(() => d.scrollIntoView({ block: 'start' }), 60); }
+  if (k >= 0) { const d = app.querySelectorAll('details.q')[k], g = d.closest('details.calcsec'); if (g) g.open = true; d.open = true; setTimeout(() => d.scrollIntoView({ block: 'start' }), 60); }
 }
 function scores() { calculadoras(window.SCORES || [], { titulo: 'Scores clínicos',
   intro: 'Herramientas de apoyo para la práctica: no reemplazan el juicio clínico. Tildá los criterios que presenta el paciente.',
