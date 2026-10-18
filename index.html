@@ -927,7 +927,7 @@ function exInicio() {
     </div>
     <p class="hint">Preguntas disponibles con esos filtros: <b>${disp}</b></p>
     <div class="nav"><button class="primary" id="exgo" ${disp ? '' : 'disabled'}>Empezar examen</button>${misErrores().length ? `<button class="ghost" id="exerr">Repasar mis errores (${misErrores().length})</button>` : ''}</div>
-    ${h.length ? `<h3>Últimos exámenes</h3><div class="list">${h.map(x => `<div class="card"><b>${x.ok} de ${x.n}</b> · ${fechaCorta(x.d)}<div class="meta">${esc(x.tag || 'Todos los temas')}${x.f ? ' · ' + (x.f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + x.f) : ''}</div></div>`).join('')}</div>` : ''}</div>`;
+    ${h.length ? `<details class="dgsec" style="--k:#8a63d2"><summary class="dgcat"><span>Últimos exámenes</span><span class="dgn">${h.length}</span></summary><div class="list">${h.map(x => `<div class="card"><b>${x.ok} de ${x.n}</b> · ${fechaCorta(x.d)}<div class="meta">${esc(x.tag || 'Todos los temas')}${x.f ? ' · ' + (x.f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + x.f) : ''}</div></div>`).join('')}</div></details>` : ''}</div>`;
   const cfg = () => { EX.cfg = { n: +document.getElementById('exn').value, tag: document.getElementById('ext').value, f: document.getElementById('exf').value }; exInicio(); };
   ['exn', 'ext', 'exf'].forEach(id => document.getElementById(id).onchange = cfg);
   document.getElementById('exgo').onclick = () => { EX.qs = exElegir(exPool(EX.cfg), EX.cfg.n); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; EX.modo = ''; exPreg(); };
@@ -964,10 +964,11 @@ function exFin() {
   app.innerHTML = `<div class="case"><h2>Resultado: ${ok} de ${N} (${Math.round(ok / N * 100)} %)</h2>
     ${orden.length ? `<div class="vineta"><b>Temas para repasar:</b> ${orden.map(([t, n]) => `${esc(t)} (${n})`).join(' · ')}</div>` : '<div class="vineta">¡Sin errores!</div>'}
     <div class="nav"><button class="primary" id="exnuevo">Nuevo examen</button>${mal.length ? '<button class="ghost" id="exrep">Repetir solo las falladas</button>' : ''}</div>
-    <div class="list">${res.map((r, i) => `<div class="card" style="cursor:default"><h3>${r.ok ? '✓' : '✗'} ${i + 1}. ${esc(r.q.enun.slice(0, 140))}${r.q.enun.length > 140 ? '…' : ''}</h3>
+    ${[['Incorrectas', res.filter(r => !r.ok), '#e0584f', true], ['Correctas', res.filter(r => r.ok), '#2aa198', false]].map(([titulo, xs, color, abierta]) => xs.length ? `<details class="dgsec" style="--k:${color}"${abierta ? ' open' : ''}><summary class="dgcat"><span>${titulo}</span><span class="dgn">${xs.length}</span></summary>
+    <div class="list">${xs.map(r => { const i = res.indexOf(r); return `<div class="card suave" style="cursor:default;--k:${color}"><h3>${r.ok ? '✓' : '✗'} ${i + 1}. ${esc(r.q.enun.slice(0, 140))}${r.q.enun.length > 140 ? '…' : ''}</h3>
       <div class="meta">Tu respuesta: ${r.sel.length ? r.sel.join(' + ') : 'sin responder'} · Correcta: ${r.q.k.r.join(r.q.multi ? ' + ' : ' o ')}${!r.q.multi && r.q.k.r.length > 1 ? ' (cualquiera vale)' : ''}</div>
       ${(ex => ex ? `<details class="expl"${r.ok ? '' : ' open'}><summary>Ver explicación</summary>${ex.map(p => `<p>${esc(p)}</p>`).join('')}${(r.c.devimgs || []).length ? '<p class="hint">Las figuras están en la devolución completa del caso.</p>' : ''}</details>` : '')(devPorPregunta(r.c)[r.k + 1])}
-      <div class="meta"><a href="#${r.c.id}">Ver caso: ${r.c.semana ? 'Semana ' + fechaCorta(r.c.fecha) : 'Fasc. ' + r.c.f + ' · Caso ' + r.c.n} — ${esc(r.c.titulo)}</a></div></div>`).join('')}</div></div>`;
+      <div class="meta"><a href="#${r.c.id}">Ver caso: ${r.c.semana ? 'Semana ' + fechaCorta(r.c.fecha) : 'Fasc. ' + r.c.f + ' · Caso ' + r.c.n} — ${esc(r.c.titulo)}</a></div></div>`; }).join('')}</div></details>` : '').join('')}</div>`;
   document.getElementById('exnuevo').onclick = () => { EX.fase = 'inicio'; window.scrollTo(0, 0); exInicio(); };
   if (mal.length) document.getElementById('exrep').onclick = () => { EX.qs = shuffle(mal.map(r => ({ c: r.c, q: r.q, k: r.k }))); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; exPreg(); };
 }
