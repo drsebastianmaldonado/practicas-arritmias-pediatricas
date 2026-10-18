@@ -426,7 +426,7 @@ document.addEventListener('click', e => { if (!e.target.closest('.navgroup')) cl
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenus(); });
 
 const app = document.getElementById('app');
-const state = { q: '', f: '', tag: '', solo: false };
+const state = { q: '', f: '', tag: '', solo: false, abiertos: new Set() };   // abiertos: fascículos desplegados en la lista
 
 // ---------- Portada ("Casos"): destaca el caso de la semana; browsear/filtrar vive en "Fascículos" ----------
 function heroSemana() {
@@ -496,11 +496,16 @@ function fasciculos() {
       ${state.tag ? `<div class="chips"><span class="chip on">Tema: ${esc(state.tag)}</span><span class="chip" id="clearTag">Quitar filtro ✕</span></div>` : ''}
     </div>
     <div class="count">${res.length} de ${C.length} casos</div>
-    <div class="list">${res.map(c => `<a class="card ${seen[c.id] ? 'done' : ''}" href="#${c.id}">
+    ${fas.map((f, i) => { const xs = res.filter(c => c.f === f); if (!xs.length) return '';
+      const hechos = C.filter(c => c.f === f && seen[c.id]).length, total = C.filter(c => c.f === f).length, filtrando = !!(nq || state.f || state.tag || state.solo);
+      return `<details class="dgsec fassec" data-f="${esc(String(f))}" style="--k:${COLOR_FASC[i % COLOR_FASC.length]}"${filtrando || state.abiertos.has(String(f)) ? ' open' : ''}><summary class="dgcat"><span>${f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f}</span><span class="dgn" title="Casos repasados">${filtrando ? xs.length + ' de ' + total : hechos + '/' + total + (hechos === total ? ' ✓' : '')}</span></summary>
+      <div class="list">${xs.map(c => `<a class="card ${seen[c.id] ? 'done' : ''}" href="#${c.id}">
       <h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} —${esc(c.titulo)}${c.borrador ? '<span class="badge">borrador</span>' : ''}${seen[c.id] ? ' ✓' : ''}</h3>
       <div class="meta">${c.preguntas.length} pregunta${c.preguntas.length == 1 ? '' : 's'}${seenScore[c.id] ? ` · último puntaje ${seenScore[c.id].ok}/${seenScore[c.id].tot}` : ''}${c.tags.length ? ' · ' + c.tags.join(' · ') : ''}</div>
-      <p class="snip">${esc(c.vineta.slice(0, 170))}${c.vineta.length > 170 ? '…' : ''}</p></a>`).join('')}</div>
+      <p class="snip">${esc(c.vineta.slice(0, 170))}${c.vineta.length > 170 ? '…' : ''}</p></a>`).join('')}</div></details>`; }).join('')}
   </div>`;
+  // Solo se ven los títulos de los fascículos; al tocar uno se despliegan sus casos (filtrando o buscando, se abren los que tienen resultados)
+  app.querySelectorAll('details.fassec').forEach(d => d.ontoggle = () => { if (!(nq || state.f || state.tag || state.solo)) d.open ? state.abiertos.add(d.dataset.f) : state.abiertos.delete(d.dataset.f); });
   const q = document.getElementById('q');
   q.oninput = e => { state.q = e.target.value; const p = e.target.selectionStart; fasciculos(); const n = document.getElementById('q'); n.focus(); n.setSelectionRange(p, p); };
   document.getElementById('f').onchange = e => { state.f = e.target.value; fasciculos(); };
@@ -1130,6 +1135,8 @@ function parametrosZ() { calculadoras(window.PARAMETROS_Z || [], { titulo: 'Par�
 // ---------- Índice por diagnóstico (diagnosticos.js, generado por publicar_diagnosticos.ps1 desde diagnosticos.txt) ----------
 let DG = { q: '', abiertas: new Set() };   // abiertas: categorías desplegadas (se mantienen al volver a dibujar)
 // Un tono por categoría, apagado a propósito: solo tiñe el degradé del título y de cada diagnóstico.
+// Fascículos: un tono por fascículo (se repiten si hay más), mismos tonos apagados que el índice por diagnóstico
+const COLOR_FASC = ['#3d8bd9', '#8a63d2', '#e0584f', '#2aa198', '#d9a02f', '#c9588f', '#4fb286', '#5f7fa6', '#b0753f', '#b86bb8', '#12a58f', '#6b7a99'];
 const COLOR_DIAG = {
   'Taquicardias de QRS angosto': '#3d8bd9', 'Taquicardias de QRS ancho': '#8a63d2', 'Taquicardia ventricular': '#e0584f',
   'Arritmias ventriculares': '#e07a5f', 'Extrasístoles': '#d9a02f', 'Bloqueos y trastornos de conducción': '#2aa198',
