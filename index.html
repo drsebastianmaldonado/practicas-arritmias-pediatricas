@@ -471,6 +471,13 @@ function lbZoom(f, cx, cy) {   // amplía por f alrededor del punto (cx, cy) de 
   LB.x = (cx - bx) - (cx - bx - LB.x) * k; LB.y = (cy - by) - (cy - by - LB.y) * k; LB.s = s2; lbAplicar();
 }
 const lbCerrar = () => { lbEl.style.display = 'none'; document.body.style.overflow = ''; };
+// Imágenes con título opcional (m.t en casos.js): el título va como texto previo justo antes de esa imagen,
+// por ejemplo "HOLTER" entre las imágenes de la ergometría y la del Holter.
+const imgsT = (lista, fmt = t => esc(t)) => {
+  let html = '', grupo = [];
+  lista.forEach(m => { if (m.t) { html += imgs(grupo); grupo = []; html += `<p class="ctx">${fmt(m.t)}</p>`; } grupo.push(m.a); });
+  return html + imgs(grupo);
+};
 window.zoom = el => {
   lbImg.src = el.src; LB.s = 1; LB.x = LB.y = 0; LB.ptrs.clear(); lbAplicar();
   lbEl.style.display = 'flex'; document.body.style.overflow = 'hidden';
@@ -597,12 +604,12 @@ function detail(id) {
   // Cada pregunta va en su "paso" (con su texto previo e imágenes): se muestran de a una con "Siguiente pregunta".
   let body = '';
   c.preguntas.forEach((q, k) => {
-    body += `<section class="paso" data-k="${k}">` + (k === 0 ? imgs(c.imgs.filter(m => m.p == 0).map(m => m.a))
-      : (q.ctx ? `<p class="ctx">${gl(q.ctx)}</p>` : '') + imgs(c.imgs.filter(m => m.p == k).map(m => m.a)));
+    body += `<section class="paso" data-k="${k}">` + (k === 0 ? imgsT(c.imgs.filter(m => m.p == 0), gl)
+      : (q.ctx ? `<p class="ctx">${gl(q.ctx)}</p>` : '') + imgsT(c.imgs.filter(m => m.p == k), gl));
     body += `<div class="q"><h4>Pregunta ${k + 1}${q.enun ? ' · ' + gl(q.enun) : ''}</h4>
       ${q.multi ? '<div class="hint">Se puede elegir más de una opción.</div>' : ''}
       ${q.opc.length ? q.opc.map(o => `<label class="opt"><input type="${q.multi ? 'checkbox' : 'radio'}" name="q${k}" data-l="${o.l}"><span><b>${o.l}.</b> ${gl(o.t)}</span></label>`).join('') : '<div class="hint">Las opciones están en la imagen.</div>'}<div class="fb" id="fb${k}"></div><div id="ex${k}"></div></div>`
-      + (k === n - 1 ? imgs(c.imgs.filter(m => m.p >= n).map(m => m.a)) : '') + '</section>';
+      + (k === n - 1 ? imgsT(c.imgs.filter(m => m.p >= n), gl) : '') + '</section>';
   });
   const dev = c.dev.map(p => /^respuestas?\s*n/i.test(p) ? `<p class="rh">${esc(p)}</p>` : `<p>${gl(p)}</p>`).join('');
   const porPreg = devPorPregunta(c);
@@ -767,10 +774,10 @@ function exInicio() {
 }
 function exPreg() {
   const t = EX.qs[EX.i], c = t.c, q = t.q, k = t.k, N = EX.qs.length, sel = EX.ans[EX.i] || [];
-  const im = c.imgs.filter(m => m.p == 0 || (k > 0 && m.p == k)).map(m => m.a);
+  const im = imgsT(c.imgs.filter(m => m.p == 0)) + (k > 0 && q.ctx ? `<p class="ctx">${esc(q.ctx)}</p>` : '') + (k > 0 ? imgsT(c.imgs.filter(m => m.p == k)) : '');
   app.innerHTML = `<div class="case"><div class="meta">Pregunta ${EX.i + 1} de ${N}</div>
     <div style="height:6px;background:var(--chip);border-radius:9px;margin:6px 0 12px"><div style="height:6px;width:${Math.round(EX.i / N * 100)}%;background:var(--acc2);border-radius:9px"></div></div>
-    <div class="vineta">${esc(c.vineta) || '<i>Ver imágenes.</i>'}</div>${imgs(im)}${k > 0 && q.ctx ? `<p class="ctx">${esc(q.ctx)}</p>` : ''}
+    <div class="vineta">${esc(c.vineta) || '<i>Ver imágenes.</i>'}</div>${im}
     <div class="q"><h4>${esc(q.enun)}</h4>${q.multi ? '<div class="hint">Se puede elegir más de una opción.</div>' : ''}
       ${q.opc.map(o => `<label class="opt ${sel.includes(o.l) ? 'sel' : ''}"><input type="${q.multi ? 'checkbox' : 'radio'}" name="ex" data-l="${o.l}" ${sel.includes(o.l) ? 'checked' : ''}><span><b>${o.l}.</b> ${esc(o.t)}</span></label>`).join('')}</div>
     <div class="nav">${EX.i > 0 ? '<button class="ghost" id="exprev">← Anterior</button>' : ''}<button class="primary" id="exnext">${EX.i == N - 1 ? 'Terminar y ver resultado' : 'Siguiente →'}</button>
