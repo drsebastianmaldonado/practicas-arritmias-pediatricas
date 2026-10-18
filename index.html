@@ -161,12 +161,20 @@ details.dgsec>summary.dgcat{margin:8px 0}
 .hubgrid{display:grid;gap:10px}
 @media (min-width:640px){ .hubgrid{grid-template-columns:1fr 1fr} }
 .hubgrid .card{margin:0}
-.hubmini{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-@media (min-width:640px){ .hubmini{grid-template-columns:repeat(5,1fr)} }
+.hubmini{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (min-width:640px){ .hubmini{grid-template-columns:repeat(5,minmax(0,1fr))} }
 .hubbtn{display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:12px;text-decoration:none;color:var(--ink);font-weight:600;font-size:.95rem;
   background:color-mix(in srgb,var(--k) 8%,var(--card));border:1px solid color-mix(in srgb,var(--k) 28%,var(--line))}
 .hubbtn::before{content:'';width:10px;height:10px;border-radius:50%;background:var(--k);flex-shrink:0}
 .hubbtn:hover{border-color:var(--k)}
+.recbtn{flex-wrap:wrap;align-items:flex-start}
+.recbtn::before{margin-top:6px}
+.recbtn .rbt{flex:1;min-width:0;overflow-wrap:break-word;hyphens:auto}
+.recbtn .rbmarks{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:18px}
+.recbtn .rbmarks:empty{display:none}
+.recbtn .rbx{font-size:.8rem;color:var(--mute);font-weight:600}
+@media (min-width:640px){ .hubmini.recmini{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.recsec .hubmini{margin:2px 0 8px}
 .recetqs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
 .recetqs:empty{display:none}
 .recetq{font-size:.74rem;font-weight:600;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--k) 18%,var(--card));color:var(--ink);border:1px solid color-mix(in srgb,var(--k) 40%,var(--line))}
@@ -854,7 +862,7 @@ function recursos() {
   const item = r => {
     return /\.(jpe?g|png|gif|webp)$/i.test(r.u)
       ? `<div class="q"><h4>${esc(r.t)}</h4>${r.d ? `<p class="hint">${esc(r.d)}</p>` : ''}<div class="imgs"><img src="${esc(r.u)}" alt="${esc(r.t)}" onclick="zoom(this)"></div></div>`
-      : `<a class="card rescard" href="${esPaginaPropia(r.u) ? '#recurso=' + esc(r.u) : esc(r.u)}"${esExterno(r.u) ? ' target="_blank" rel="noopener noreferrer"' : ''}><h3>${esc(r.t)}</h3>${r.d ? `<p class="snip">${esc(r.d)}</p>` : ''}<div class="recetqs">${etiquetasRecurso(r)}</div><div class="meta">${/\.pdf$/i.test(r.u) ? `<span class="pdftag">${PDF_ICO.replace('<svg ', '<svg width="14" height="14" ')} PDF · Descargar</span>` : 'Abrir'}</div></a>`;
+      : `<a class="hubbtn recbtn" href="${esPaginaPropia(r.u) ? '#recurso=' + esc(r.u) : esc(r.u)}"${esExterno(r.u) ? ' target="_blank" rel="noopener noreferrer"' : /\.pdf$/i.test(r.u) ? ' download' : ''} title="${esc(r.d || r.t)}"><span class="rbt">${esc(r.t)}</span><span class="rbmarks">${recVistos && !recVistos.includes(r.u) ? '<span class="recetq nuevo">Nuevo</span>' : ''}${esExterno(r.u) ? '<span class="rbx">Sitio externo ↗</span>' : /\.pdf$/i.test(r.u) ? '<span class="rbx">PDF</span>' : ''}</span></a>`;
   };
   const enGrupo = new Set(GRUPOS_RECURSOS.flatMap(g => g[1]));
   const grupos = GRUPOS_RECURSOS.map(([nombre, secs, color]) => [nombre, secs.flatMap(sec => R.filter(r => r.s === sec)), color])
@@ -862,11 +870,11 @@ function recursos() {
     .filter(g => g[1].length);
   app.innerHTML = `<div class="case"><h2>Recursos</h2><div class="recgrid">` + grupos.map(([nombre, xs, color]) => {
     const conImg = xs.some(r => /\.(jpe?g|png|gif|webp)$/i.test(r.u));
-    return `<details class="dgsec recsec${conImg ? ' ancho' : ''}" data-cat="${esc(nombre)}" style="--k:${color}"${recAbiertas.has(nombre) ? ' open' : ''}><summary class="dgcat"><span>${esc(nombre)}</span><span class="dgn">${xs.length}</span></summary><div class="list">${xs.map(item).join('')}</div></details>`;
+    return `<details class="dgsec recsec${conImg ? ' ancho' : ''}" data-cat="${esc(nombre)}" style="--k:${color}"${recAbiertas.has(nombre) ? ' open' : ''}><summary class="dgcat"><span>${esc(nombre)}</span><span class="dgn">${xs.length}</span></summary><div class="${conImg ? 'list' : 'hubmini recmini'}">${xs.map(item).join('')}</div></details>`;
   }).join('') + '</div></div>';
   // Solo se ven los títulos de las secciones; al tocar uno se despliegan sus recursos (las abiertas se recuerdan)
   app.querySelectorAll('details.recsec').forEach(d => d.ontoggle = () => { d.open ? recAbiertas.add(d.dataset.cat) : recAbiertas.delete(d.dataset.cat); });
-  app.querySelectorAll('a.rescard[target]').forEach(a => a.addEventListener('click', () => marcarRecVisto(a.getAttribute('href'))));
+  app.querySelectorAll('a.recbtn[target]').forEach(a => a.addEventListener('click', () => marcarRecVisto(a.getAttribute('href'))));
 }
 // Un recurso propio (HTML dentro de recursos\) se muestra dentro de la app, con "Volver" siempre a mano: en la app
 // instalada (sobre todo en iPhone) no hay botón Atrás del navegador y abrirlo suelto dejaba a la persona sin salida.
