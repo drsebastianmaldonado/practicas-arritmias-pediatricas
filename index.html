@@ -1383,7 +1383,11 @@ function glosario() {
   app.querySelectorAll('button[data-q]').forEach(b => b.onclick = () => { state.q = b.dataset.q; state.f = ''; state.tag = ''; state.solo = false; location.hash = 'fasciculos'; });
 }
 // ---------- Drogas a evitar (drogas.js): dos listas (QT largo congénito y Brugada), cada una con su propio filtro. ----------
-let DR = { tab: 'qt', q: '' };
+let DR = { tab: 'qt', q: '', abiertas: new Set() };   // abiertas: grupos desplegados ("lista|grupo")
+// Grupo plegable de drogas (mismo estilo que Diagnósticos): con búsqueda se abren los que tienen resultados
+const grupoDrogas = (clave, titulo, color, n, html, abierto) => `<details class="dgsec drsec" data-k="${esc(clave)}" style="--k:${color}"${abierto || DR.abiertas.has(clave) ? ' open' : ''}><summary class="dgcat"><span>${esc(titulo)}</span><span class="dgn">${n}</span></summary><div class="list">${html}</div></details>`;
+const enlazarGruposDrogas = buscando => document.querySelectorAll('#drBox details.drsec').forEach(d => d.ontoggle = () => { if (!buscando) d.open ? DR.abiertas.add(d.dataset.k) : DR.abiertas.delete(d.dataset.k); });
+const COLOR_RIESGO_QT = { KR: '#e0584f', PR: '#d9a02f', CR: '#5f7fa6', SR: '#8a63d2' };
 function drogas() {
   const D = window.DROGAS;
   app.innerHTML = `<div class="case"><h2>Drogas a evitar</h2>
@@ -1400,8 +1404,10 @@ function pintarDrogasQT() {
   box.innerHTML = `<p class="hint">${esc(Q.fuente)}</p>
     ${pdfBtn('recursos/drogas_qt_largo_crediblemeds.pdf', 'Descargar PDF original (CredibleMeds)')}
     <input type="search" id="drq" placeholder="Buscar droga…" value="${esc(DR.q)}"><div class="count">${res.length} de ${Q.items.length} medicamentos</div>
-    <div class="list">${res.map(([g, m, r]) => `<div class="card" style="cursor:default"><h3>${esc(g)} <span class="badge" title="${esc(Q.categorias[r])}">${r}</span></h3>${m ? `<p class="meta">${esc(m)}</p>` : ''}</div>`).join('')}</div>
+    ${['KR', 'PR', 'CR', 'SR'].concat(Object.keys(Q.categorias).filter(k => !['KR', 'PR', 'CR', 'SR'].includes(k))).map(r => { const xs = res.filter(it => it[2] === r); return xs.length
+      ? grupoDrogas('qt|' + r, `${r} · ${(Q.categorias[r] || r).split(' (')[0]}`, COLOR_RIESGO_QT[r] || 'var(--acc2)', xs.length, (/\(/.test(Q.categorias[r] || '') ? `<p class="hint" style="margin:0 0 4px">${esc(Q.categorias[r])}</p>` : '') + xs.map(([g, m]) => `<div class="card suave" style="cursor:default;--k:${COLOR_RIESGO_QT[r] || 'var(--acc2)'}"><h3>${esc(g)}</h3>${m ? `<p class="meta">${esc(m)}</p>` : ''}</div>`).join(''), !!nq) : ''; }).join('')}
     <div class="warn" style="margin-top:14px">${esc(Q.aviso)}</div>`;
+  enlazarGruposDrogas(!!nq);
   const q = document.getElementById('drq');
   q.oninput = e => { DR.q = e.target.value; const p = e.target.selectionStart; pintarDrogasQT(); const n = document.getElementById('drq'); n.focus(); n.setSelectionRange(p, p); };
 }
@@ -1413,8 +1419,10 @@ function pintarDrogasBrugada() {
     ${B.grupos.map(gr => {
       const items = gr.items.filter(it => !nq || nq.split(/\s+/).every(w => norm(it.g + ' ' + (it.m || '') + ' ' + it.uso).includes(w)));
       if (!items.length) return '';
-      return `<h3>${esc(gr.t)}</h3><div class="list">${items.map(it => `<div class="card" style="cursor:default"><h3>${esc(it.g)} <span class="badge" title="${esc(B.clases[it.clase])}">Clase ${it.clase}</span></h3>${it.m ? `<p class="meta">${esc(it.m)}</p>` : ''}<p class="snip">${esc(it.uso)}</p>${it.nota ? `<p class="hint">${esc(it.nota)}</p>` : ''}</div>`).join('')}</div>`;
+      const color = COLOR_FASC[B.grupos.indexOf(gr) % COLOR_FASC.length];
+      return grupoDrogas('brugada|' + gr.t, gr.t, color, items.length, items.map(it => `<div class="card suave" style="cursor:default;--k:${color}"><h3>${esc(it.g)} <span class="badge" title="${esc(B.clases[it.clase])}">Clase ${it.clase}</span></h3>${it.m ? `<p class="meta">${esc(it.m)}</p>` : ''}<p class="snip">${esc(it.uso)}</p>${it.nota ? `<p class="hint">${esc(it.nota)}</p>` : ''}</div>`).join(''), !!nq);
     }).join('')}`;
+  enlazarGruposDrogas(!!nq);
   const q = document.getElementById('drq');
   q.oninput = e => { DR.q = e.target.value; const p = e.target.selectionStart; pintarDrogasBrugada(); const n = document.getElementById('drq'); n.focus(); n.setSelectionRange(p, p); };
 }
