@@ -320,7 +320,11 @@ const mkSemana = w => ({ semana: true, f: 'Semana', n: 0, id: w.id || ('semana-'
   preguntas: w.preguntas.map(p => ({ ctx: p.ctx || '', enun: p.enun, multi: p.multi, opc: p.opc, k: { r: p.r, c: 't' } })),
   imgs: w.imgs.map(a => ({ a, p: 0 })).concat(w.preguntas.flatMap((p, k) => [].concat(p.img || []).map(a => ({ a, p: k })))), dev: w.dev, devimgs: w.devimgs });
 const S = window.SEMANA ? mkSemana(window.SEMANA) : null;
-(window.SEMANA_ARCHIVO || []).forEach(w => C.push(mkSemana(w)));
+// Los casos de semanas anteriores pasan al banco como Fascículo A, B, C… (10 por letra, del más viejo al más nuevo).
+// Conservan su id ("semana-AAAA-MM-DD"), así no se pierde el progreso de nadie al cambiar de letra o de número.
+const letraArchivo = i => String.fromCharCode(65 + Math.floor(i / 10));
+(window.SEMANA_ARCHIVO || []).slice().sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)))
+  .forEach((w, i) => C.push(Object.assign(mkSemana(w), { semana: false, archivado: true, f: letraArchivo(i), n: i % 10 + 1 })));
 const TAGS = [
   ['QRS ancho', /qrs ancho/i], ['QRS angosto', /qrs angosto|supraventricular/i],
   ['Posoperatorio', /posoperatorio|\bpop\b/i], ['Bloqueo AV', /bloqueo|bradicardia/i],
@@ -422,7 +426,7 @@ function heroSemana() {
   // Sin caso activo: si hay archivo de semanas anteriores, mostramos el más reciente como fallback.
   const archivo = window.SEMANA_ARCHIVO || [];
   if (archivo.length) {
-    const w = archivo[archivo.length - 1], c = C.find(x => x.id === (w.id || ('semana-' + w.fecha)));
+    const w = archivo.slice().sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0], c = C.find(x => x.id === (w.id || ('semana-' + w.fecha)));
     if (c) return `<a class="card tint semana" style="--k:var(--acc)" href="#${c.id}">
       ${c.imgs.length ? `<img src="imagenes_web/${c.imgs[0].a}" alt="Trazado del último caso de la semana">` : ''}
       <div class="meta">ÚLTIMO CASO DE LA SEMANA${c.fecha ? ' · ' + fechaCorta(c.fecha) : ''}${seen[c.id] ? ' · ✓ repasado' : ''}</div>
@@ -437,7 +441,7 @@ function heroSemana() {
 }
 // Secciones de "Casos" (en la portada) y de "Herramientas" (su página): nombre, descripción (se ve al pasar el mouse) y color
 const SECC_CASOS = [
-  ['fasciculos', 'Fascículos', 'Los 110 casos por fascículo, con buscador y filtros.', '#3d8bd9'],
+  ['fasciculos', 'Fascículos', `Los ${C.length} casos por fascículo, con buscador y filtros.`, '#3d8bd9'],
   ['diagnosticos', 'Índice por diagnóstico', 'Los casos agrupados por diagnóstico (mejor después de resolverlos).', '#8a63d2'],
   ['patrones', 'Patrones de referencia', 'Trazados típicos de cada arritmia, con su diagnóstico diferencial.', '#2aa198'],
   ['examen', 'Modo examen', 'Preguntas al azar del banco, con resultado al final.', '#e0584f'],
@@ -458,7 +462,7 @@ function herramientas() {
 function list() {
   app.innerHTML = `<div class="case">
     <h2 style="margin:4px 0 2px">Banco de casos</h2>
-    <p class="hint" style="margin:0 0 14px">El caso de la semana. Desde acá recorrés los 110 casos por fascículo, incluidos los de semanas anteriores.</p>
+    <p class="hint" style="margin:0 0 14px">El caso de la semana. Desde acá recorrés los ${C.length} casos por fascículo; los de semanas anteriores quedan en los fascículos A, B, C…</p>
     ${heroSemana()}
     ${avisoTemas()}
     <h3 style="margin:18px 0 8px">Secciones</h3>
@@ -485,7 +489,7 @@ function fasciculos() {
   const fas = [...new Set(C.map(c => c.f))];
   app.innerHTML = `<div class="case">
     <h2 style="margin:4px 0 2px">Fascículos</h2>
-    <p class="hint" style="margin:0 0 14px">Los 110 casos organizados por fascículo, incluidos los de semanas anteriores.</p>
+    <p class="hint" style="margin:0 0 14px">Los ${C.length} casos organizados por fascículo. Los casos de semanas anteriores se guardan en los fascículos A, B, C… (10 por letra).</p>
     <div id="offline"></div>
     <div class="bar" style="position:static;border-bottom:0;padding:0">
       <input type="search" id="q" placeholder="Buscar: diagnóstico, fármaco, palabra clave…" value="${esc(state.q)}">
@@ -499,7 +503,7 @@ function fasciculos() {
     ${fas.map((f, i) => { const xs = res.filter(c => c.f === f); if (!xs.length) return '';
       const hechos = C.filter(c => c.f === f && seen[c.id]).length, total = C.filter(c => c.f === f).length, filtrando = !!(nq || state.f || state.tag || state.solo);
       return `<details class="dgsec fassec" data-f="${esc(String(f))}" style="--k:${COLOR_FASC[i % COLOR_FASC.length]}"${filtrando || state.abiertos.has(String(f)) ? ' open' : ''}><summary class="dgcat"><span>${f === 'Semana' ? 'Casos de la semana' : 'Fascículo ' + f}</span><span class="dgn" title="Casos repasados">${filtrando ? xs.length + ' de ' + total : hechos + '/' + total + (hechos === total ? ' ✓' : '')}</span></summary>
-      <div class="hubmini patmini">${xs.map(c => `<a class="hubbtn btn2 ${seen[c.id] ? 'hecho' : ''}" style="--k:${COLOR_FASC[i % COLOR_FASC.length]}" href="#${c.id}" title="${esc(c.vineta.slice(0, 200))}"><span class="rbt"><b>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Caso ' + c.n}${seen[c.id] ? ' ✓' : ''}</b><small>${esc(c.titulo)}</small>${c.borrador ? '<span class="badge">borrador</span>' : ''}${seenScore[c.id] ? `<small>Último puntaje: ${seenScore[c.id].ok}/${seenScore[c.id].tot}</small>` : ''}</span></a>`).join('')}</div></details>`; }).join('')}
+      <div class="hubmini patmini">${xs.map(c => `<a class="hubbtn btn2 ${seen[c.id] ? 'hecho' : ''}" style="--k:${COLOR_FASC[i % COLOR_FASC.length]}" href="#${c.id}" title="${esc(c.vineta.slice(0, 200))}"><span class="rbt"><b>${'Caso ' + c.n}${seen[c.id] ? ' ✓' : ''}</b><small>${esc(c.titulo)}</small>${c.borrador ? '<span class="badge">borrador</span>' : ''}${seenScore[c.id] ? `<small>Último puntaje: ${seenScore[c.id].ok}/${seenScore[c.id].tot}</small>` : ''}</span></a>`).join('')}</div></details>`; }).join('')}
   </div>`;
   // Solo se ven los títulos de los fascículos; al tocar uno se despliegan sus casos (filtrando o buscando, se abren los que tienen resultados)
   app.querySelectorAll('details.fassec').forEach(d => d.ontoggle = () => { if (!(nq || state.f || state.tag || state.solo)) d.open ? state.abiertos.add(d.dataset.f) : state.abiertos.delete(d.dataset.f); });
@@ -732,7 +736,7 @@ function detail(id) {
   const porPreg = devPorPregunta(c);
   app.innerHTML = `<div class="case" id="caso">
     <p><a href="#">← Volver al banco</a></p>
-    <div class="meta">${c.semana ? 'Caso de la semana' + (c.fecha ? ' · ' + fechaCorta(c.fecha) : '') : `Fascículo ${c.f} · Caso ${c.n}`}</div><h2>${esc(c.titulo)}</h2>
+    <div class="meta">${c.semana ? 'Caso de la semana' + (c.fecha ? ' · ' + fechaCorta(c.fecha) : '') : `Fascículo ${c.f} · Caso ${c.n}${c.archivado && c.fecha ? ' · caso de la semana del ' + fechaCorta(c.fecha) : ''}`}</div><h2>${esc(c.titulo)}</h2>
     ${c.borrador ? '<div class="warn">Este fascículo todavía es un borrador: el contenido puede cambiar.</div>' : ''}
     <div class="vineta">${vineta || '<i>Ver imágenes.</i>'}</div>
     <div class="hint retomado" id="retomado" hidden>Retomaste las respuestas que habías marcado la última vez.</div>
@@ -817,9 +821,9 @@ function detail(id) {
     enviarRespuestas(c.id, lista, 'caso'); anotarErrores(c.id, lista);
     s.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
-  if (c.semana && devBloqueada(c)) {   // hasta la fecha de devolución: ni la devolución ni "Comprobar mis respuestas" (que mostraría la correcta)
+  if (c.devFecha && devBloqueada(c)) {   // hasta la fecha de devolución: ni la devolución ni "Comprobar mis respuestas" (que mostraría la correcta)
     [['rev', 'Devolución'], ['chk', 'Respuestas']].forEach(([id, t]) => { const b = document.getElementById(id); b.textContent = textoDev(c, t); b.disabled = true; b.style.opacity = .6; b.style.cursor = 'default'; });
-  } else if (c.semana && c.devFecha && !devVista[c.id]) { devVista[c.id] = true; try { localStorage.setItem('bc_dev_vista', JSON.stringify(devVista)); } catch (e) {} }
+  } else if (c.devFecha && !devVista[c.id]) { devVista[c.id] = true; try { localStorage.setItem('bc_dev_vista', JSON.stringify(devVista)); } catch (e) {} }
   document.getElementById('reset').onclick = () => {
     app.querySelectorAll('.opt input').forEach(i => { i.checked = false; i.closest('.opt').classList.remove('ok', 'bad', 'miss'); });
     pintarSel(); app.querySelectorAll('.fb, [id^="ex"]').forEach(x => x.innerHTML = '');
@@ -966,7 +970,7 @@ function exFin() {
     <div class="list">${xs.map(r => { const i = res.indexOf(r); return `<div class="card suave" style="cursor:default;--k:${color}"><h3>${r.ok ? '✓' : '✗'} ${i + 1}. ${esc(r.q.enun.slice(0, 140))}${r.q.enun.length > 140 ? '…' : ''}</h3>
       <div class="meta">Tu respuesta: ${r.sel.length ? r.sel.join(' + ') : 'sin responder'} · Correcta: ${r.q.k.r.join(r.q.multi ? ' + ' : ' o ')}${!r.q.multi && r.q.k.r.length > 1 ? ' (cualquiera vale)' : ''}</div>
       ${(ex => ex ? `<details class="expl"${r.ok ? '' : ' open'}><summary>Ver explicación</summary>${ex.map(p => `<p>${esc(p)}</p>`).join('')}${(r.c.devimgs || []).length ? '<p class="hint">Las figuras están en la devolución completa del caso.</p>' : ''}</details>` : '')(devPorPregunta(r.c)[r.k + 1])}
-      <div class="meta"><a href="#${r.c.id}">Ver caso: ${r.c.semana ? 'Semana ' + fechaCorta(r.c.fecha) : 'Fasc. ' + r.c.f + ' · Caso ' + r.c.n} — ${esc(r.c.titulo)}</a></div></div>`; }).join('')}</div></details>` : '').join('')}</div>`;
+      <div class="meta"><a href="#${r.c.id}">Ver caso: ${'Fasc. ' + r.c.f + ' · Caso ' + r.c.n} — ${esc(r.c.titulo)}</a></div></div>`; }).join('')}</div></details>` : '').join('')}</div>`;
   document.getElementById('exnuevo').onclick = () => { EX.fase = 'inicio'; window.scrollTo(0, 0); exInicio(); };
   if (mal.length) document.getElementById('exrep').onclick = () => { EX.qs = shuffle(mal.map(r => ({ c: r.c, q: r.q, k: r.k }))); EX.i = 0; EX.ans = []; EX.fase = 'preg'; EX.guardado = false; exPreg(); };
 }
@@ -1197,7 +1201,7 @@ function diagnosticos() {
   const D = window.DIAGNOSTICOS || [], nq = norm(DG.q.trim()), byId = Object.fromEntries(C.map(c => [c.id, c]));
   const asignados = new Set(D.flatMap(d => d.casos)), cats = [...new Set(D.map(d => d.c))];
   const ok = d => !nq || nq.split(/\s+/).every(w => norm(d.d + ' ' + d.c).includes(w));
-  const li = id => { const c = byId[id]; return c ? `<a class="card" href="#${c.id}" style="padding:8px 12px"><b>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n}</b> — ${esc(c.titulo)}</a>` : ''; };
+  const li = id => { const c = byId[id]; return c ? `<a class="card" href="#${c.id}" style="padding:8px 12px"><b>${'Fasc. ' + c.f + ' · Caso ' + c.n}</b> — ${esc(c.titulo)}</a>` : ''; };
   const sin = C.filter(c => !asignados.has(c.id));
   app.innerHTML = `<div class="case"><h2>Índice por diagnóstico</h2>
     <p class="hint">Este índice muestra el diagnóstico de cada caso: si querés practicar, resolvé el caso antes de mirarlo.</p>
@@ -1217,7 +1221,7 @@ function verDiagnostico(i) {
   app.innerHTML = `<div class="case"><div class="recbarra"><a href="#diagnosticos"><button type="button" class="ghost">← Volver al índice</button></a></div>
     <div class="meta">${esc(d.c)}</div><h2 style="margin:4px 0 6px">${esc(d.d)}</h2>
     <p class="hint">${cs.length} caso${cs.length === 1 ? '' : 's'} con este diagnóstico. Si querés practicar, resolvelos antes de mirar la devolución.</p>
-    <div class="list">${cs.map(c => `<a class="card suave ${seen[c.id] ? 'done' : ''}" style="--k:${k}" href="#${c.id}"><h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} — ${esc(c.titulo)}${seen[c.id] ? ' ✓' : ''}</h3><div class="meta">${c.preguntas.length} pregunta${c.preguntas.length == 1 ? '' : 's'}</div></a>`).join('')}</div></div>`;
+    <div class="list">${cs.map(c => `<a class="card suave ${seen[c.id] ? 'done' : ''}" style="--k:${k}" href="#${c.id}"><h3>${'Fasc. ' + c.f + ' · Caso ' + c.n} — ${esc(c.titulo)}${seen[c.id] ? ' ✓' : ''}</h3><div class="meta">${c.preguntas.length} pregunta${c.preguntas.length == 1 ? '' : 's'}</div></a>`).join('')}</div></div>`;
   window.scrollTo(0, 0);
 }
 // ---------- Mi progreso: resumen personal (se guarda solo en este navegador) ----------
@@ -1276,7 +1280,7 @@ function importarRespaldo(cod) {
 const nombreConstancia = () => { try { return localStorage.getItem('bc_nombre_constancia') || ''; } catch (e) { return ''; } };
 // Una por fascículo (sin los casos de la semana, que siguen sumándose) y una por todo el banco.
 function constanciasDisponibles() {
-  const fas = [...new Set(C.filter(c => !c.semana).map(c => c.f))];
+  const fas = [...new Set(C.filter(c => !c.semana).map(c => c.f))].filter(f => !C.some(c => c.f === f && c.archivado) || C.filter(c => c.f === f).length >= 10);
   const item = (titulo, casos, detalle) => {
     const hechos = casos.filter(c => seen[c.id]).length, sc = casos.filter(c => seenScore[c.id]);
     const ok = sc.reduce((a, c) => a + seenScore[c.id].ok, 0), tot = sc.reduce((a, c) => a + seenScore[c.id].tot, 0);
@@ -1368,7 +1372,7 @@ function progreso() {
       <div class="tile"><b class="num">${misErrores().length}</b><span>pregunta${misErrores().length == 1 ? '' : 's'} para repasar</span>${misErrores().length ? '<button class="primary" id="perr">Repasar</button>' : ''}</div>
     </div>
     <details class="dgsec progsec" data-cat="Para repasar hoy" style="--k:#d9a02f"${progCerradaRepaso ? '' : ' open'}><summary class="dgcat"><span>Para repasar hoy</span>${repaso.length ? `<span class="dgn">${repaso.length}</span>` : ''}</summary>
-    ${repaso.length ? `<p class="hint">Casos que repasaste hace más de 10 días, o que todavía no viste.</p><div class="list">${repaso.map(c => `<a class="card" href="#${c.id}"><h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} — ${esc(c.titulo)}</h3><div class="meta">${seenFecha[c.id] ? 'Repasado por última vez el ' + fechaCorta(seenFecha[c.id]) : 'Todavía no lo repasaste'}</div></a>`).join('')}</div>` : `<p class="hint">${C.length ? '¡Estás al día! No hay casos pendientes de repaso por ahora.' : ''}</p>`}</details>
+    ${repaso.length ? `<p class="hint">Casos que repasaste hace más de 10 días, o que todavía no viste.</p><div class="list">${repaso.map(c => `<a class="card" href="#${c.id}"><h3>${'Fasc. ' + c.f + ' · Caso ' + c.n} — ${esc(c.titulo)}</h3><div class="meta">${seenFecha[c.id] ? 'Repasado por última vez el ' + fechaCorta(seenFecha[c.id]) : 'Todavía no lo repasaste'}</div></a>`).join('')}</div>` : `<p class="hint">${C.length ? '¡Estás al día! No hay casos pendientes de repaso por ahora.' : ''}</p>`}</details>
     <details class="dgsec progsec" data-cat="Temas para reforzar" style="--k:#e0584f"${progAbiertas.has('Temas para reforzar') ? ' open' : ''}><summary class="dgcat"><span>Temas para reforzar</span>${temas.length ? `<span class="dgn">el más flojo: ${esc(temas[0][0])}</span>` : ''}</summary>${temas.length ? '<p class="hint">Ordenados del más flojo al más firme, con tus respuestas de casos y exámenes.</p>' : '<p class="hint">Resolvé casos o exámenes para ver acá tus temas más flojos.</p>'}
     <div class="list">${temas.map(([t, v]) => `<div class="card" style="cursor:default;padding:8px 12px"><b>${esc(t)}</b> · ${pct(v.ok, v.tot)} % correctas (${v.ok} de ${v.tot})${bar(pct(v.ok, v.tot))}<div style="margin-top:6px"><button class="ghost" data-tag="${esc(t)}">Repasar este tema</button></div></div>`).join('')}</div></details>
     <details class="dgsec progsec" data-cat="Por fascículo" style="--k:#3d8bd9"${progAbiertas.has('Por fascículo') ? ' open' : ''}><summary class="dgcat"><span>Por fascículo</span></summary><div class="list">${Object.entries(porF).map(([f, v]) => `<div class="card" style="cursor:default;padding:8px 12px">${nombreF(f)} · ${v.r} de ${v.t}${bar(pct(v.r, v.t))}</div>`).join('')}</div></details>
@@ -1516,7 +1520,7 @@ function pintarEstRespuestas(d) {
   box.innerHTML = `<p class="hint">${d.total} respuestas recibidas. ${filas.length > 1 ? `Las ${filas.length} preguntas con menos aciertos` : 'La pregunta con menos aciertos'} (con al menos ${EST_MIN_RESP} respuestas): sirve para encontrar preguntas confusas o claves mal cargadas.</p><div class="list">` +
     filas.map(p => { const c = byId[p.caso], q = c.preguntas[p.preg - 1];
       const mal = Object.entries(p.elegidas || {}).filter(([l]) => !q.k.r.includes(l)).sort((a, b) => b[1] - a[1])[0];
-      return `<a class="card" href="#${c.id}"><h3>${c.semana ? 'Semana ' + fechaCorta(c.fecha) : 'Fasc. ' + c.f + ' · Caso ' + c.n} · Pregunta ${p.preg}</h3>
+      return `<a class="card" href="#${c.id}"><h3>${'Fasc. ' + c.f + ' · Caso ' + c.n} · Pregunta ${p.preg}</h3>
         <div class="meta"><b>${p.pct} % correctas</b> (${p.ok} de ${p.n}) · correcta: ${q.k.r.join(q.multi ? ' + ' : ' o ')}${mal ? ` · la incorrecta más elegida: <b>${esc(mal[0])}</b> (${mal[1]} ${mal[1] == 1 ? 'vez' : 'veces'})` : ''}</div>
         <p class="snip">${esc(q.enun)}</p></a>`; }).join('') + '</div>';
 }
