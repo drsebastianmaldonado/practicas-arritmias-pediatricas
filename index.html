@@ -818,7 +818,7 @@ function detail(id) {
     if (tot) { seenScore[c.id] = { ok, tot }; try { localStorage.setItem('bc_score', JSON.stringify(seenScore)); } catch (e) {} }
     document.getElementById('aviso').innerHTML = avisoTemas(); enlazarTemas();
     delete borr[c.id]; saveBorr();   // ya las comprobó: la próxima vez el caso arranca en blanco
-    enviarRespuestas(c.id, lista, 'caso'); anotarErrores(c.id, lista);
+    enviarRespuestas(c.id, lista, 'caso'); anotarErrores(c.id, lista); progresoCambio();
     s.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   if (c.devFecha && devBloqueada(c)) {   // hasta la fecha de devolución: ni la devolución ni "Comprobar mis respuestas" (que mostraría la correcta)
@@ -960,7 +960,7 @@ function exFin() {
   if (!EX.guardado) { EX.guardado = true; const h = exHist(), tm = {}; res.forEach(r => r.c.tags.forEach(t => { const a = tm[t] = tm[t] || [0, 0]; a[1]++; if (r.ok) a[0]++; }));
     h.push({ d: new Date().toISOString().slice(0, 10), ok, n: N, tag: EX.modo === 'errores' ? 'Mis errores' : EX.cfg.tag, f: EX.modo === 'errores' ? '' : EX.cfg.f, temas: tm }); try { localStorage.setItem(EXK, JSON.stringify(h.slice(-20))); } catch (e) {}
     const porCaso = {}; res.filter(r => r.sel.length).forEach(r => (porCaso[r.c.id] = porCaso[r.c.id] || []).push({ k: r.k, sel: r.sel, ok: r.ok }));
-    Object.entries(porCaso).forEach(([id, l]) => { enviarRespuestas(id, l, 'examen'); anotarErrores(id, l); }); }
+    Object.entries(porCaso).forEach(([id, l]) => { enviarRespuestas(id, l, 'examen'); anotarErrores(id, l); }); progresoCambio(); }
   const temas = {}; mal.forEach(r => (r.c.tags.length ? r.c.tags : ['Sin etiqueta']).forEach(t => temas[t] = (temas[t] || 0) + 1));
   const orden = Object.entries(temas).sort((a, b) => b[1] - a[1]);
   app.innerHTML = `<div class="case"><h2>Resultado: ${ok} de ${N} (${Math.round(ok / N * 100)} %)</h2>
@@ -1488,6 +1488,7 @@ function endocarditis() {
 function estadisticas() {
   app.innerHTML = `<div class="case"><h2>Estadísticas del banco</h2>
     <p class="hint">Página privada: no está en el menú, solo se llega escribiendo la dirección. Muestra números agregados de toda la gente registrada; nunca nombres, mails, ciudades ni filas individuales.</p>
+    <h3>Casos de la semana</h3><div id="estSemana"><p class="hint">Cargando…</p></div>
     <div id="estBox"><p class="hint">Cargando…</p></div>
     <h3>Preguntas con más errores</h3><div id="estResp"><p class="hint">Cargando…</p></div></div>`;
   cargarEstRespuestas();
@@ -1514,6 +1515,7 @@ function cargarEstRespuestas() {
 function pintarEstRespuestas(d) {
   const box = document.getElementById('estResp'); if (!box) return;
   const byId = {}; C.concat(S ? [S] : []).forEach(c => byId[c.id] = c);
+  pintarEstSemana(d, byId);
   const filas = (d && d.preguntas || []).filter(p => p.n >= EST_MIN_RESP && byId[p.caso] && byId[p.caso].preguntas[p.preg - 1])
     .map(p => Object.assign({}, p, { pct: Math.round(p.ok / p.n * 100) })).sort((a, b) => a.pct - b.pct || b.n - a.n).slice(0, 25);
   if (!filas.length) { box.innerHTML = `<p class="hint">Todavía no hay suficientes respuestas (se muestran las preguntas con al menos ${EST_MIN_RESP}). Respuestas recibidas: ${d && d.total || 0}.</p>`; return; }
@@ -1523,6 +1525,22 @@ function pintarEstRespuestas(d) {
       return `<a class="card" href="#${c.id}"><h3>${'Fasc. ' + c.f + ' · Caso ' + c.n} · Pregunta ${p.preg}</h3>
         <div class="meta"><b>${p.pct} % correctas</b> (${p.ok} de ${p.n}) · correcta: ${q.k.r.join(q.multi ? ' + ' : ' o ')}${mal ? ` · la incorrecta más elegida: <b>${esc(mal[0])}</b> (${mal[1]} ${mal[1] == 1 ? 'vez' : 'veces'})` : ''}</div>
         <p class="snip">${esc(q.enun)}</p></a>`; }).join('') + '</div>';
+}
+// Cuántos hicieron cada caso de la semana (el actual y los 3 anteriores) y cuántos acertaron cada pregunta. Cuenta personas
+// por dispositivo: el primer intento de cada pregunta, que es lo que guarda la planilla anónima "Respuestas del banco".
+function pintarEstSemana(d, byId) {
+  const box = document.getElementById('estSemana'); if (!box) return;
+  const sem = (S ? [S] : []).concat(C.filter(c => c.archivado).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))).slice(0, 4);
+  if (!sem.length) { box.innerHTML = '<p class="hint">Todavía no hay casos de la semana cargados.</p>'; return; }
+  const P = (d && d.preguntas) || [];
+  box.innerHTML = '<div class="list">' + sem.map(c => {
+    const qs = c.preguntas.map((q, i) => P.find(p => p.caso === c.id && p.preg === i + 1) || { n: 0, ok: 0 });
+    const n = Math.max(0, ...qs.map(p => p.n));
+    const titulo = (c === S ? 'Caso de la semana actual' : 'Fasc. ' + c.f + ' · Caso ' + c.n) + (c.fecha ? ' · ' + fechaCorta(c.fecha) : '');
+    return `<a class="card" href="#${c === S ? 'semana' : c.id}"><h3>${esc(titulo)}</h3><div class="meta">${esc(c.titulo || '')}</div>
+      <p><b>${n}</b> ${n === 1 ? 'persona lo respondió' : 'personas lo respondieron'}${c.devFecha && devBloqueada(c) ? ' · <span class="hint">las respuestas se pueden comprobar recién desde la devolución</span>' : ''}</p>
+      ${n ? '<div class="meta">' + qs.map((p, i) => `Pregunta ${i + 1}: <b>${p.n ? Math.round(p.ok / p.n * 100) + ' %' : '—'}</b> (${p.ok} de ${p.n})`).join(' · ') + '</div>' : ''}</a>`;
+  }).join('') + '</div><p class="hint">Cuenta el primer intento de cada pregunta en cada celular o computadora, sin datos de quién fue.</p>';
 }
 function pintarEstadisticas(d) {
   const box = document.getElementById('estBox'); if (!box) return;
@@ -1581,16 +1599,36 @@ function snapshotProgreso() {
 }
 // Aviso de "sigo activo" para la planilla: cuenta accesos y progreso, una vez por día como máximo. Necesita trackVisitas
 // activado en registro.js (que solo funciona una vez actualizado el script de Google; ver registro\LEEME.md).
-function enviarVisita() {
-  if (!RG.activo || !RG.trackVisitas || !RG.endpoint) return;
-  let r = null; try { r = JSON.parse(localStorage.getItem(RGK) || 'null'); } catch (e) {}
-  if (!r || !r.id) return;   // registro anterior a esta función: sin id no se puede identificar la fila a actualizar
-  const hoy = new Date().toISOString().slice(0, 10);
-  try { if (localStorage.getItem(RGV) === hoy) return; } catch (e) {}
-  const datos = Object.assign({ accion: 'visita', id: r.id, fecha: new Date().toISOString() }, snapshotProgreso());
-  fetch(RG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(datos).toString() })
-    .then(() => { try { localStorage.setItem(RGV, hoy); } catch (e) {} }).catch(() => {});
+// El script suma un acceso por cada aviso, así que se sigue mandando uno solo por día, pero ya no al abrir la app (cuando
+// todavía no hizo nada): se manda al salir (pestaña oculta) después de comprobar respuestas, para que la planilla tenga el
+// progreso de ese mismo día. Si ese día nunca comprobó nada, el aviso queda pendiente y sale apenas vuelva a entrar.
+const RGVP = 'bc_registro_visita_pend';
+let progresoNuevo = false;
+const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+function datosVisita() {
+  if (!RG.activo || !RG.trackVisitas || !RG.endpoint) return null;
+  let r = null; try { r = JSON.parse(lsGet(RGK) || 'null'); } catch (e) {}
+  if (!r || !r.id) return null;   // registro anterior a esta función: sin id no se puede identificar la fila a actualizar
+  return new URLSearchParams(Object.assign({ accion: 'visita', id: r.id, fecha: new Date().toISOString() }, snapshotProgreso())).toString();
 }
+function enviarVisita() {   // al abrir la app
+  const body = datosVisita(); if (!body) return;
+  const hoy = new Date().toISOString().slice(0, 10), pend = lsGet(RGVP);
+  if (pend && pend !== hoy && lsGet(RGV) !== pend)   // acceso de otro día que no llegó a avisarse: va ahora, con el progreso actual
+    fetch(RG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body })
+      .then(() => lsSet(RGV, pend)).catch(() => {});
+  if (lsGet(RGV) !== hoy) lsSet(RGVP, hoy);
+}
+function progresoCambio() { progresoNuevo = true; }   // comprobó respuestas (caso o examen)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'hidden' || !progresoNuevo) return;
+  const hoy = new Date().toISOString().slice(0, 10);
+  if (lsGet(RGV) === hoy || lsGet(RGVP) !== hoy) return;
+  const body = datosVisita(); if (!body) return;
+  const ok = navigator.sendBeacon && navigator.sendBeacon(RG.endpoint, new Blob([body], { type: 'application/x-www-form-urlencoded' }));
+  if (ok) lsSet(RGV, hoy);
+});
 function mostrarRegistro() {
   const paises = ['Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba', 'Ecuador', 'El Salvador', 'España', 'Estados Unidos', 'Guatemala', 'Honduras', 'México', 'Nicaragua', 'Panamá', 'Paraguay', 'Perú', 'Portugal', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela', 'Alemania', 'Canadá', 'Francia', 'Italia', 'Reino Unido'];
   const ov = document.createElement('div'); ov.id = 'rg'; ov.style.cssText = 'position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding:20px 16px';
