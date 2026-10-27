@@ -1419,7 +1419,8 @@ function progreso() {
     <details class="dgsec progsec" data-cat="Pasar mi progreso a otro dispositivo" style="--k:#6b7a99"${progAbiertas.has('Pasar mi progreso a otro dispositivo') ? ' open' : ''}><summary class="dgcat"><span>Pasar mi progreso a otro dispositivo</span></summary>
     <p class="hint">Tu progreso se guarda solo en este navegador. Para tenerlo también en el celular o en la computadora, mandate este enlace (por WhatsApp, mail…) y abrilo en el otro dispositivo: se suma a lo que ya tengas ahí. Hacelo de nuevo cada tanto para actualizarlo.</p>
     <div class="nav">${navigator.share ? '<button class="primary" id="rshare">Compartir el enlace</button>' : ''}<button class="${navigator.share ? 'ghost' : 'primary'}" id="rcopy">Copiar el enlace</button><button class="ghost" id="rwa">Mandármelo por WhatsApp</button></div></details>
-    <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div></div>`;
+    <div class="nav"><button class="ghost" id="pborrar">Borrar mis datos de este navegador</button></div>
+    ${RG.activo && RG.contacto ? `<p class="hint">Tus datos de registro: para pedir acceso, corrección o baja, o dejar de recibir mails, escribí a <a href="mailto:${esc(RG.contacto)}">${esc(RG.contacto)}</a>.</p>` : ''}</div>`;
   // Secciones plegables (mismo estilo que el resto): "Para repasar hoy" arranca abierta; las demás, cerradas. Se recuerda lo que la persona abre o cierra.
   app.querySelectorAll('details.progsec').forEach(d => d.ontoggle = () => {
     if (d.dataset.cat === 'Para repasar hoy') { progCerradaRepaso = !d.open; return; }
