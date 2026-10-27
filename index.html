@@ -1579,7 +1579,7 @@ function pintarEstSemana(d, byId) {
 function pintarEstadisticas(d) {
   const box = document.getElementById('estBox'); if (!box) return;
   if (!d || !d.total_registrados) { box.innerHTML = '<p class="hint">Todavía no hay nadie registrado.</p>'; return; }
-  box.innerHTML = `<div class="vineta"><b>${d.total_registrados}</b> personas registradas · <b>${d.activos_ultimos_30_dias}</b> activas en los últimos 30 días · <b>${d.total_accesos}</b> accesos en total</div>
+  box.innerHTML = `<div class="vineta"><b>${d.total_registrados}</b> personas registradas${d.total_registros > d.total_registrados ? ` (${d.total_registros} registros: algunas se anotaron más de una vez)` : ''} · <b>${d.activos_ultimos_30_dias}</b> activas en los últimos 30 días · <b>${d.total_accesos}</b> accesos en total</div>
     <h3>Uso del banco</h3><div class="list">
       <div class="card" style="cursor:default">Casos repasados en promedio por persona: <b>${d.promedio_casos_repasados}</b></div>
       <div class="card" style="cursor:default">Respuestas correctas en promedio: <b>${d.promedio_pct_correctas != null ? d.promedio_pct_correctas + ' %' : '— (nadie comprobó respuestas todavía)'}</b></div>
