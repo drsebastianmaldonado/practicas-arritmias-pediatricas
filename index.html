@@ -270,6 +270,7 @@ details.sec>summary .meta{font-weight:400;margin-left:auto}
 .offrow button{padding:6px 12px;font-size:.88rem}
 .offrow .okoff{font-size:.88rem;color:var(--mute)}
 .warn{background:#fff3cd;color:#5c4400;border-radius:10px;padding:8px 12px;margin:10px 0;font-size:.9rem}
+.fb .colegas{margin-top:6px;font-size:.88rem}
 </style>
 </head>
 <body>
@@ -665,6 +666,37 @@ function enviarRespuestas(casoId, lista, origen) {
     .then(() => { nuevas.forEach(r => respEnv[casoId + ':' + r.k] = 1); try { localStorage.setItem('bc_resp_env', JSON.stringify(respEnv)); } catch (e) {} }).catch(() => {});
 }
 
+// Después de comprobar: cómo respondieron los demás cada pregunta (de la misma planilla anónima). Se pide una vez por
+// sesión; sin internet, o con menos de EST_MIN_RESP respuestas en esa pregunta, simplemente no se muestra nada.
+let resumenResp = null;
+function cargarResumenResp() {
+  if (resumenResp) return resumenResp;
+  return resumenResp = new Promise(ok => {
+    if (!RG.endpointRespuestas) return ok(null);
+    const cb = 'bcColCb' + Date.now(), s = document.createElement('script');
+    const fin = d => { delete window[cb]; s.remove(); if (!d) resumenResp = null; ok(d); };   // si falló, se reintenta la próxima vez
+    window[cb] = d => fin(d || null);
+    s.onerror = () => fin(null);
+    s.src = RG.endpointRespuestas + (RG.endpointRespuestas.includes('?') ? '&' : '?') + 'callback=' + cb;
+    document.body.appendChild(s);
+  });
+}
+function compararConColegas(c) {
+  cargarResumenResp().then(d => {
+    const P = (d && d.preguntas) || [];
+    c.preguntas.forEach((q, k) => {
+      const box = document.getElementById('fb' + k), p = P.find(x => x.caso === c.id && x.preg === k + 1);
+      if (!box || !q.opc.length || !q.k.r.length || !p || p.n < EST_MIN_RESP) return;
+      const sel = [...app.querySelectorAll(`input[name="q${k}"]`)].filter(i => i.checked).map(i => i.dataset.l);
+      const pct = n => Math.round(n / p.n * 100), mia = sel.join('+'), suya = (p.elegidas || {})[mia] || 0;
+      const div = document.createElement('div'); div.className = 'hint colegas';
+      div.innerHTML = `👥 La respondió bien el <b>${pct(p.ok)}&nbsp;%</b> de los colegas (${p.n} respuestas).` +
+        (sel.length && !exCorrecta(q, sel) && suya ? ` Tu misma opción (${esc(mia.replace(/\+/g, ' + '))}) la eligió el ${pct(suya)}&nbsp;%.` : '');
+      box.querySelector('.colegas')?.remove(); box.appendChild(div);
+    });
+  });
+}
+
 // ---------- Respuestas a medio hacer: se guardan por caso hasta comprobarlas o tocar "Empezar de nuevo" ----------
 const BK = 'bc_borrador';
 let borr = {};
@@ -819,6 +851,7 @@ function detail(id) {
     document.getElementById('aviso').innerHTML = avisoTemas(); enlazarTemas();
     delete borr[c.id]; saveBorr();   // ya las comprobó: la próxima vez el caso arranca en blanco
     enviarRespuestas(c.id, lista, 'caso'); anotarErrores(c.id, lista); progresoCambio();
+    compararConColegas(c);
     s.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   if (c.devFecha && devBloqueada(c)) {   // hasta la fecha de devolución: ni la devolución ni "Comprobar mis respuestas" (que mostraría la correcta)
