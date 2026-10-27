@@ -14,7 +14,7 @@ window.REGISTRO = {
   // Si cambiás el aviso de privacidad o los datos que se piden, subí este número: todos vuelven a ver el formulario.
   version: 2,
   // Mail de contacto que se muestra en el aviso de privacidad para pedir acceso, corrección o baja de los datos.
-  contacto: "",
+  contacto: "drsebastian.maldonado@gmail.com",
   titulo: "Bienvenido/a al Banco de casos de arritmias",
   intro: "Para acceder, completá estos datos una sola vez. Los usamos para conocer quiénes usan el banco y, si lo autorizás, para avisarte de novedades académicas.",
   // Aviso de privacidad (borrador: revisalo y adaptalo antes de activarlo; no es asesoramiento legal).
