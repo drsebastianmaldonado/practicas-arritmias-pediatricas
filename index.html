@@ -1481,12 +1481,14 @@ function drogas() {
 }
 function pintarDrogasQT() {
   const box = document.getElementById('drBox'), Q = window.DROGAS.qt, nq = norm(DR.q.trim());
-  const res = Q.items.filter(([g, m]) => !nq || nq.split(/\s+/).every(w => norm(g + ' ' + m).includes(w)));
+  const es = g => (Q.es && Q.es[g]) || g;   // nombre en español; el original (inglés) también se busca
+  const res = Q.items.filter(([g, m]) => !nq || nq.split(/\s+/).every(w => norm(es(g) + ' ' + g + ' ' + m).includes(w)))
+    .sort((a, b) => norm(es(a[0])).localeCompare(norm(es(b[0]))));
   box.innerHTML = `<p class="hint">${esc(Q.fuente)}</p>
     ${pdfBtn('recursos/drogas_qt_largo_crediblemeds.pdf', 'Descargar PDF original (CredibleMeds)')}
     <input type="search" id="drq" placeholder="Buscar droga…" value="${esc(DR.q)}"><div class="count">${res.length} de ${Q.items.length} medicamentos</div>
     ${['KR', 'PR', 'CR', 'SR'].concat(Object.keys(Q.categorias).filter(k => !['KR', 'PR', 'CR', 'SR'].includes(k))).map(r => { const xs = res.filter(it => it[2] === r); return xs.length
-      ? grupoDrogas('qt|' + r, `${r} · ${(Q.categorias[r] || r).split(' (')[0]}`, COLOR_RIESGO_QT[r] || 'var(--acc2)', xs.length, (/\(/.test(Q.categorias[r] || '') ? `<p class="hint" style="margin:0 0 4px">${esc(Q.categorias[r])}</p>` : '') + xs.map(([g, m]) => `<div class="card suave" style="cursor:default;--k:${COLOR_RIESGO_QT[r] || 'var(--acc2)'}"><h3>${esc(g)}</h3>${m ? `<p class="meta">${esc(m)}</p>` : ''}</div>`).join(''), !!nq) : ''; }).join('')}
+      ? grupoDrogas('qt|' + r, `${r} · ${(Q.categorias[r] || r).split(' (')[0]}`, COLOR_RIESGO_QT[r] || 'var(--acc2)', xs.length, (/\(/.test(Q.categorias[r] || '') ? `<p class="hint" style="margin:0 0 4px">${esc(Q.categorias[r])}</p>` : '') + xs.map(([g, m]) => { const ing = norm(es(g)) !== norm(g) ? 'En inglés: ' + g : ''; const meta = [ing, m].filter(Boolean).join(' · '); return `<div class="card suave" style="cursor:default;--k:${COLOR_RIESGO_QT[r] || 'var(--acc2)'}"><h3>${esc(es(g))}</h3>${meta ? `<p class="meta">${esc(meta)}</p>` : ''}</div>`; }).join(''), !!nq) : ''; }).join('')}
     <div class="warn" style="margin-top:14px">${esc(Q.aviso)}</div>`;
   enlazarGruposDrogas(!!nq);
   const q = document.getElementById('drq');
