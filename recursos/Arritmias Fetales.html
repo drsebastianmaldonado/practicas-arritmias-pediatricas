@@ -305,8 +305,9 @@ const B = {
 let arbol = 'T', camino = ['start'], elegidas = [];
 const tree = () => arbol === 'T' ? T : B;
 function pintar() {
+  // Arriba la pregunta actual (o la conducta); debajo, el recorrido de lo ya respondido.
   const t = tree(), cur = t[camino[camino.length - 1]];
-  let h = elegidas.map((e, i) => `<div class="card done"><span class="n">${i + 1}</span><div><b>${t[camino[i]].q.replace(/<[^>]+>/g, '')}</b><span>${e}</span></div></div>`).join('');
+  let h = '';
   if (cur.leaf) {
     h += `<section class="card leaf ${cur.tipo || ''}"><div class="lt">Conducta</div><h3>${cur.leaf}</h3>${cur.h.join('')}</section>`;
   } else {
@@ -314,12 +315,14 @@ function pintar() {
       cur.o.map((o, i) => `<button class="opt" data-i="${i}">${o[0]}</button>`).join('') + '</div></section>';
   }
   if (camino.length > 1) h += '<div class="ctrl"><button class="btn" id="atras">← Paso anterior</button><button class="btn" id="reini">Empezar de nuevo</button></div>';
+  if (elegidas.length) h += '<h2 class="sec" style="margin-top:6px">Tu recorrido</h2>' +
+    elegidas.map((e, i) => `<div class="card done"><span class="n">${i + 1}</span><div><b>${t[camino[i]].q.replace(/<[^>]+>/g, '')}</b><span>${e}</span></div></div>`).join('');
   const box = document.getElementById('algo'); box.innerHTML = h;
   box.querySelectorAll('.opt').forEach(b => b.onclick = () => { const o = cur.o[+b.dataset.i]; elegidas.push(o[0]); camino.push(o[1]); pintar(); enfocar(); });
-  const a = document.getElementById('atras'); if (a) a.onclick = () => { camino.pop(); elegidas.pop(); pintar(); };
-  const r = document.getElementById('reini'); if (r) r.onclick = () => { camino = ['start']; elegidas = []; pintar(); };
+  const a = document.getElementById('atras'); if (a) a.onclick = () => { camino.pop(); elegidas.pop(); pintar(); enfocar(); };
+  const r = document.getElementById('reini'); if (r) r.onclick = () => { camino = ['start']; elegidas = []; pintar(); enfocar(); };
 }
-function enfocar() { const el = document.querySelector('#algo .step, #algo .leaf'); if (el && el.getBoundingClientRect().top > innerHeight * .6) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function enfocar() { const el = document.querySelector('#algo .step, #algo .leaf'); if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }   // si la pregunta quedó arriba, fuera de la vista, se vuelve a ella
 
 const TABLAS = {
   T: `
