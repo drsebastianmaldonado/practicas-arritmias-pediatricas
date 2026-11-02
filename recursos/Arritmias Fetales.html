@@ -131,6 +131,9 @@ tr:last-child td{border-bottom:0}
 .prsvg{background:transparent;border:1px solid var(--line)}
 th{background:transparent;color:var(--ink2)}
 .tw{border-radius:10px}
+.aha:not(.quien),.hrs:not(.quien){margin-left:.3em}
+.oc .aha:not(.quien),.oc .hrs:not(.quien),.oc .cit{display:none}
+.fuentesbtn{margin-top:10px}
 </style>
 </head>
 <body>
@@ -140,6 +143,7 @@ th{background:transparent;color:var(--ink2)}
     <h1>Arritmias fetales</h1>
     <p class="sub">Algoritmo de manejo de la taquicardia y la bradicardia fetal: del diagnóstico al nacimiento y los primeros días de vida.</p>
     <div class="src"><span class="chip aha">AHA 2024 · Batra et al.</span><span class="chip hrs">HRS 2023 · Joglar et al.</span></div>
+    <button class="btn fuentesbtn" id="fuentes" aria-pressed="false">Mostrar fuentes</button>
   </header>
 
   <div class="seg" role="tablist">
@@ -176,25 +180,25 @@ th{background:transparent;color:var(--ink2)}
 // Texto en HTML: solo contenido propio, sin datos de quien lo usa.
 // ---------------------------------------------------------------------------------------------------------------
 const C1 = '<span class="tagc c1">COR 1</span>', C2a = '<span class="tagc c2a">COR 2a</span>', C2b = '<span class="tagc c2b">COR 2b</span>', C3 = '<span class="tagc c3">COR 3</span>';
-const AHA = '<span class="aha">AHA</span>', HRS = '<span class="hrs">HRS</span>', OP = '<span class="op">Opinión del autor</span>';
+const AHA = '<span class="aha">AHA</span>', HRS = '<span class="hrs">HRS</span>', AHAQ = '<span class="aha quien">AHA</span>', HRSQ = '<span class="hrs quien">HRS</span>', OP = '<span class="op">Opinión del autor</span>';
 
 const lineas = (a, b, c) => `<div class="lines"><div class="line"><i>1.ª</i><span>${a}</span></div><div class="line l2"><i>2.ª</i><span>${b}</span></div><div class="line l3"><i>3.ª</i><span>${c}</span></div></div>`;
 const caja = (t, html) => `<div class="box"><div class="bl">${t}</div>${html}</div>`;
 const ul = xs => '<ul>' + xs.map(x => `<li>${x}</li>`).join('') + '</ul>';
 
 const MONITOREO = caja('Monitoreo durante el tratamiento', ul([
-  `Madre: ECG diario hasta el estado estable, ecocardiograma basal y niveles del fármaco ${AHA}. Internación en obstetricia de alto riesgo al iniciar.`,
-  `Feto: FC semanal y ecocardiograma cada 2–4 semanas ${AHA}. Un AV que se alarga 10–30 ms o un BAV sugieren toxicidad.`,
+  `Madre: ECG diario hasta el estado estable, ecocardiograma basal y niveles del fármaco${AHA}. Internación en obstetricia de alto riesgo al iniciar.`,
+  `Feto: FC semanal y ecocardiograma cada 2–4 semanas${AHA}. Un AV que se alarga 10–30 ms o un BAV sugieren toxicidad.`,
   `El tratamiento transplacentario tarda días en hacer efecto; una vez logrado el control, se continúa hasta el parto.`,
   `Nunca verapamilo transplacentario ${C3}.`]));
 const NAC_TSV = caja('Nacimiento y primeros días', ul([
-  `Meta: nacimiento de término en ritmo sinusal ${AHA}.`,
-  `≥ 50 % recurre después del nacimiento, sobre todo en los primeros 2–3 días ${AHA}: ECG al nacer y monitoreo.`,
-  `Si recurre: maniobras vagales y adenosina IV (comenzar con 0,2 mg/kg) ${AHA}; después, tratamiento preventivo.`,
+  `Meta: nacimiento de término en ritmo sinusal${AHA}.`,
+  `≥ 50 % recurre después del nacimiento, sobre todo en los primeros 2–3 días${AHA}: ECG al nacer y monitoreo.`,
+  `Si recurre: maniobras vagales y adenosina IV (comenzar con 0,2 mg/kg)${AHA}; después, tratamiento preventivo.`,
   `Duración del tratamiento preventivo: ${OP} 6 meses; otros autores indican conducta expectante si no recurre.`]));
 const NAC_ALETEO = caja('Nacimiento y primeros días', ul([
-  `Recurrencia posnatal rara ${AHA}: ECG al nacer.`,
-  `Si persiste: cardioversión eléctrica. Sin cardiopatía ni otro sustrato, no requiere tratamiento preventivo ${AHA}.`]));
+  `Recurrencia posnatal rara${AHA}: ECG al nacer.`,
+  `Si persiste: cardioversión eléctrica. Sin cardiopatía ni otro sustrato, no requiere tratamiento preventivo${AHA}.`]));
 const DIRECTO = caja('Si no responde (hydrops refractario)', ul([
   `Agregar digoxina IM fetal al tratamiento transplacentario en el feto inmaduro ${C2a}: 88 µg/kg y luego 60–88 µg/kg c/12 h ×2. Riesgo de lesión del ciático ≈ 1:40.`,
   `Último recurso ${C2b}: combinación de fármacos transplacentarios, digoxina directa o amiodarona directa (intracordal 2,5–5 mg/kg de peso fetal, máx. 40 mg; o intraperitoneal 50–75 mg, drenando antes la ascitis). Solo en centros con experiencia.`]));
@@ -204,8 +208,8 @@ const T = {
     o: [['Sí, FC > 180 lpm', 'regular'], ['No: es un ritmo irregular (extrasístoles)', 'ea']] },
   ea: { leaf: 'Extrasístoles auriculares', tipo: '', h: [
     caja('Manejo', ul([
-      `No requieren tratamiento ${AHA}.`,
-      `Auscultación o Doppler de la FC fetal semanal (o perfil biofísico) hasta que se resuelvan ${C1}: el 1–3 % desarrolla TSV ${HRS}.`,
+      `No requieren tratamiento${AHA}.`,
+      `Auscultación o Doppler de la FC fetal semanal (o perfil biofísico) hasta que se resuelvan ${C1}: el 1–3 % desarrolla TSV${HRS}.`,
       `Si aparece una taquicardia sostenida, volver al inicio del algoritmo.`])),
     caja('Al nacer', ul([`Si persisten hasta el parto: ECG posnatal y Holter o telemetría de 24 h.`]))] },
   regular: { q: '¿El ritmo es regular?', o: [['Sí', 'av'], ['No', 'irreg']] },
@@ -220,13 +224,13 @@ const T = {
   valargo: { q: '¿Es una taquicardia sinusal?', help: 'FC < 200 lpm, variabilidad conservada, sin inicio y fin bruscos.',
     o: [['Puede ser sinusal', 'sinusal'], ['No: TAE o PJRT', 'mecTAE']] },
   sinusal: { leaf: 'Taquicardia sinusal fetal', tipo: 'warn', h: [
-    caja('Buscar la causa', ul([`Fiebre o infección materna, estimulantes, anti-Ro ${AHA}.`, `Si es incesante: anticuerpos maternos contra el receptor de TSH (enfermedad de Graves) ${AHA}.`])),
+    caja('Buscar la causa', ul([`Fiebre o infección materna, estimulantes, anti-Ro${AHA}.`, `Si es incesante: anticuerpos maternos contra el receptor de TSH (enfermedad de Graves)${AHA}.`])),
     caja('Manejo', ul(['Tratar la causa; no se indican antiarrítmicos.']))] },
   tv: { leaf: 'TV o JET fetal', tipo: 'crit', h: [
-    caja('Evaluar', ul([`Anti-Ro/La maternos ${AHA}.`, `Tumores o divertículo ventricular, miocardiopatía ${AHA}.`, `QT largo: antecedentes familiares y ECG a los padres ${AHA}.`])),
-    caja('Tratamiento (datos escasos)', ul([`Se usaron flecainida, sotalol y amiodarona ${AHA}.`,
-      `Si se sospecha QT largo o torsades: propranolol, mexiletina, lidocaína o magnesio; evitar sotalol y amiodarona, que alargan el QT ${AHA}, y flecainida (riesgo conocido de torsades, CredibleMeds).`,
-      `El ritmo idioventricular acelerado no suele requerir tratamiento salvo que sea sostenido y con compromiso hemodinámico ${AHA}.`]))] },
+    caja('Evaluar', ul([`Anti-Ro/La maternos${AHA}.`, `Tumores o divertículo ventricular, miocardiopatía${AHA}.`, `QT largo: antecedentes familiares y ECG a los padres${AHA}.`])),
+    caja('Tratamiento (datos escasos)', ul([`Se usaron flecainida, sotalol y amiodarona${AHA}.`,
+      `Si se sospecha QT largo o torsades: propranolol, mexiletina, lidocaína o magnesio; evitar sotalol y amiodarona, que alargan el QT${AHA}, y flecainida (riesgo conocido de torsades, CredibleMeds).`,
+      `El ritmo idioventricular acelerado no suele requerir tratamiento salvo que sea sostenido y con compromiso hemodinámico${AHA}.`]))] },
   mecTRAV: { q: 'Diagnóstico: TRAV (TSV por vía accesoria). ¿Hay hydrops o disfunción ventricular?', help: 'Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_TSV_no'], ['Con hydrops', 'eg_TSV_si']] },
   mecTAE: { q: 'Diagnóstico: TSV de VA largo (TAE o PJRT). ¿Hay hydrops o disfunción ventricular?', help: 'Se trata como TSV, pero la conversión suele ser más lenta. Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_TSV_no'], ['Con hydrops', 'eg_TSV_si']] },
   mecAleteo: { q: 'Diagnóstico: aleteo auricular. ¿Hay hydrops o disfunción ventricular?', help: 'Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_AL_no'], ['Con hydrops', 'eg_AL_si']] },
@@ -239,8 +243,8 @@ const T = {
     caja('HRS 2023', ul([`Flecainida o sotalol, solos o con digoxina ${C1}; la flecainida fue superior en la TSV.`, `Refractaria: amiodarona oral ${C2a}.`])),
     MONITOREO, NAC_TSV] },
   tsv_no_term: { leaf: 'TSV sin hydrops, cerca del término', tipo: '', h: [
-    caja('Opciones', ul([`Tratar como en el pretérmino (abajo), con meta de parto en ritmo sinusal ${AHA}.`,
-      `El nacimiento cerca del término, si el feto es viable, suele dar buenos resultados ${HRS}: decidir con el equipo según edad gestacional y respuesta.`])),
+    caja('Opciones', ul([`Tratar como en el pretérmino (abajo), con meta de parto en ritmo sinusal${AHA}.`,
+      `El nacimiento cerca del término, si el feto es viable, suele dar buenos resultados${HRS}: decidir con el equipo según edad gestacional y respuesta.`])),
     caja('Tratamiento transplacentario por líneas ' + AHA, lineas('Flecainida', 'Flecainida + digoxina, o sotalol ± digoxina', 'Flecainida + sotalol, o amiodarona')),
     MONITOREO, NAC_TSV] },
   tsv_si: { leaf: 'TSV con hydrops (pretérmino)', tipo: 'crit', h: [
@@ -249,16 +253,16 @@ const T = {
       `Con hydrops la digoxina transplacentaria pasa mal (≈ 20 %): por eso no va sola.`])),
     DIRECTO, MONITOREO, NAC_TSV] },
   term_hyd_TSV: { leaf: 'TSV con hydrops, cerca del término', tipo: 'crit', h: [
-    caja('Dónde difieren las guías', ul([`${HRS} Indicar el nacimiento ${C1} y tratar al recién nacido: responde bien y evita la toxicidad materna.`,
-      `${AHA} Propone tratamiento transplacentario (flecainida + digoxina como 1.ª línea).`,
+    caja('Dónde difieren las guías', ul([`${HRSQ} Indicar el nacimiento ${C1} y tratar al recién nacido: responde bien y evita la toxicidad materna.`,
+      `${AHAQ} Propone tratamiento transplacentario (flecainida + digoxina como 1.ª línea).`,
       `Decidir en el equipo cardio-obstétrico según edad gestacional, gravedad del hydrops y respuesta.`])),
     NAC_TSV] },
   al_no: { leaf: 'Aleteo sin hydrops', tipo: '', h: [
     caja('Tratamiento transplacentario por líneas ' + AHA, lineas('Sotalol', 'Sotalol + digoxina', 'Sotalol + flecainida, o amiodarona')),
-    caja('HRS 2023', ul([`Flecainida o sotalol, solos o con digoxina ${C1}.`, `En el aleteo, ningún dato fija un fármaco de elección (AHA prefiere sotalol) ${HRS}.`])),
+    caja('HRS 2023', ul([`Flecainida o sotalol, solos o con digoxina ${C1}.`, `En el aleteo, ningún dato fija un fármaco de elección (AHA prefiere sotalol)${HRS}.`])),
     MONITOREO, NAC_ALETEO] },
   al_no_term: { leaf: 'Aleteo sin hydrops, cerca del término', tipo: '', h: [
-    caja('Opciones', ul([`Tratar como en el pretérmino (abajo) ${AHA}.`, `O programar el nacimiento si el feto es viable y cardiovertir al recién nacido: el aleteo responde bien y recurre poco ${HRS}.`])),
+    caja('Opciones', ul([`Tratar como en el pretérmino (abajo)${AHA}.`, `O programar el nacimiento si el feto es viable y cardiovertir al recién nacido: el aleteo responde bien y recurre poco${HRS}.`])),
     caja('Tratamiento transplacentario por líneas ' + AHA, lineas('Sotalol', 'Sotalol + digoxina', 'Sotalol + flecainida, o amiodarona')),
     MONITOREO, NAC_ALETEO] },
   al_si: { leaf: 'Aleteo con hydrops (pretérmino)', tipo: 'crit', h: [
@@ -266,7 +270,7 @@ const T = {
     caja('HRS 2023', ul([`Flecainida o sotalol, solos o con digoxina ${C1}.`, `Refractario: amiodarona oral ${C2a}.`])),
     DIRECTO, MONITOREO, NAC_ALETEO] },
   term_hyd_AL: { leaf: 'Aleteo con hydrops, cerca del término', tipo: 'crit', h: [
-    caja('Dónde difieren las guías', ul([`${HRS} Indicar el nacimiento ${C1} y cardiovertir al recién nacido.`, `${AHA} Propone tratamiento transplacentario (sotalol + digoxina como 1.ª línea).`])),
+    caja('Dónde difieren las guías', ul([`${HRSQ} Indicar el nacimiento ${C1} y cardiovertir al recién nacido.`, `${AHAQ} Propone tratamiento transplacentario (sotalol + digoxina como 1.ª línea).`])),
     NAC_ALETEO] }
 };
 
@@ -278,45 +282,45 @@ const B = {
   av: { q: '¿Qué relación auriculoventricular (A:V) tiene?', help: 'Modo M o Doppler simultáneo (VCS–aorta, vena–arteria pulmonar).',
     o: [['1:1 (cada aurícula conduce)', 'sinusal'], ['A > V, con relación fija (2:1)', 'aa'], ['Disociación AV: aurículas y ventrículos sin relación', 'bavc']] },
   sinusal: { leaf: 'Bradicardia sinusal o auricular (1:1)', tipo: '', h: [
-    caja('Buscar la causa ' + AHA + ' ' + HRS, ul([`Materna: anti-Ro/La, infección viral, fármacos maternos (revisarlos).`, `Fetal: cardiopatía (TGA corregida, Ebstein, isomerismo izquierdo), ritmo auricular ectópico.`,
+    caja('Buscar la causa ' + AHA + HRS, ul([`Materna: anti-Ro/La, infección viral, fármacos maternos (revisarlos).`, `Fetal: cardiopatía (TGA corregida, Ebstein, isomerismo izquierdo), ritmo auricular ectópico.`,
       `Canalopatía: la bradicardia sinusal sostenida sin causa es una pista de QT largo.`])),
-    caja('Si es idiopática: pensar en QT largo', ul([`Magnetocardiografía fetal si está disponible (mide el QTc).`, `ECG a los padres y antecedentes familiares de muerte súbita ${AHA}.`,
-      `Evitar fármacos maternos que alarguen el QT; vigilar arritmias ventriculares fetales ${HRS}.`, `Evaluación posnatal con QTc y estudio genético ${C1}.`,
-      `Torsades: propranolol, mexiletina, lidocaína o magnesio; no sotalol ni amiodarona ${AHA}, ni flecainida (riesgo conocido de torsades, CredibleMeds).`])), ESEG] },
+    caja('Si es idiopática: pensar en QT largo', ul([`Magnetocardiografía fetal si está disponible (mide el QTc).`, `ECG a los padres y antecedentes familiares de muerte súbita${AHA}.`,
+      `Evitar fármacos maternos que alarguen el QT; vigilar arritmias ventriculares fetales${HRS}.`, `Evaluación posnatal con QTc y estudio genético ${C1}.`,
+      `Torsades: propranolol, mexiletina, lidocaína o magnesio; no sotalol ni amiodarona${AHA}, ni flecainida (riesgo conocido de torsades, CredibleMeds).`])), ESEG] },
   aa: { q: '¿Cómo son los intervalos A–A?', help: 'Medir en VCS–aorta o modo M. En el BAV de 2.º grado el intervalo auricular es regular (varía < 20 ms).',
     o: [['Variables: ciclo corto-largo-corto', 'bigem'], ['Regulares (varían < 20 ms)', 'ro2']] },
   bigem: { leaf: 'Bigeminismo auricular bloqueado', tipo: '', h: [
-    caja('Manejo', ul([`Mecanismo generalmente benigno; FC ventricular ≈ 70–90 lpm ${HRS}.`, `Control semanal del estado fetal y de la FC: puede desarrollar TSV ${AHA} ${HRS}.`, `Sin tratamiento; si aparece taquicardia sostenida, tratar como TSV.`])),
+    caja('Manejo', ul([`Mecanismo generalmente benigno; FC ventricular ≈ 70–90 lpm${HRS}.`, `Control semanal del estado fetal y de la FC: puede desarrollar TSV${AHA}${HRS}.`, `Sin tratamiento; si aparece taquicardia sostenida, tratar como TSV.`])),
     caja('Al nacer', ul(['Si persiste: ECG y Holter o telemetría de 24 h (riesgo de taquicardia auricular).']))] },
   ro2: { q: 'BAV de 2.º grado o 2:1. ¿La madre tiene anti-Ro o anti-La positivos?', o: [['Sí', 'inm2'], ['No', 'chd2']] },
   chd2: { q: '¿Hay cardiopatía congénita?', help: 'TGA corregida, canal AV o isomerismo izquierdo.', o: [['Sí', 'bavchd'], ['No', 'pseudo']] },
   inm2: { leaf: 'BAV de 2.º grado de causa inmune', tipo: 'warn', h: [
-    caja('Tratamiento (decisión compartida)', ul([`${AHA} Dexametasona 8 mg/d, a las 2 semanas 4 mg/d y desde la semana 28, 2 mg/d, hasta el nacimiento. El tratamiento del BAV de 1.º y 2.º grado podría evitar la progresión a BAV completo.`,
-      `${AHA} Sumar IVIG 1 g/kg (máx. 70 g) cada 3–4 semanas si hay fibroelastosis endocárdica o BAV incompleto.`,
-      `${HRS} Corticoides fluorados ${C2b}, beneficio incierto. Corticoides + IVIG si hay miocardiopatía o hydrops ${C2b}.`])),
-    caja('Seguimiento', ul([`Evaluación semanal por obstetricia y cardiología fetal; nacimiento en centro terciario ${AHA}.`, `Eco seriada para hydrops y miocardiopatía ${C1}.`])),
-    caja('Al nacer y después', ul([`ECG de 12 derivaciones; el PR largo puede persistir.`, `Madre: retirar los corticoides después del parto ${AHA}.`,
-      `Próximo embarazo: anti-Ro/La en el 1.er trimestre ${C1}; hidroxicloroquina desde el 1.er trimestre reduce la recurrencia > 50 % ${AHA}. Ver la pestaña "Madre anti-Ro/La".`]))] },
+    caja('Tratamiento (decisión compartida)', ul([`${AHAQ} Dexametasona 8 mg/d, a las 2 semanas 4 mg/d y desde la semana 28, 2 mg/d, hasta el nacimiento. El tratamiento del BAV de 1.º y 2.º grado podría evitar la progresión a BAV completo.`,
+      `${AHAQ} Sumar IVIG 1 g/kg (máx. 70 g) cada 3–4 semanas si hay fibroelastosis endocárdica o BAV incompleto.`,
+      `${HRSQ} Corticoides fluorados ${C2b}, beneficio incierto. Corticoides + IVIG si hay miocardiopatía o hydrops ${C2b}.`])),
+    caja('Seguimiento', ul([`Evaluación semanal por obstetricia y cardiología fetal; nacimiento en centro terciario${AHA}.`, `Eco seriada para hydrops y miocardiopatía ${C1}.`])),
+    caja('Al nacer y después', ul([`ECG de 12 derivaciones; el PR largo puede persistir.`, `Madre: retirar los corticoides después del parto${AHA}.`,
+      `Próximo embarazo: anti-Ro/La en el 1.er trimestre ${C1}; hidroxicloroquina desde el 1.er trimestre reduce la recurrencia > 50 %${AHA}. Ver la pestaña "Madre anti-Ro/La".`]))] },
   bavchd: { leaf: 'BAV por cardiopatía congénita', tipo: 'crit', h: [
-    caja('Pronóstico y manejo', ul([`Pronóstico malo, sobre todo con isomerismo izquierdo ${AHA}.`, `Eco seriada para hydrops y función ventricular; nacimiento en centro terciario con cirugía cardíaca y posibilidad de estimulación.`])),
+    caja('Pronóstico y manejo', ul([`Pronóstico malo, sobre todo con isomerismo izquierdo${AHA}.`, `Eco seriada para hydrops y función ventricular; nacimiento en centro terciario con cirugía cardíaca y posibilidad de estimulación.`])),
     caja('Al nacer', ul(['Si la FC ventricular es < 50 lpm o hay bajo gasto: isoproterenol o marcapasos.']))] },
   pseudo: { leaf: 'Sospecha de pseudobloqueo 2:1 por QT largo', tipo: 'crit', h: [
-    caja('Por qué', ul([`El QT largo puede dar un 2:1 funcional: la aurícula llega cuando el ventrículo sigue refractario ${AHA}.`])),
-    caja('Durante el embarazo', ul([`Magnetocardiografía fetal si está disponible; ECG a los padres y antecedentes familiares ${AHA}.`,
-      `Evitar fármacos maternos que alarguen el QT (por ejemplo, ondansetrón u oxitocina) ${HRS}.`, `Vigilar arritmias ventriculares y torsades.`])),
+    caja('Por qué', ul([`El QT largo puede dar un 2:1 funcional: la aurícula llega cuando el ventrículo sigue refractario${AHA}.`])),
+    caja('Durante el embarazo', ul([`Magnetocardiografía fetal si está disponible; ECG a los padres y antecedentes familiares${AHA}.`,
+      `Evitar fármacos maternos que alarguen el QT (por ejemplo, ondansetrón u oxitocina)${HRS}.`, `Vigilar arritmias ventriculares y torsades.`])),
     caja('Nacimiento y primeros días', ul([`Nacer en centro terciario con electrofisiología pediátrica.`,
       `ECG con QTc y telemetría; estudio genético y screening familiar ${C1}.`,
-      `Torsades: magnesio IV, lidocaína o mexiletina, propranolol; no sotalol ni amiodarona ${AHA}, ni flecainida (riesgo conocido de torsades, CredibleMeds).`]))] },
+      `Torsades: magnesio IV, lidocaína o mexiletina, propranolol; no sotalol ni amiodarona${AHA}, ni flecainida (riesgo conocido de torsades, CredibleMeds).`]))] },
   bavc: { q: 'BAV completo. ¿La madre tiene anti-Ro o anti-La positivos?', o: [['Sí', 'bavcinm'], ['No', 'bavcno']] },
   bavcinm: { leaf: 'BAV completo de causa inmune', tipo: 'crit', h: [
-    caja('Seguimiento', ul([`Eco fetal seriada para hydrops y miocardiopatía ${C1}.`, `Evaluación semanal por obstetricia y cardiología fetal ${AHA}.`])),
-    caja('Tratamiento: dónde difieren las guías', ul([`Corticoides fluorados: no revierten el BAV de 3.er grado; ${AHA} controvertidos (dexametasona 8→4→2 mg/d) · ${HRS} ${C2b}.`,
-      `IVIG + corticoides si hay fibroelastosis, miocardiopatía o hydrops: ${AHA} · ${HRS} ${C2b}.`,
-      `β-miméticos si FC ventricular < 50 lpm o mala contractilidad: ${AHA} salbutamol 10 mg en 3 dosis o terbutalina 10–30 mg en 4 dosis · ${HRS} sin beneficio y con riesgo materno si FC < 55 lpm ${C3}.`])),
-    caja('Nacimiento', ul([`Centro terciario ${AHA}, con equipo para estimular de urgencia.`])),
+    caja('Seguimiento', ul([`Eco fetal seriada para hydrops y miocardiopatía ${C1}.`, `Evaluación semanal por obstetricia y cardiología fetal${AHA}.`])),
+    caja('Tratamiento: dónde difieren las guías', ul([`Corticoides fluorados: no revierten el BAV de 3.er grado; ${AHAQ} controvertidos (dexametasona 8→4→2 mg/d) · ${HRSQ} ${C2b}.`,
+      `IVIG + corticoides si hay fibroelastosis, miocardiopatía o hydrops: ${AHAQ} · ${HRSQ} ${C2b}.`,
+      `β-miméticos si FC ventricular < 50 lpm o mala contractilidad: ${AHAQ} salbutamol 10 mg en 3 dosis o terbutalina 10–30 mg en 4 dosis · ${HRSQ} sin beneficio y con riesgo materno si FC < 55 lpm ${C3}.`])),
+    caja('Nacimiento', ul([`Centro terciario${AHA}, con equipo para estimular de urgencia.`])),
     caja('Primeros días ' + AHA, ul([`FC ventricular < 50 lpm: isoproterenol o marcapasos.`, `Fibroelastosis o BAV incompleto: IVIG + prednisona.`, `Madre: retirar los corticoides.`]))] },
   bavcno: { leaf: 'BAV completo sin anti-Ro/La', tipo: 'crit', h: [
-    caja('Buscar la causa', ul([`Cardiopatía congénita (TGA corregida, isomerismo izquierdo): peor pronóstico ${AHA}.`, `Sin cardiopatía: QT largo u otro síndrome arrítmico; evaluación posnatal y estudio genético ${C1}.`])),
+    caja('Buscar la causa', ul([`Cardiopatía congénita (TGA corregida, isomerismo izquierdo): peor pronóstico${AHA}.`, `Sin cardiopatía: QT largo u otro síndrome arrítmico; evaluación posnatal y estudio genético ${C1}.`])),
     ESEG,
     caja('Nacimiento y primeros días', ul([`Centro terciario con posibilidad de estimulación.`, `FC ventricular < 50 lpm o bajo gasto: isoproterenol o marcapasos.`]))] }
 };
@@ -377,7 +381,7 @@ const TABLAS = {
     <tr><td>β-miméticos</td><td>Salbutamol o terbutalina si FC ventricular < 50 lpm o mala contractilidad</td><td>${C3}: sin beneficio y con riesgo materno si FC < 55 lpm</td></tr>
     <tr><td>Hidroxicloroquina</td><td>No revierte el BAV; reduce la recurrencia > 50 % si se da desde el 1.er trimestre</td><td>Sin recomendación. Pedir anti-Ro/La en el 1.er trimestre a embarazadas con enfermedad autoinmune ${C1}</td></tr>
     <tr><td>Seguimiento</td><td>Evaluación semanal; nacimiento en centro terciario</td><td>Eco periódica en madres anti-Ro/La+ ${C2a}; eco seriada en el BAV completo ${C1}</td></tr></table></div>
-    <p class="small">Riesgo de BAV inmune: 2–6 % de las madres anti-Ro+, 18 % de recurrencia en el embarazo siguiente ${AHA}. Ambas guías esperan nuevos datos para recomendaciones firmes.</p></div></details>`
+    <p class="small">Riesgo de BAV inmune: 2–6 % de las madres anti-Ro+, 18 % de recurrencia en el embarazo siguiente${AHA}. Ambas guías esperan nuevos datos para recomendaciones firmes.</p></div></details>`
 };
 // Esquema del PR mecánico (Doppler de entrada y salida del VI): flujo mitral E y A debajo de la línea de base,
 // flujo aórtico (V) encima; el PR mecánico va del inicio de la A al inicio del flujo aórtico.
@@ -404,30 +408,30 @@ const ANTI_RO = `
   <section class="card leaf warn"><div class="lt">Embarazada con anti-Ro / anti-La</div><h3>Prevención y vigilancia del BAV inmune</h3>
     ${caja('Quiénes y qué riesgo', ul([
       `Pedir anti-Ro y anti-La en el 1.er trimestre a toda embarazada con enfermedad autoinmune o reumatológica, aunque haya tenido títulos negativos antes ${C1}.`,
-      `Riesgo de BAV fetal: 2–6 % de las madres anti-Ro+; recurrencia de 18 % en el embarazo siguiente ${AHA} (al menos 10 % ${HRS}).`,
-      `El BAV inmune suele aparecer entre las semanas 18 y 28 (Veduta 2021). Los anticuerpos también pueden dar fibroelastosis endocárdica y miocardiopatía, aun sin BAV ${AHA}.`]))}
+      `Riesgo de BAV fetal: 2–6 % de las madres anti-Ro+; recurrencia de 18 % en el embarazo siguiente${AHA} (al menos 10 %${HRS}).`,
+      `El BAV inmune suele aparecer entre las semanas 18 y 28<span class="cit"> (Veduta 2021)</span>. Los anticuerpos también pueden dar fibroelastosis endocárdica y miocardiopatía, aun sin BAV${AHA}.`]))}
     ${caja('Prevención con hidroxicloroquina', ul([
-      `Reduce la recurrencia del BAV más de 50 % si se da desde el 1.er trimestre ${AHA}; iniciarla antes de la semana 10 (Killen 2024, Izmirly 2020).`,
-      `Indicación más clara: madre con un hijo previo con lupus neonatal cardíaco (prevención secundaria). En el primer embarazo sin antecedentes muchos la indican por su buena tolerancia, pero el beneficio no está demostrado (Veduta 2021).`,
-      `Dosis usada en el estudio PATCH: 400 mg/día (Izmirly 2020).`,
-      `No revierte un BAV ya establecido ${AHA}. El HRS 2023 no la incluye en sus recomendaciones.`]))}
+      `Reduce la recurrencia del BAV más de 50 % si se da desde el 1.er trimestre${AHA}; iniciarla antes de la semana 10<span class="cit"> (Killen 2024, Izmirly 2020)</span>.`,
+      `Indicación más clara: madre con un hijo previo con lupus neonatal cardíaco (prevención secundaria). En el primer embarazo sin antecedentes muchos la indican por su buena tolerancia, pero el beneficio no está demostrado<span class="cit"> (Veduta 2021)</span>.`,
+      `Dosis usada en el estudio PATCH: 400 mg/día<span class="cit"> (Izmirly 2020)</span>.`,
+      `No revierte un BAV ya establecido${AHA}. El HRS 2023 no la incluye en sus recomendaciones.`]))}
     ${caja('Vigilancia', ul([
-      `Ecocardiografía fetal periódica para detectar el BAV y la miocardiopatía ${C2a}: semanal o cada 2 semanas (AHA 2014, citado por Killen 2024), sobre todo entre las semanas 18 y 28, midiendo el PR mecánico.`,
-      `Doppler de la FC fetal en casa: detecta el paso de ritmo sinusal a BAV; si se va a tratar, conviene hacerlo lo antes posible, idealmente dentro de las 12 h ${AHA}. El estudio STOP BLOQ evalúa esta estrategia.`,
-      `La Sociedad de Medicina Materno-Fetal (2023) cuestionó la necesidad del screening del PR mecánico: no hay consenso (Killen 2024).`]))}
+      `Ecocardiografía fetal periódica para detectar el BAV y la miocardiopatía ${C2a}: semanal o cada 2 semanas<span class="cit"> (AHA 2014, citado por Killen 2024)</span>, sobre todo entre las semanas 18 y 28, midiendo el PR mecánico.`,
+      `Doppler de la FC fetal en casa: detecta el paso de ritmo sinusal a BAV; si se va a tratar, conviene hacerlo lo antes posible, idealmente dentro de las 12 h${AHA}. El estudio STOP BLOQ evalúa esta estrategia.`,
+      `La Sociedad de Medicina Materno-Fetal (2023) cuestionó la necesidad del screening del PR mecánico: no hay consenso<span class="cit"> (Killen 2024)</span>.`]))}
   </section>
   <section class="card leaf"><div class="lt">Técnica</div><h3>Cómo medir el PR mecánico</h3>
     ${PR_SVG}
-    <div class="box"><div class="bl">Paso a paso (Veduta 2021)</div><ol class="steps">
+    <div class="box"><div class="bl">Paso a paso<span class="cit"> (Veduta 2021)</span></div><ol class="steps">
       <li>Vista de 4 o 5 cámaras con el tracto de entrada y de salida del ventrículo izquierdo.</li>
       <li>Doppler pulsado con un volumen de muestra amplio, ubicado entre la válvula mitral y la aórtica, para registrar los dos flujos a la vez: el mitral (ondas E y A) y el aórtico.</li>
       <li>Medir desde el <b>inicio de la onda A</b> (contracción auricular) hasta el <b>inicio del flujo aórtico</b> (contracción ventricular). Ese intervalo AV es el análogo mecánico del PR del ECG.</li>
       <li>Alternativas para registrar aurícula y ventrículo a la vez: vena cava superior y aorta, o vena y arteria pulmonar.</li></ol></div>
     ${caja('Cómo interpretarlo', ul([
-      `Normal: 120 ± 20 ms; depende de la edad gestacional, el sexo y la FC (Veduta 2021).`,
-      `Límite superior: 140 ms, o 150 ms al final de la gestación (percentil 99) (Veduta 2021). Por encima: PR mecánico prolongado (BAV de 1.er grado).`,
-      `PR > 170 ms o aparición de un BAV: hay autores que indican dexametasona (Strasburger 2022). La AHA plantea que tratar el BAV de 1.er y 2.º grado podría evitar la progresión ${AHA}; el HRS considera los corticoides ${C2b}, con beneficio incierto.`,
-      `Un PR que se alarga latido a latido hasta una A que no conduce es un BAV de 2.º grado tipo Wenckebach: suele progresar a BAV completo; derivar a cardiología (Veduta 2021).`]))}
+      `Normal: 120 ± 20 ms; depende de la edad gestacional, el sexo y la FC<span class="cit"> (Veduta 2021)</span>.`,
+      `Límite superior: 140 ms, o 150 ms al final de la gestación (percentil 99)<span class="cit"> (Veduta 2021)</span>. Por encima: PR mecánico prolongado (BAV de 1.er grado).`,
+      `PR > 170 ms o aparición de un BAV: hay autores que indican dexametasona<span class="cit"> (Strasburger 2022)</span>. La AHA plantea que tratar el BAV de 1.er y 2.º grado podría evitar la progresión${AHA}; el HRS considera los corticoides ${C2b}, con beneficio incierto.`,
+      `Un PR que se alarga latido a latido hasta una A que no conduce es un BAV de 2.º grado tipo Wenckebach: suele progresar a BAV completo; derivar a cardiología<span class="cit"> (Veduta 2021)</span>.`]))}
   </section>`;
 function pintarTablas() { document.getElementById('tablas').innerHTML = '<div style="display:flex;flex-direction:column;gap:10px">' + TABLAS[arbol] + '</div>'; }
 function elegir(a) {
@@ -442,6 +446,15 @@ function elegir(a) {
 document.getElementById('tabT').onclick = () => elegir('T');
 document.getElementById('tabB').onclick = () => elegir('B');
 document.getElementById('tabR').onclick = () => elegir('R');
+// Fuentes (AHA, HRS y citas) ocultas para una lectura más limpia; el botón las muestra y la elección se recuerda.
+let verFuentes = false;
+try { verFuentes = localStorage.getItem('fetal_fuentes') === '1'; } catch (e) {}
+function aplicarFuentes() {
+  document.body.classList.toggle('oc', !verFuentes);
+  const b = document.getElementById('fuentes'); b.textContent = verFuentes ? 'Ocultar fuentes' : 'Mostrar fuentes'; b.setAttribute('aria-pressed', verFuentes);
+}
+document.getElementById('fuentes').onclick = () => { verFuentes = !verFuentes; try { localStorage.setItem('fetal_fuentes', verFuentes ? '1' : '0'); } catch (e) {} aplicarFuentes(); };
+aplicarFuentes();
 try { const th = parent && parent !== window && parent.document.documentElement.dataset.theme; if (th) document.documentElement.dataset.theme = th; } catch (e) {}
 elegir('T');
 </script>
