@@ -193,51 +193,45 @@ const T = {
     caja('Tratamiento (datos escasos)', ul([`Se usaron flecainida, sotalol y amiodarona ${AHA}.`,
       `Si se sospecha QT largo o torsades: propranolol, mexiletina, lidocaína o magnesio; evitar sotalol y amiodarona, que alargan el QT ${AHA}.`,
       `El ritmo idioventricular acelerado no suele requerir tratamiento salvo que sea sostenido y con compromiso hemodinámico ${AHA}.`]))] },
-  mecTRAV: { q: 'Diagnóstico: TRAV (TSV por vía accesoria). ¿Qué carga tiene?', mec: 'TSV', o: [['Intermitente: < 50 % del tiempo y sin hydrops', 'interm'], ['Incesante: > 50 % del tiempo (o > 12 h/día), o hay hydrops', 'hyd_TSV']] },
-  mecTAE: { q: 'Diagnóstico: TSV de VA largo (TAE o PJRT). ¿Qué carga tiene?', help: 'Se trata como TSV, pero la conversión suele ser más lenta.', o: [['Intermitente: < 50 % del tiempo y sin hydrops', 'interm'], ['Incesante: > 50 % del tiempo (o > 12 h/día), o hay hydrops', 'hyd_TSV']] },
-  mecAleteo: { q: 'Diagnóstico: aleteo auricular. ¿Qué carga tiene?', o: [['Intermitente: < 50 % del tiempo y sin hydrops', 'interm'], ['Incesante: > 50 % del tiempo (o > 12 h/día), o hay hydrops', 'hyd_AL']] },
-  interm: { leaf: 'Taquicardia intermitente sin hydrops', tipo: '', h: [
-    caja('Manejo', ul([`Observación, control frecuente de la FC (auscultación o Doppler) y perfil biofísico seriado, idealmente con el equipo cardio-obstétrico ${C1}.`,
-      `Mortalidad < 5 % sin hydrops, aun sin conversión ${AHA}.`,
-      `Si se vuelve incesante o aparece hydrops: volver al algoritmo y elegir "incesante".`]))] },
-  hyd_TSV: { q: '¿Hay hydrops o disfunción ventricular?', help: 'Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_TSV_no'], ['Con hydrops', 'eg_TSV_si']] },
-  hyd_AL: { q: '¿Hay hydrops o disfunción ventricular?', help: 'Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_AL_no'], ['Con hydrops', 'eg_AL_si']] },
+  mecTRAV: { q: 'Diagnóstico: TRAV (TSV por vía accesoria). ¿Hay hydrops o disfunción ventricular?', help: 'Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_TSV_no'], ['Con hydrops', 'eg_TSV_si']] },
+  mecTAE: { q: 'Diagnóstico: TSV de VA largo (TAE o PJRT). ¿Hay hydrops o disfunción ventricular?', help: 'Se trata como TSV, pero la conversión suele ser más lenta. Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_TSV_no'], ['Con hydrops', 'eg_TSV_si']] },
+  mecAleteo: { q: 'Diagnóstico: aleteo auricular. ¿Hay hydrops o disfunción ventricular?', help: 'Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_AL_no'], ['Con hydrops', 'eg_AL_si']] },
   eg_TSV_no: { q: '¿Qué madurez tiene el feto?', o: [['Pretérmino (no está maduro para nacer)', 'tsv_no'], ['Cerca del término (viable)', 'tsv_no_term']] },
   eg_TSV_si: { q: '¿Qué madurez tiene el feto?', o: [['Pretérmino (no está maduro para nacer)', 'tsv_si'], ['Cerca del término (viable)', 'term_hyd_TSV']] },
   eg_AL_no: { q: '¿Qué madurez tiene el feto?', o: [['Pretérmino (no está maduro para nacer)', 'al_no'], ['Cerca del término (viable)', 'al_no_term']] },
   eg_AL_si: { q: '¿Qué madurez tiene el feto?', o: [['Pretérmino (no está maduro para nacer)', 'al_si'], ['Cerca del término (viable)', 'term_hyd_AL']] },
-  tsv_no: { leaf: 'TSV incesante sin hydrops', tipo: '', h: [
+  tsv_no: { leaf: 'TSV sin hydrops', tipo: '', h: [
     caja('Tratamiento transplacentario por líneas ' + AHA, lineas('Flecainida', 'Flecainida + digoxina, o sotalol ± digoxina', 'Flecainida + sotalol, o amiodarona')),
     caja('HRS 2023', ul([`Flecainida o sotalol, solos o con digoxina ${C1}; la flecainida fue superior en la TSV.`, `Refractaria: amiodarona oral ${C2a}.`])),
     MONITOREO, NAC_TSV] },
-  tsv_no_term: { leaf: 'TSV incesante sin hydrops, cerca del término', tipo: '', h: [
+  tsv_no_term: { leaf: 'TSV sin hydrops, cerca del término', tipo: '', h: [
     caja('Opciones', ul([`Tratar como en el pretérmino (abajo), con meta de parto en ritmo sinusal ${AHA}.`,
       `El nacimiento cerca del término, si el feto es viable, suele dar buenos resultados ${HRS}: decidir con el equipo según edad gestacional y respuesta.`])),
     caja('Tratamiento transplacentario por líneas ' + AHA, lineas('Flecainida', 'Flecainida + digoxina, o sotalol ± digoxina', 'Flecainida + sotalol, o amiodarona')),
     MONITOREO, NAC_TSV] },
-  tsv_si: { leaf: 'TSV incesante con hydrops (pretérmino)', tipo: 'crit', h: [
+  tsv_si: { leaf: 'TSV con hydrops (pretérmino)', tipo: 'crit', h: [
     caja('Tratamiento transplacentario por líneas ' + AHA, lineas('Flecainida + digoxina', 'Sotalol + digoxina, o flecainida + sotalol', 'Amiodarona ± digoxina ± tratamiento directo')),
     caja('HRS 2023', ul([`Flecainida o sotalol, solos o con digoxina ${C1}.`, `Refractaria o con contraindicaciones: amiodarona oral ${C2a}.`,
       `Con hydrops la digoxina transplacentaria pasa mal (≈ 20 %): por eso no va sola.`])),
     DIRECTO, MONITOREO, NAC_TSV] },
-  term_hyd_TSV: { leaf: 'TSV incesante con hydrops, cerca del término', tipo: 'crit', h: [
+  term_hyd_TSV: { leaf: 'TSV con hydrops, cerca del término', tipo: 'crit', h: [
     caja('Dónde difieren las guías', ul([`${HRS} Indicar el nacimiento ${C1} y tratar al recién nacido: responde bien y evita la toxicidad materna.`,
       `${AHA} Propone tratamiento transplacentario (flecainida + digoxina como 1.ª línea).`,
       `Decidir en el equipo cardio-obstétrico según edad gestacional, gravedad del hydrops y respuesta.`])),
     NAC_TSV] },
-  al_no: { leaf: 'Aleteo incesante sin hydrops', tipo: '', h: [
+  al_no: { leaf: 'Aleteo sin hydrops', tipo: '', h: [
     caja('Tratamiento transplacentario por líneas ' + AHA, lineas('Sotalol', 'Sotalol + digoxina', 'Sotalol + flecainida, o amiodarona')),
     caja('HRS 2023', ul([`Flecainida o sotalol, solos o con digoxina ${C1}.`, `En el aleteo, ningún dato fija un fármaco de elección (AHA prefiere sotalol) ${HRS}.`])),
     MONITOREO, NAC_ALETEO] },
-  al_no_term: { leaf: 'Aleteo incesante sin hydrops, cerca del término', tipo: '', h: [
+  al_no_term: { leaf: 'Aleteo sin hydrops, cerca del término', tipo: '', h: [
     caja('Opciones', ul([`Tratar como en el pretérmino (abajo) ${AHA}.`, `O programar el nacimiento si el feto es viable y cardiovertir al recién nacido: el aleteo responde bien y recurre poco ${HRS}.`])),
     caja('Tratamiento transplacentario por líneas ' + AHA, lineas('Sotalol', 'Sotalol + digoxina', 'Sotalol + flecainida, o amiodarona')),
     MONITOREO, NAC_ALETEO] },
-  al_si: { leaf: 'Aleteo incesante con hydrops (pretérmino)', tipo: 'crit', h: [
+  al_si: { leaf: 'Aleteo con hydrops (pretérmino)', tipo: 'crit', h: [
     caja('Tratamiento transplacentario por líneas ' + AHA, lineas('Sotalol + digoxina', 'Sotalol + flecainida, o amiodarona', 'Amiodarona + digoxina ± tratamiento directo')),
     caja('HRS 2023', ul([`Flecainida o sotalol, solos o con digoxina ${C1}.`, `Refractario: amiodarona oral ${C2a}.`])),
     DIRECTO, MONITOREO, NAC_ALETEO] },
-  term_hyd_AL: { leaf: 'Aleteo incesante con hydrops, cerca del término', tipo: 'crit', h: [
+  term_hyd_AL: { leaf: 'Aleteo con hydrops, cerca del término', tipo: 'crit', h: [
     caja('Dónde difieren las guías', ul([`${HRS} Indicar el nacimiento ${C1} y cardiovertir al recién nacido.`, `${AHA} Propone tratamiento transplacentario (sotalol + digoxina como 1.ª línea).`])),
     NAC_ALETEO] }
 };
