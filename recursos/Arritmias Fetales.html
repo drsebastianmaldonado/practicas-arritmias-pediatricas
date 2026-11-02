@@ -39,8 +39,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font
 .chip{font-size:12px;font-weight:700;border-radius:99px;padding:4px 10px;background:var(--card);color:var(--ink2);border:1px solid var(--line)}
 .chip.aha{color:#c0392b;border-color:color-mix(in srgb,#c0392b 40%,var(--line))}
 .chip.hrs{color:var(--blue);border-color:color-mix(in srgb,var(--blue) 40%,var(--line))}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--seg);padding:4px;border-radius:14px}
-.seg button{appearance:none;border:0;border-radius:11px;padding:10px 8px;font:inherit;font-weight:700;font-size:15px;color:var(--ink2);background:transparent;cursor:pointer}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--seg);padding:4px;border-radius:14px}
+.seg button{appearance:none;border:0;border-radius:11px;padding:10px 8px;font:inherit;font-weight:700;font-size:14px;line-height:1.2;color:var(--ink2);background:transparent;cursor:pointer}
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 h2.sec{margin:8px 4px -6px;font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
 /* algoritmo por pasos */
@@ -101,6 +101,9 @@ th{background:color-mix(in srgb,var(--slate) 12%,var(--card));font-size:13px}
 tr:last-child td{border-bottom:0}
 .small{font-size:13px;color:var(--ink2)}
 .warnbox{background:color-mix(in srgb,var(--orange) 14%,var(--card));border-radius:14px;padding:12px 14px;font-size:14px}
+.prsvg{width:100%;height:auto;display:block;background:color-mix(in srgb,var(--slate) 6%,var(--card));border-radius:12px}
+.prsvg text{font-family:var(--font);fill:var(--ink)}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15px}
 .refs{margin:0;padding-left:20px;font-size:13px;color:var(--ink2);display:flex;flex-direction:column;gap:4px}
 </style>
 </head>
@@ -116,12 +119,13 @@ tr:last-child td{border-bottom:0}
   <div class="seg" role="tablist">
     <button id="tabT" class="on" role="tab" aria-selected="true">Taquicardia fetal</button>
     <button id="tabB" role="tab" aria-selected="false">Bradicardia fetal</button>
+    <button id="tabR" role="tab" aria-selected="false">Madre anti-Ro/La</button>
   </div>
 
-  <h2 class="sec">Algoritmo paso a paso</h2>
+  <h2 class="sec" id="tAlgo">Algoritmo paso a paso</h2>
   <div id="algo" class="trail"></div>
 
-  <h2 class="sec">Tablas de consulta</h2>
+  <h2 class="sec" id="tTablas">Tablas de consulta</h2>
   <div id="tablas"></div>
 
   <div class="warnbox">Material de consulta para profesionales. No reemplaza el juicio clínico ni las pautas institucionales. La decisión de tratar, el fármaco y el momento del nacimiento se definen con el equipo cardio-obstétrico, en decisión compartida con la familia.</div>
@@ -131,6 +135,10 @@ tr:last-child td{border-bottom:0}
     <ol class="refs">
       <li><b>AHA 2024</b> — Batra AS, Silka MJ, et al. Pharmacological Management of Cardiac Arrhythmias in the Fetal and Neonatal Periods: A Scientific Statement From the American Heart Association. <i>Circulation</i>. 2024;149:e937–e952.</li>
       <li><b>HRS 2023</b> — Joglar JA, Kapa S, et al. 2023 HRS expert consensus statement on the management of arrhythmias during pregnancy. <i>Heart Rhythm</i>. 2023;20:e175–e264 (secciones 11.1, 11.3 y tabla 5). Consenso internacional con representantes de EHRA, LAHRS y APHRS.</li>
+      <li><b>Killen 2024</b> — Killen SAS, Strasburger JF. Diagnosis and Management of Fetal Arrhythmias in the Current Era. <i>J Cardiovasc Dev Dis</i>. 2024;11:163.</li>
+      <li><b>Veduta 2021</b> — Veduta A, Panaitescu AM, et al. Treatment of Fetal Arrhythmias. <i>J Clin Med</i>. 2021;10:2510 (medición del PR mecánico).</li>
+      <li><b>Strasburger 2022</b> — Strasburger JF, et al. Fetal Arrhythmia Diagnosis and Pharmacologic Management. <i>J Clin Pharmacol</i>. 2022;62(S1):S53–S66.</li>
+      <li><b>Izmirly 2020</b> — Izmirly P, et al. Hydroxychloroquine to Prevent Recurrent Congenital Heart Block in Fetuses of Anti-SSA/Ro-Positive Mothers (estudio PATCH). <i>J Am Coll Cardiol</i>. 2020;76:292–302.</li>
       <li>Clase de recomendación (HRS): <span class="tagc c1">COR 1</span> se recomienda · <span class="tagc c2a">COR 2a</span> razonable · <span class="tagc c2b">COR 2b</span> puede considerarse · <span class="tagc c3">COR 3</span> sin beneficio o dañino. <span class="op">Opinión del autor</span> señala la conducta del Dr. Maldonado donde las guías no fijan una.</li>
     </ol>
   </section>
@@ -262,7 +270,7 @@ const B = {
       `${HRS} Corticoides fluorados ${C2b}, beneficio incierto. Corticoides + IVIG si hay miocardiopatía o hydrops ${C2b}.`])),
     caja('Seguimiento', ul([`Evaluación semanal por obstetricia y cardiología fetal; nacimiento en centro terciario ${AHA}.`, `Eco seriada para hydrops y miocardiopatía ${C1}.`])),
     caja('Al nacer y después', ul([`ECG de 12 derivaciones; el PR largo puede persistir.`, `Madre: retirar los corticoides después del parto ${AHA}.`,
-      `Próximo embarazo: anti-Ro/La en el 1.er trimestre ${C1}; hidroxicloroquina desde el 1.er trimestre reduce la recurrencia > 50 % ${AHA}.`]))] },
+      `Próximo embarazo: anti-Ro/La en el 1.er trimestre ${C1}; hidroxicloroquina desde el 1.er trimestre reduce la recurrencia > 50 % ${AHA}. Ver la pestaña "Madre anti-Ro/La".`]))] },
   bavchd: { leaf: 'BAV por cardiopatía congénita', tipo: 'crit', h: [
     caja('Pronóstico y manejo', ul([`Pronóstico malo, sobre todo con isomerismo izquierdo ${AHA}.`, `Eco seriada para hydrops y función ventricular; nacimiento en centro terciario con cirugía cardíaca y posibilidad de estimulación.`])),
     caja('Al nacer', ul(['Si la FC ventricular es < 50 lpm o hay bajo gasto: isoproterenol o marcapasos.']))] },
@@ -345,15 +353,69 @@ const TABLAS = {
     <tr><td>Seguimiento</td><td>Evaluación semanal; nacimiento en centro terciario</td><td>Eco periódica en madres anti-Ro/La+ ${C2a}; eco seriada en el BAV completo ${C1}</td></tr></table></div>
     <p class="small">Riesgo de BAV inmune: 2–6 % de las madres anti-Ro+, 18 % de recurrencia en el embarazo siguiente ${AHA}. Ambas guías esperan nuevos datos para recomendaciones firmes.</p></div></details>`
 };
+// Esquema del PR mecánico (Doppler de entrada y salida del VI): flujo mitral E y A debajo de la línea de base,
+// flujo aórtico (V) encima; el PR mecánico va del inicio de la A al inicio del flujo aórtico.
+const PR_SVG = `<svg class="prsvg" viewBox="0 0 340 190" role="img" aria-label="Esquema del PR mecánico: del inicio de la onda A mitral al inicio del flujo aórtico">
+  <line x1="12" y1="95" x2="328" y2="95" stroke="currentColor" stroke-opacity=".35" stroke-width="1.5"/>
+  <g fill="#e0584f" fill-opacity=".85">
+    <path d="M40 95 L58 140 L74 95 Z"/><path d="M84 95 L104 160 L122 95 Z"/>
+    <path d="M190 95 L208 140 L224 95 Z"/><path d="M234 95 L254 160 L272 95 Z"/>
+  </g>
+  <g fill="#3d8bd9" fill-opacity=".85">
+    <path d="M132 95 Q150 22 176 95 Z"/><path d="M282 95 Q300 22 326 95 Z"/>
+  </g>
+  <text x="54" y="156" font-size="12" font-weight="700" text-anchor="middle">E</text>
+  <text x="103" y="176" font-size="12" font-weight="700" text-anchor="middle">A</text>
+  <text x="138" y="40" font-size="12" font-weight="700">V (aorta)</text>
+  <text x="336" y="182" font-size="10.5" text-anchor="end" fill-opacity=".7">Mitral: debajo · Aorta: encima</text>
+  <line x1="84" y1="58" x2="84" y2="170" stroke="#7a3fd0" stroke-width="2" stroke-dasharray="4 3"/>
+  <line x1="132" y1="58" x2="132" y2="170" stroke="#7a3fd0" stroke-width="2" stroke-dasharray="4 3"/>
+  <line x1="88" y1="70" x2="128" y2="70" stroke="#7a3fd0" stroke-width="2"/>
+  <path d="M88 70 l6 -4 v8 z M128 70 l-6 -4 v8 z" fill="#7a3fd0"/>
+  <text x="108" y="50" font-size="11.5" font-weight="800" text-anchor="middle" fill="#7a3fd0" style="fill:#7a3fd0">PR mecánico</text>
+</svg>`;
+const ANTI_RO = `
+  <section class="card leaf warn"><div class="lt">Embarazada con anti-Ro / anti-La</div><h3>Prevención y vigilancia del BAV inmune</h3>
+    ${caja('Quiénes y qué riesgo', ul([
+      `Pedir anti-Ro y anti-La en el 1.er trimestre a toda embarazada con enfermedad autoinmune o reumatológica, aunque haya tenido títulos negativos antes ${C1}.`,
+      `Riesgo de BAV fetal: 2–6 % de las madres anti-Ro+; recurrencia de 18 % en el embarazo siguiente ${AHA} (al menos 10 % ${HRS}).`,
+      `El BAV inmune suele aparecer entre las semanas 18 y 28 (Veduta 2021). Los anticuerpos también pueden dar fibroelastosis endocárdica y miocardiopatía, aun sin BAV ${AHA}.`]))}
+    ${caja('Prevención con hidroxicloroquina', ul([
+      `Reduce la recurrencia del BAV más de 50 % si se da desde el 1.er trimestre ${AHA}; iniciarla antes de la semana 10 (Killen 2024, Izmirly 2020).`,
+      `Indicación más clara: madre con un hijo previo con lupus neonatal cardíaco (prevención secundaria). En el primer embarazo sin antecedentes muchos la indican por su buena tolerancia, pero el beneficio no está demostrado (Veduta 2021).`,
+      `Dosis usada en el estudio PATCH: 400 mg/día (Izmirly 2020).`,
+      `No revierte un BAV ya establecido ${AHA}. El HRS 2023 no la incluye en sus recomendaciones.`]))}
+    ${caja('Vigilancia', ul([
+      `Ecocardiografía fetal periódica para detectar el BAV y la miocardiopatía ${C2a}: semanal o cada 2 semanas (AHA 2014, citado por Killen 2024), sobre todo entre las semanas 18 y 28, midiendo el PR mecánico.`,
+      `Doppler de la FC fetal en casa: detecta el paso de ritmo sinusal a BAV; si se va a tratar, conviene hacerlo lo antes posible, idealmente dentro de las 12 h ${AHA}. El estudio STOP BLOQ evalúa esta estrategia.`,
+      `La Sociedad de Medicina Materno-Fetal (2023) cuestionó la necesidad del screening del PR mecánico: no hay consenso (Killen 2024).`]))}
+  </section>
+  <section class="card leaf"><div class="lt">Técnica</div><h3>Cómo medir el PR mecánico</h3>
+    ${PR_SVG}
+    <div class="box"><div class="bl">Paso a paso (Veduta 2021)</div><ol class="steps">
+      <li>Vista de 4 o 5 cámaras con el tracto de entrada y de salida del ventrículo izquierdo.</li>
+      <li>Doppler pulsado con un volumen de muestra amplio, ubicado entre la válvula mitral y la aórtica, para registrar los dos flujos a la vez: el mitral (ondas E y A) y el aórtico.</li>
+      <li>Medir desde el <b>inicio de la onda A</b> (contracción auricular) hasta el <b>inicio del flujo aórtico</b> (contracción ventricular). Ese intervalo AV es el análogo mecánico del PR del ECG.</li>
+      <li>Alternativas para registrar aurícula y ventrículo a la vez: vena cava superior y aorta, o vena y arteria pulmonar.</li></ol></div>
+    ${caja('Cómo interpretarlo', ul([
+      `Normal: 120 ± 20 ms; depende de la edad gestacional, el sexo y la FC (Veduta 2021).`,
+      `Límite superior: 140 ms, o 150 ms al final de la gestación (percentil 99) (Veduta 2021). Por encima: PR mecánico prolongado (BAV de 1.er grado).`,
+      `PR > 170 ms o aparición de un BAV: hay autores que indican dexametasona (Strasburger 2022). La AHA plantea que tratar el BAV de 1.er y 2.º grado podría evitar la progresión ${AHA}; el HRS considera los corticoides ${C2b}, con beneficio incierto.`,
+      `Un PR que se alarga latido a latido hasta una A que no conduce es un BAV de 2.º grado tipo Wenckebach: suele progresar a BAV completo; derivar a cardiología (Veduta 2021).`]))}
+  </section>`;
 function pintarTablas() { document.getElementById('tablas').innerHTML = '<div style="display:flex;flex-direction:column;gap:10px">' + TABLAS[arbol] + '</div>'; }
 function elegir(a) {
+  ['T', 'B', 'R'].forEach(k => { const b = document.getElementById('tab' + k); b.classList.toggle('on', a === k); b.setAttribute('aria-selected', a === k); });
+  const esR = a === 'R';
+  document.getElementById('tAlgo').textContent = esR ? 'Prevención, vigilancia y PR mecánico' : 'Algoritmo paso a paso';
+  document.getElementById('tTablas').hidden = esR;
+  if (esR) { document.getElementById('algo').innerHTML = ANTI_RO; document.getElementById('tablas').innerHTML = ''; return; }
   arbol = a; camino = ['start']; elegidas = [];
-  document.getElementById('tabT').classList.toggle('on', a === 'T'); document.getElementById('tabB').classList.toggle('on', a === 'B');
-  document.getElementById('tabT').setAttribute('aria-selected', a === 'T'); document.getElementById('tabB').setAttribute('aria-selected', a === 'B');
   pintar(); pintarTablas();
 }
 document.getElementById('tabT').onclick = () => elegir('T');
 document.getElementById('tabB').onclick = () => elegir('B');
+document.getElementById('tabR').onclick = () => elegir('R');
 try { const th = parent && parent !== window && parent.document.documentElement.dataset.theme; if (th) document.documentElement.dataset.theme = th; } catch (e) {}
 elegir('T');
 </script>
