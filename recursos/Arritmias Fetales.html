@@ -105,34 +105,8 @@ tr:last-child td{border-bottom:0}
 .prsvg text{font-family:var(--font);fill:var(--ink)}
 .steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15px}
 .refs{margin:0;padding-left:20px;font-size:13px;color:var(--ink2);display:flex;flex-direction:column;gap:4px}
-/* versión minimalista: sin degradés ni sombras, sin tarjetas anidadas, etiquetas en contorno */
-.card{box-shadow:none;border:1px solid var(--line);border-radius:14px}
-.hero{margin:0;padding:6px 2px 0;background:none;border-radius:0}
-.hicon{display:none}
-.hero h1{margin:0 0 4px;font-size:clamp(26px,7vw,32px);font-weight:700;letter-spacing:-.02em}
-.hero .sub{font-size:15px}
-.chip,.chip.aha,.chip.hrs{font-weight:600;color:var(--ink2);border-color:var(--line);background:transparent}
-.seg button.on{box-shadow:none}
-.step,.leaf,.leaf.warn,.leaf.crit{background:var(--card)}
-.step{border-left:3px solid var(--blue)}
-.leaf{border-left:3px solid var(--t)}
-.step .q{font-size:18px;font-weight:600}
-.leaf h3{font-size:19px;font-weight:700}
-.box{background:transparent;border-radius:0;padding:12px 0 0;border-top:1px solid var(--line)}
-.box ul,.box ol{gap:4px}
-.done{padding:8px 12px;font-size:13px}
-.done .n{background:transparent;color:var(--ink2);border:1px solid var(--line);font-weight:600}
-.done b{font-weight:500}
-.opt{border-width:1px;font-weight:500;border-radius:12px;background:transparent}
-.line i,.line.l2 i,.line.l3 i{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:700}
-.tagc,.aha,.hrs,.op{background:transparent;border:1px solid currentColor;font-weight:700;padding:0 5px}
-.btn{background:transparent;border:1px solid var(--line);color:var(--ink)}
-.warnbox{background:transparent;padding:0 2px;color:var(--ink2);font-size:13px}
-.prsvg{background:transparent;border:1px solid var(--line)}
-th{background:transparent;color:var(--ink2)}
-.tw{border-radius:10px}
-.aha:not(.quien),.hrs:not(.quien){margin-left:.3em}
-.oc .aha:not(.quien),.oc .hrs:not(.quien),.oc .cit{display:none}
+span.aha:not(.quien):not(.chip),span.hrs:not(.quien):not(.chip){margin-left:.3em}
+.oc span.aha:not(.quien):not(.chip),.oc span.hrs:not(.quien):not(.chip),.oc .cit{display:none}
 .fuentesbtn{margin-top:10px}
 </style>
 </head>
@@ -160,8 +134,9 @@ th{background:transparent;color:var(--ink2)}
 
   <div class="warnbox">Material de consulta para profesionales. No reemplaza el juicio clínico ni las pautas institucionales. La decisión de tratar, el fármaco y el momento del nacimiento se definen con el equipo cardio-obstétrico, en decisión compartida con la familia.</div>
 
-  <section class="card" style="padding:14px 16px">
-    <div class="small" style="font-weight:700;margin-bottom:6px">Fuentes y referencias de las etiquetas</div>
+  <details class="card ref">
+    <summary>Fuentes y referencias</summary>
+    <div class="refb">
     <ol class="refs">
       <li><b>AHA 2024</b> — Batra AS, Silka MJ, et al. Pharmacological Management of Cardiac Arrhythmias in the Fetal and Neonatal Periods: A Scientific Statement From the American Heart Association. <i>Circulation</i>. 2024;149:e937–e952.</li>
       <li><b>HRS 2023</b> — Joglar JA, Kapa S, et al. 2023 HRS expert consensus statement on the management of arrhythmias during pregnancy. <i>Heart Rhythm</i>. 2023;20:e175–e264 (secciones 11.1, 11.3 y tabla 5). Consenso internacional con representantes de EHRA, LAHRS y APHRS.</li>
@@ -171,7 +146,8 @@ th{background:transparent;color:var(--ink2)}
       <li><b>Izmirly 2020</b> — Izmirly P, et al. Hydroxychloroquine to Prevent Recurrent Congenital Heart Block in Fetuses of Anti-SSA/Ro-Positive Mothers (estudio PATCH). <i>J Am Coll Cardiol</i>. 2020;76:292–302.</li>
       <li>Clase de recomendación (HRS): <span class="tagc c1">COR 1</span> se recomienda · <span class="tagc c2a">COR 2a</span> razonable · <span class="tagc c2b">COR 2b</span> puede considerarse · <span class="tagc c3">COR 3</span> sin beneficio o dañino. <span class="op">Opinión del autor</span> señala la conducta del Dr. Maldonado donde las guías no fijan una.</li>
     </ol>
-  </section>
+    </div>
+  </details>
 </div>
 
 <script>
