@@ -900,7 +900,8 @@ const etiquetasRecurso = r => [
 ].join('');
 const recAbiertas = new Set();
 function recursos() {
-  const R = (window.RECURSOS || []).map(r => Object.assign({}, r, { s: ALIAS_SECCION[r.s] || r.s }));
+  // "oculto": true deja un recurso fuera de la lista (sigue abriendo por su link directo, para revisarlo antes de difundirlo)
+  const R = (window.RECURSOS || []).filter(r => !r.oculto).map(r => Object.assign({}, r, { s: ALIAS_SECCION[r.s] || r.s }));
   if (!recVistos) { recVistos = R.map(r => r.u); guardarRecVistos(); }
   const item = r => {
     return /\.(jpe?g|png|gif|webp)$/i.test(r.u)
