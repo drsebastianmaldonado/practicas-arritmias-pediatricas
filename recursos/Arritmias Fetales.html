@@ -191,7 +191,7 @@ const T = {
   tv: { leaf: 'TV o JET fetal', tipo: 'crit', h: [
     caja('Evaluar', ul([`Anti-Ro/La maternos ${AHA}.`, `Tumores o divertículo ventricular, miocardiopatía ${AHA}.`, `QT largo: antecedentes familiares y ECG a los padres ${AHA}.`])),
     caja('Tratamiento (datos escasos)', ul([`Se usaron flecainida, sotalol y amiodarona ${AHA}.`,
-      `Si se sospecha QT largo o torsades: propranolol, mexiletina, lidocaína o magnesio; evitar sotalol y amiodarona, que alargan el QT ${AHA}.`,
+      `Si se sospecha QT largo o torsades: propranolol, mexiletina, lidocaína o magnesio; evitar sotalol y amiodarona, que alargan el QT ${AHA}, y flecainida (riesgo conocido de torsades, CredibleMeds).`,
       `El ritmo idioventricular acelerado no suele requerir tratamiento salvo que sea sostenido y con compromiso hemodinámico ${AHA}.`]))] },
   mecTRAV: { q: 'Diagnóstico: TRAV (TSV por vía accesoria). ¿Hay hydrops o disfunción ventricular?', help: 'Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_TSV_no'], ['Con hydrops', 'eg_TSV_si']] },
   mecTAE: { q: 'Diagnóstico: TSV de VA largo (TAE o PJRT). ¿Hay hydrops o disfunción ventricular?', help: 'Se trata como TSV, pero la conversión suele ser más lenta. Derivar al equipo cardio-obstétrico ' + C1 + '.', o: [['Sin hydrops', 'eg_TSV_no'], ['Con hydrops', 'eg_TSV_si']] },
@@ -248,7 +248,7 @@ const B = {
       `Canalopatía: la bradicardia sinusal sostenida sin causa es una pista de QT largo.`])),
     caja('Si es idiopática: pensar en QT largo', ul([`Magnetocardiografía fetal si está disponible (mide el QTc).`, `ECG a los padres y antecedentes familiares de muerte súbita ${AHA}.`,
       `Evitar fármacos maternos que alarguen el QT; vigilar arritmias ventriculares fetales ${HRS}.`, `Evaluación posnatal con QTc y estudio genético ${C1}.`,
-      `Torsades: propranolol, mexiletina, lidocaína o magnesio; no sotalol ni amiodarona ${AHA}.`])), ESEG] },
+      `Torsades: propranolol, mexiletina, lidocaína o magnesio; no sotalol ni amiodarona ${AHA}, ni flecainida (riesgo conocido de torsades, CredibleMeds).`])), ESEG] },
   aa: { q: '¿Cómo son los intervalos A–A?', help: 'Medir en VCS–aorta o modo M. En el BAV de 2.º grado el intervalo auricular es regular (varía < 20 ms).',
     o: [['Variables: ciclo corto-largo-corto', 'bigem'], ['Regulares (varían < 20 ms)', 'ro2']] },
   bigem: { leaf: 'Bigeminismo auricular bloqueado', tipo: '', h: [
@@ -272,7 +272,7 @@ const B = {
       `Evitar fármacos maternos que alarguen el QT (por ejemplo, ondansetrón u oxitocina) ${HRS}.`, `Vigilar arritmias ventriculares y torsades.`])),
     caja('Nacimiento y primeros días', ul([`Nacer en centro terciario con electrofisiología pediátrica.`,
       `ECG con QTc y telemetría; estudio genético y screening familiar ${C1}.`,
-      `Torsades: magnesio IV, lidocaína o mexiletina, propranolol; no sotalol ni amiodarona ${AHA}.`]))] },
+      `Torsades: magnesio IV, lidocaína o mexiletina, propranolol; no sotalol ni amiodarona ${AHA}, ni flecainida (riesgo conocido de torsades, CredibleMeds).`]))] },
   bavc: { q: 'BAV completo. ¿La madre tiene anti-Ro o anti-La positivos?', o: [['Sí', 'bavcinm'], ['No', 'bavcno']] },
   bavcinm: { leaf: 'BAV completo de causa inmune', tipo: 'crit', h: [
     caja('Seguimiento', ul([`Eco fetal seriada para hydrops y miocardiopatía ${C1}.`, `Evaluación semanal por obstetricia y cardiología fetal ${AHA}.`])),
