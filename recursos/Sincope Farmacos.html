@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Síncope: fludrocortisona y midodrina</title>
+<style>
+/* Mismo lenguaje visual que los otros algoritmos de Recursos (Bradicardia en la Urgencia, Esclerosis Tuberosa):
+   columna única, banda de encabezado con degradé, tarjetas. Algoritmo por preguntas + tablas de consulta. */
+:root{
+  --bg:#f2f2f7;--card:#ffffff;--ink:#0b0b10;--ink2:#6c6c74;--line:#e3e3e8;
+  --blue:#0a74f0;--blue-soft:#e4f0ff;--green:#1faa4a;--orange:#d97a00;--red:#e0352b;
+  --violet:#7a3fd0;--slate:#5b6b8c;--teal:#12a58f;--rose:#d0457a;--seg:#e4e4ea;
+  --shadow:0 1px 2px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.05);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#9c9ca4;--line:#2e2e32;--blue:#4aa3ff;--blue-soft:#10263d;
+  --green:#30d158;--orange:#ffa733;--red:#ff6259;--violet:#a98bff;--slate:#9fb0d0;--teal:#2fd0b8;--rose:#ff7aa8;
+  --seg:#1c1c1e;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--ink2:#9c9ca4;--line:#2e2e32;--blue:#4aa3ff;--blue-soft:#10263d;
+  --green:#30d158;--orange:#ffa733;--red:#ff6259;--violet:#a98bff;--slate:#9fb0d0;--teal:#2fd0b8;--rose:#ff7aa8;
+  --seg:#1c1c1e;--shadow:none;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:18px}
+.card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);min-width:0}
+.hero{--hc:var(--rose);margin:-20px -16px 0;padding:40px 20px 24px;border-radius:0 0 32px 32px;
+  background:linear-gradient(165deg,color-mix(in srgb,var(--hc) 28%,var(--bg)),color-mix(in srgb,var(--hc) 5%,var(--bg)))}
+.hicon{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;color:#fff;background:linear-gradient(135deg,var(--hc),color-mix(in srgb,var(--hc) 62%,#000))}
+.hicon svg{width:26px;height:26px}
+.hero h1{margin:14px 0 6px;font-size:clamp(30px,8.6vw,40px);font-weight:800;letter-spacing:-.03em;line-height:1.06}
+.hero .sub{margin:0;color:var(--ink2);max-width:52ch}
+.src{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{font-size:12px;font-weight:700;border-radius:99px;padding:4px 10px;background:var(--card);color:var(--ink2);border:1px solid var(--line)}
+.chip.aha{color:#c0392b;border-color:color-mix(in srgb,#c0392b 40%,var(--line))}
+.chip.hrs{color:var(--blue);border-color:color-mix(in srgb,var(--blue) 40%,var(--line))}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--seg);padding:4px;border-radius:14px}
+.seg button{appearance:none;border:0;border-radius:11px;padding:10px 8px;font:inherit;font-weight:700;font-size:14px;line-height:1.2;color:var(--ink2);background:transparent;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+h2.sec{margin:8px 4px -6px;font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
+/* algoritmo por pasos */
+.trail{display:flex;flex-direction:column;gap:6px}
+.done{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;font-size:14px}
+.done .n{flex:none;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;background:var(--slate)}
+.done b{display:block;font-weight:600}
+.done span{color:var(--ink2)}
+.step{--t:var(--blue);padding:16px;display:flex;flex-direction:column;gap:12px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--t) 16%,var(--card)),color-mix(in srgb,var(--t) 4%,var(--card)))}
+.step .q{font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.25;text-wrap:balance}
+.step .help{font-size:14px;color:var(--ink2);margin-top:-4px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;appearance:none;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+  font:inherit;font-size:16px;font-weight:600;border-radius:14px;padding:12px 14px;cursor:pointer}
+.opt small{font-weight:400;font-size:13px;color:var(--ink2)}
+.opt:active{opacity:.6}
+.opt:hover{border-color:var(--t)}
+.leaf{--t:var(--teal);padding:16px;display:flex;flex-direction:column;gap:12px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--t) 18%,var(--card)),color-mix(in srgb,var(--t) 4%,var(--card)))}
+.leaf.warn{--t:var(--orange)}
+.leaf.crit{--t:var(--red)}
+.leaf .lt{font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t)}
+.leaf h3{margin:-6px 0 0;font-size:21px;letter-spacing:-.01em;line-height:1.2;text-wrap:balance}
+.box{background:var(--card);border-radius:14px;padding:12px 14px}
+.box .bl{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
+.box ul,.box ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px}
+.box p{margin:0;font-size:15px}
+.lines{display:flex;flex-direction:column;gap:6px}
+.line{display:flex;gap:10px;align-items:baseline}
+.line i{flex:none;font-style:normal;font-size:12px;font-weight:800;border-radius:8px;padding:3px 8px;color:#fff;background:var(--t)}
+.line.l2 i{background:color-mix(in srgb,var(--t) 70%,var(--slate))}
+.line.l3 i{background:var(--slate)}
+.tagc{display:inline-block;font-size:11px;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:2px;vertical-align:1px;white-space:nowrap}
+.c1{background:color-mix(in srgb,var(--green) 22%,var(--card));color:color-mix(in srgb,var(--green) 70%,var(--ink))}
+.c2a{background:color-mix(in srgb,#e3c300 30%,var(--card));color:color-mix(in srgb,#8a7400 80%,var(--ink))}
+.c2b{background:color-mix(in srgb,var(--orange) 24%,var(--card));color:color-mix(in srgb,var(--orange) 75%,var(--ink))}
+.c3{background:color-mix(in srgb,var(--red) 22%,var(--card));color:color-mix(in srgb,var(--red) 75%,var(--ink))}
+.aha,.hrs,.op{font-size:11px;font-weight:800;border-radius:6px;padding:1px 6px;white-space:nowrap}
+.aha{background:color-mix(in srgb,#c0392b 14%,var(--card));color:#c0392b}
+.hrs{background:var(--blue-soft);color:var(--blue)}
+.op{background:color-mix(in srgb,var(--violet) 16%,var(--card));color:var(--violet)}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap}
+.btn{appearance:none;border:0;background:var(--blue-soft);color:var(--blue);font:inherit;font-weight:600;font-size:14px;border-radius:999px;padding:8px 14px;cursor:pointer;min-height:36px}
+.btn:active{opacity:.6}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+/* tablas de consulta */
+details.ref{padding:0;overflow:hidden}
+details.ref>summary{list-style:none;cursor:pointer;padding:14px 16px;font-weight:700;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details.ref>summary::-webkit-details-marker{display:none}
+details.ref>summary::after{content:"";flex:none;width:9px;height:9px;border-right:2px solid var(--ink2);border-bottom:2px solid var(--ink2);transform:rotate(45deg);margin-top:-4px;transition:transform .2s}
+details.ref[open]>summary::after{transform:rotate(225deg);margin-top:4px}
+.refb{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px;font-size:15px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{padding:8px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:color-mix(in srgb,var(--slate) 12%,var(--card));font-size:13px}
+tr:last-child td{border-bottom:0}
+.small{font-size:13px;color:var(--ink2)}
+.warnbox{background:color-mix(in srgb,var(--orange) 14%,var(--card));border-radius:14px;padding:12px 14px;font-size:14px}
+.prsvg{width:100%;height:auto;display:block;background:color-mix(in srgb,var(--slate) 6%,var(--card));border-radius:12px}
+.prsvg text{font-family:var(--font);fill:var(--ink)}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.refs{margin:0;padding-left:20px;font-size:13px;color:var(--ink2);display:flex;flex-direction:column;gap:4px}
+span.aha:not(.quien):not(.chip),span.hrs:not(.quien):not(.chip){margin-left:.3em}
+.oc span.aha:not(.quien):not(.chip),.oc span.hrs:not(.quien):not(.chip),.oc .cit{display:none}
+.fuentesbtn{margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero" style="--hc:var(--teal)">
+    <div class="hicon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14V8"/><circle cx="12" cy="14" r="8"/></svg></div>
+    <h1>Síncope: fludrocortisona y midodrina</h1>
+    <p class="sub">Dosis orientativas en pediatría para el síncope vasovagal recurrente y la intolerancia ortostática que no responden a las medidas no farmacológicas.</p>
+  </header>
+
+  <section class="card leaf warn">
+    <div class="lt">Antes de medicar</div>
+    <h3>Las medidas no farmacológicas van primero</h3>
+    <div class="box"><ul>
+      <li>Explicar el mecanismo y tranquilizar: el síncope vasovagal es benigno.</li>
+      <li>Más líquidos y más sal en la dieta, salvo contraindicación.</li>
+      <li>Reconocer los pródromos y hacer maniobras de contrapresión (cruzar las piernas, apretar los puños, ponerse en cuclillas); acostarse con las piernas elevadas.</li>
+      <li>Evitar los desencadenantes (calor, estar de pie mucho tiempo, deshidratación) y los fármacos que bajan la presión.</li>
+      <li>Entrenamiento con tilt (tilt training) en los que tienen síncopes frecuentes.</li>
+    </ul></div>
+    <div class="box"><div class="bl">Cuándo pensar en un fármaco</div><ul>
+      <li>Síncopes recurrentes que alteran la calidad de vida, con buena adherencia a las medidas anteriores.</li>
+      <li>Ningún fármaco tiene aprobación para este uso en pediatría y la evidencia es escasa: la indicación es individual.</li>
+    </ul></div>
+  </section>
+
+  <section class="card leaf">
+    <div class="lt">Expansor de volumen · mineralocorticoide</div>
+    <h3>Fludrocortisona</h3>
+    <div class="box"><div class="bl">Dosis</div>
+      <div class="tw"><table style="min-width:0">
+        <tr><th>Habitual</th><td><b>0,1 mg/día</b> por vía oral, en una toma a la mañana</td></tr>
+        <tr><th>Rango</th><td>0,05–0,2 mg/día (máximo 0,2 mg/día)</td></tr>
+        <tr><th>Niños pequeños</th><td>Empezar con 0,05 mg/día</td></tr>
+        <tr><th>Junto con</th><td>Más sal y más líquidos: sin expansión de volumen no hace efecto</td></tr>
+      </table></div>
+      <p class="small" style="margin-top:8px">El efecto aparece en 1–2 semanas.</p>
+    </div>
+    <div class="box"><div class="bl">Controles</div><ul>
+      <li>Potasio a las 2–4 semanas de empezar y después de cada aumento: puede dar hipopotasemia.</li>
+      <li>Presión arterial, peso y edemas en cada control.</li>
+    </ul></div>
+    <div class="box"><div class="bl">Efectos adversos y precauciones</div><ul>
+      <li>Hipopotasemia, hipertensión, edema, aumento de peso, cefalea, acné.</li>
+      <li>Evitar en hipertensión, insuficiencia cardíaca o renal, o con edemas.</li>
+    </ul></div>
+    <div class="box"><div class="bl">Evidencia</div><ul>
+      <li>En el único ensayo controlado en niños (0,1 mg/día + sal), no fue mejor que el placebo (Salim y Di Sessa, 2005).</li>
+      <li>En adultos (POST 2) la reducción de recurrencias no llegó a ser significativa; la guía ACC/AHA/HRS 2017 la considera clase IIb en adultos.</li>
+    </ul></div>
+  </section>
+
+  <section class="card leaf">
+    <div class="lt">Agonista alfa-1 · vasoconstrictor</div>
+    <h3>Midodrina</h3>
+    <div class="box"><div class="bl">Dosis</div>
+      <div class="tw"><table style="min-width:0">
+        <tr><th>Inicio</th><td><b>2,5 mg por dosis</b> por vía oral, 2–3 veces al día</td></tr>
+        <tr><th>Horario</th><td>Durante el día: al despertar, al mediodía y a media tarde, con 3–4 h entre dosis</td></tr>
+        <tr><th>Titulación</th><td>Subir de a 2,5 mg por dosis según respuesta y presión arterial</td></tr>
+        <tr><th>Máximo</th><td>10 mg por dosis (adolescentes), 3 veces al día</td></tr>
+        <tr><th>Última dosis</th><td>Al menos 4 h antes de acostarse, para evitar la hipertensión en decúbito</td></tr>
+      </table></div>
+      <p class="small" style="margin-top:8px">Actúa enseguida (pico en ≈ 1 h, dura unas 4 h): se puede usar antes de situaciones de riesgo.</p>
+    </div>
+    <div class="box"><div class="bl">Controles</div><ul>
+      <li>Presión arterial acostado y de pie al empezar y después de cada aumento: suspender o bajar la dosis si hay hipertensión en decúbito.</li>
+    </ul></div>
+    <div class="box"><div class="bl">Efectos adversos y precauciones</div><ul>
+      <li>Hipertensión en decúbito, piloerección, hormigueo o picazón en el cuero cabelludo, retención urinaria.</li>
+      <li>Evitar en hipertensión, cardiopatía estructural grave, insuficiencia renal, retención urinaria, feocromocitoma o hipertiroidismo.</li>
+    </ul></div>
+    <div class="box"><div class="bl">Evidencia</div><ul>
+      <li>En niños con síndrome de taquicardia postural (POTS), 2,5 mg/día mejoraron los síntomas, sin abandonos por efectos adversos.</li>
+      <li>En adultos con síncope vasovagal recurrente, la guía ACC/AHA/HRS 2017 la considera clase IIa.</li>
+    </ul></div>
+  </section>
+
+  <div class="warnbox">Dosis orientativas: no hay pautas pediátricas aprobadas para estos fármacos en el síncope. Verificar siempre con la fuente, ajustar al paciente y controlar la presión arterial y el potasio.</div>
+
+  <details class="card ref">
+    <summary>Fuentes y referencias</summary>
+    <div class="refb"><ol class="refs">
+      <li>Shen WK, Sheldon RS, et al. 2017 ACC/AHA/HRS Guideline for the Evaluation and Management of Patients With Syncope. <i>Circulation</i>. 2017;136:e60–e122.</li>
+      <li>Salim MA, Di Sessa TG. Effectiveness of fludrocortisone and salt in preventing syncope recurrence in children: a double-blind, placebo-controlled, randomized trial. <i>J Am Coll Cardiol</i>. 2005;45:484–488.</li>
+      <li>Sheldon R, et al. Fludrocortisone for the Prevention of Vasovagal Syncope: A Randomized, Placebo-Controlled Trial (POST 2). <i>J Am Coll Cardiol</i>. 2016;68:1–9.</li>
+      <li>Management of Postural Orthostatic Tachycardia Syndrome in Pediatric Patients: A Clinical Review. <i>J Pediatr Pharmacol Ther</i>. 2024;29(5):456.</li>
+      <li>Advances in diagnosis, management, and long-term outcomes of pediatric vasovagal syncope: a comprehensive review. <i>Front Cardiovasc Med</i>. 2025. doi:10.3389/fcvm.2025.1481749.</li>
+    </ol></div>
+  </details>
+</div>
+<script>
+try { const th = parent && parent !== window && parent.document.documentElement.dataset.theme; if (th) document.documentElement.dataset.theme = th; } catch (e) {}
+</script>
+</body>
+</html>

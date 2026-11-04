@@ -183,6 +183,9 @@ details.dgsec>summary.dgcat{margin:8px 0}
 .recbtn .rbx{font-size:.8rem;color:var(--mute);font-weight:600}
 @media (min-width:640px){ .hubmini.recmini{grid-template-columns:repeat(3,minmax(0,1fr))} }
 .recsec .hubmini{margin:2px 0 8px}
+.recsub{margin:4px 0 8px;border:1px solid color-mix(in srgb,var(--k) 35%,var(--line));border-radius:12px;padding:0 10px;background:color-mix(in srgb,var(--k) 6%,var(--card))}
+.recsub>summary{cursor:pointer;padding:9px 2px;font-weight:700;font-size:.95rem;color:color-mix(in srgb,var(--k) 75%,var(--ink));display:flex;align-items:center;gap:8px}
+.recsub .hubmini{margin:0 0 10px}
 .recetqs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
 .recetqs:empty{display:none}
 .recetq{font-size:.74rem;font-weight:600;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--k) 18%,var(--card));color:var(--ink);border:1px solid color-mix(in srgb,var(--k) 40%,var(--line))}
@@ -878,11 +881,13 @@ function detail(id) {
 const GRUPOS_RECURSOS = [
   ['Simulador y práctica', ['Simulador de arritmias'], '#e0584f'],
   ['Algoritmos diagnósticos', ['Algoritmo de TSV', 'Algoritmo de disociación AV', 'Localizador de vía accesoria', 'Localizador de arritmia ventricular', 'Diagnóstico diferencial'], '#3d8bd9'],
-  ['Algoritmos de manejo', ['Algoritmos clínicos', 'Marcapasos transitorio'], '#12a58f'],
+  ['Algoritmos de manejo', ['Algoritmos clínicos', 'Marcapasos transitorio', 'Síncope'], '#12a58f'],
   ['Vademécum', ['Vademécum'], '#c08a1e'],
   ['Bibliotecas externas', ['Bibliotecas de imágenes (externas)'], '#6b7a99']
 ];
 // Nombres viejos de sección que puede traer recursos.js (agregar_recurso.ps1) → nombre actual
+// Secciones que, dentro de su grupo, se muestran como una etiqueta desplegable propia (con sus recursos adentro)
+const SUBETIQUETAS = ['Síncope'];
 const ALIAS_SECCION = { 'Algoritmo de disociación VA': 'Algoritmo de disociación AV' };
 const esExterno = u => /^https?:/i.test(u);
 const esPaginaPropia = u => !esExterno(u) && /\.html?$/i.test(u);
@@ -914,10 +919,11 @@ function recursos() {
     .filter(g => g[1].length);
   app.innerHTML = `<div class="case"><h2>Recursos</h2><div class="recgrid">` + grupos.map(([nombre, xs, color]) => {
     const conImg = xs.some(r => /\.(jpe?g|png|gif|webp)$/i.test(r.u));
-    return `<details class="dgsec recsec${conImg ? ' ancho' : ''}" data-cat="${esc(nombre)}" style="--k:${color}"${recAbiertas.has(nombre) ? ' open' : ''}><summary class="dgcat"><span>${esc(nombre)}</span><span class="dgn">${xs.length}</span></summary><div class="${conImg ? 'list' : 'hubmini recmini'}">${xs.map(item).join('')}</div></details>`;
+    return `<details class="dgsec recsec${conImg ? ' ancho' : ''}" data-cat="${esc(nombre)}" style="--k:${color}"${recAbiertas.has(nombre) ? ' open' : ''}><summary class="dgcat"><span>${esc(nombre)}</span><span class="dgn">${xs.length}</span></summary><div class="${conImg ? 'list' : 'hubmini recmini'}">${xs.filter(r => !SUBETIQUETAS.includes(r.s)).map(item).join('')}</div>` +
+      SUBETIQUETAS.map(sub => { const ys = xs.filter(r => r.s === sub); return ys.length ? `<details class="recsub"${recAbiertas.has(sub) ? ' open' : ''} data-cat="${esc(sub)}"><summary>${esc(sub)} <span class="dgn">${ys.length}</span></summary><div class="hubmini recmini">${ys.map(item).join('')}</div></details>` : ''; }).join('') + `</details>`;
   }).join('') + '</div></div>';
   // Solo se ven los títulos de las secciones; al tocar uno se despliegan sus recursos (las abiertas se recuerdan)
-  app.querySelectorAll('details.recsec').forEach(d => d.ontoggle = () => { d.open ? recAbiertas.add(d.dataset.cat) : recAbiertas.delete(d.dataset.cat); });
+  app.querySelectorAll('details.recsec, details.recsub').forEach(d => d.ontoggle = () => { d.open ? recAbiertas.add(d.dataset.cat) : recAbiertas.delete(d.dataset.cat); });
   app.querySelectorAll('a.recbtn[target]').forEach(a => a.addEventListener('click', () => marcarRecVisto(a.getAttribute('href'))));
 }
 // Un recurso propio (HTML dentro de recursos\) se muestra dentro de la app, con "Volver" siempre a mano: en la app
