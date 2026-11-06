@@ -731,13 +731,13 @@ const GLX = (() => {
     (g.termino || '').replace(/\s*\(.*?\)/g, '').split('/').map(x => x.trim()).filter(x => x.length > 3).forEach(x => { const k = x.toLowerCase(); if (!mapa[k]) mapa[k] = { i, cs: '' }; });
   });
   const alts = Object.keys(mapa).sort((a, b) => b.length - a.length).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  return { G, mapa, re: alts.length ? new RegExp(`(?<![\\p{L}\\p{N}])(${alts.join('|')})(?![\\p{L}\\p{N}])`, 'giu') : null };
+  return { G, mapa, re: alts.length ? new RegExp(`(^|[^\\p{L}\\p{N}])(${alts.join('|')})(?![\\p{L}\\p{N}])`, 'giu') : null };   // sin lookbehind: Safari < 16.4 no lo entiende y frenaba toda la app
 })();
 // Recibe texto YA escapado con esc(); "usados" evita repetir el mismo término en la página.
-const glosar = (html, usados) => !GLX.re ? html : html.replace(GLX.re, m => {
+const glosar = (html, usados) => !GLX.re ? html : html.replace(GLX.re, (todo, antes, m) => {
   const e = GLX.mapa[m.toLowerCase()];
-  if (!e || (e.cs && m !== e.cs) || usados.has(e.i)) return m;
-  usados.add(e.i); return `<button type="button" class="glt" data-g="${e.i}">${m}</button>`;
+  if (!e || (e.cs && m !== e.cs) || usados.has(e.i)) return todo;
+  usados.add(e.i); return `${antes}<button type="button" class="glt" data-g="${e.i}">${m}</button>`;
 });
 document.addEventListener('click', e => {
   const t = e.target.closest('.glt, .glbtn'), pop = document.getElementById('glpop'), vq = e.target.closest('#glpop button[data-q]');
@@ -1087,7 +1087,7 @@ const REC_REL = [
   { t: /^Algoritmo de TSV/i, cat: /QRS angosto/i },
   { t: /disociaci[oó]n AV/i, cat: /QRS ancho|^Taquicardia ventricular/i },
   { t: /arritmia ventricular/i, cat: /^Arritmias ventriculares|^Taquicardia ventricular|^Extras[ií]stoles/i },
-  { t: /Bradicardia en la Urgencia/i, diag: /Bloqueo AV completo|(?<!Pseudo-)Bloqueo AV 2:1|alto grado|Bloqueo AV parox/i },
+  { t: /Bradicardia en la Urgencia/i, diag: /Bloqueo AV completo|(?:^|[^-])Bloqueo AV 2:1|alto grado|Bloqueo AV parox/i },
   { t: /Marcapasos Transitorio/i, diag: /Fallas de marcapasos/i },
   { t: /Esclerosis Tuberosa/i, txt: /esclerosis tuberosa|rabdomioma/i }
 ];
