@@ -846,7 +846,7 @@ function detail(id) {
       const nota = q.k.c === 'i' ? ' <i>(respuesta deducida del material: pendiente de confirmar)</i>' : '';
       const ex = porPreg[k + 1];   // explicación de esta pregunta (abierta si se equivocó)
       document.getElementById('ex' + k).innerHTML = ex ? `<details class="expl"${good ? '' : ' open'}><summary>Ver explicación</summary>${ex.map(p => `<p>${esc(p)}</p>`).join('')}${(c.devimgs || []).length ? '<p class="hint">Las figuras están en la devolución completa del caso.</p>' : ''}</details>` : '';
-      box.innerHTML = good ? `<b class="g">✓ Correcto.</b>${q.multi && faltan.length ? ` También ${faltan.length > 1 ? 'eran correctas' : 'era correcta'}: ${faltan.join(' + ')}.` : ''}${nota}` : `<b class="r">✗ Respuesta correcta: ${right.join(q.multi ? ' + ' : ' o ')}.</b>${q.multi ? '' : (right.length > 1 ? ' (cualquiera de esas es válida)' : '')}${nota}`;
+      box.innerHTML = good ? `<b class="g">✓ Correcto.</b>${q.multi && faltan.length ? ` También ${faltan.length > 1 ? 'eran correctas' : 'era correcta'}: ${faltan.join(' + ')}.` : ''}${nota}` : `<b class="r">✗ Respuesta correcta: ${right.join(q.multi && !q.k.min ? ' + ' : ' o ')}.</b>${q.multi ? '' : (right.length > 1 ? ' (cualquiera de esas es válida)' : '')}${nota}`;
     });
     const s = document.getElementById('score'); s.style.display = 'block';
     s.innerHTML = tot ? `<b>${ok} de ${tot}</b> correctas${sinClave ? ` · ${sinClave} sin respuesta cargada` : ''}` : 'Este caso todavía no tiene respuestas cargadas.';
@@ -953,9 +953,9 @@ const exElegir = (pool, n) => { const vistos = new Set(), a = [], resto = [];
   shuffle(pool).forEach(x => { if (!vistos.has(x.c.id)) { vistos.add(x.c.id); a.push(x); } else resto.push(x); });   // primero casos distintos
   const sel = a.slice(0, n); if (sel.length < n) sel.push(...resto.slice(0, n - sel.length)); return shuffle(sel); };
 // Opción única: vale cualquiera de las respuestas cargadas. Múltiple: correcta si marcó el 50 % o más de las correctas
-// y ninguna incorrecta (si no, marcar todo daría siempre bien).
+// y ninguna incorrecta (si no, marcar todo daría siempre bien). Con k.min, alcanza con marcar esa cantidad de correctas.
 const exCorrecta = (q, sel) => sel.length > 0 && (q.multi
-  ? sel.every(l => q.k.r.includes(l)) && sel.length * 2 >= q.k.r.length   // = 50 % o más, sin decimales
+  ? sel.every(l => q.k.r.includes(l)) && (sel.length * 2 >= q.k.r.length || (q.k.min > 0 && sel.length >= q.k.min))   // = 50 % o más, sin decimales
   : q.k.r.includes(sel[0]));
 function examen() { EX.fase === 'preg' ? exPreg() : EX.fase === 'fin' ? exFin() : exInicio(); }
 function exInicio() {
@@ -1008,7 +1008,7 @@ function exFin() {
     <div class="nav"><button class="primary" id="exnuevo">Nuevo examen</button>${mal.length ? '<button class="ghost" id="exrep">Repetir solo las falladas</button>' : ''}</div>
     ${[['Incorrectas', res.filter(r => !r.ok), '#e0584f', true], ['Correctas', res.filter(r => r.ok), '#2aa198', false]].map(([titulo, xs, color, abierta]) => xs.length ? `<details class="dgsec" style="--k:${color}"${abierta ? ' open' : ''}><summary class="dgcat"><span>${titulo}</span><span class="dgn">${xs.length}</span></summary>
     <div class="list">${xs.map(r => { const i = res.indexOf(r); return `<div class="card suave" style="cursor:default;--k:${color}"><h3>${r.ok ? '✓' : '✗'} ${i + 1}. ${esc(r.q.enun.slice(0, 140))}${r.q.enun.length > 140 ? '…' : ''}</h3>
-      <div class="meta">Tu respuesta: ${r.sel.length ? r.sel.join(' + ') : 'sin responder'} · Correcta: ${r.q.k.r.join(r.q.multi ? ' + ' : ' o ')}${!r.q.multi && r.q.k.r.length > 1 ? ' (cualquiera vale)' : ''}</div>
+      <div class="meta">Tu respuesta: ${r.sel.length ? r.sel.join(' + ') : 'sin responder'} · Correcta: ${r.q.k.r.join(r.q.multi && !r.q.k.min ? ' + ' : ' o ')}${!r.q.multi && r.q.k.r.length > 1 ? ' (cualquiera vale)' : ''}</div>
       ${(ex => ex ? `<details class="expl"${r.ok ? '' : ' open'}><summary>Ver explicación</summary>${ex.map(p => `<p>${esc(p)}</p>`).join('')}${(r.c.devimgs || []).length ? '<p class="hint">Las figuras están en la devolución completa del caso.</p>' : ''}</details>` : '')(devPorPregunta(r.c)[r.k + 1])}
       <div class="meta"><a href="#${r.c.id}">Ver caso: ${'Fasc. ' + r.c.f + ' · Caso ' + r.c.n} — ${esc(r.c.titulo)}</a></div></div>`; }).join('')}</div></details>` : '').join('')}</div>`;
   document.getElementById('exnuevo').onclick = () => { EX.fase = 'inicio'; window.scrollTo(0, 0); exInicio(); };
