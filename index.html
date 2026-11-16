@@ -205,6 +205,8 @@ details.dgsec>summary.dgcat{margin:8px 0}
 .ctx{color:var(--mute);font-style:italic;margin:14px 0 6px}
 .imgs{display:grid;gap:10px;margin:10px 0}
 .imgs img{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:zoom-in;display:block}
+.vids{display:grid;gap:10px;margin:10px 0}
+.vids video{width:100%;max-height:70vh;border:1px solid var(--line);border-radius:8px;background:#000;display:block}
 .q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
 .q h4{margin:0 0 8px;font-size:1rem}
 .opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:9px;margin:6px 0;cursor:pointer}
@@ -322,7 +324,9 @@ const C = window.CASOS;
 // Cada pregunta puede traer "ctx" (texto previo) e "img" (imágenes que se muestran justo antes de esa pregunta).
 const mkSemana = w => ({ semana: true, f: 'Semana', n: 0, id: w.id || ('semana-' + w.fecha), titulo: w.titulo, fecha: w.fecha, devFecha: w.devFecha, vineta: w.vineta, borrador: false,
   preguntas: w.preguntas.map(p => ({ ctx: p.ctx || '', enun: p.enun, multi: p.multi, opc: p.opc, k: { r: p.r, c: 't' } })),
-  imgs: w.imgs.map(a => ({ a, p: 0 })).concat(w.preguntas.flatMap((p, k) => [].concat(p.img || []).map(a => ({ a, p: k })))), dev: w.dev, devimgs: w.devimgs });
+  imgs: w.imgs.map(a => ({ a, p: 0 })).concat(w.preguntas.flatMap((p, k) => [].concat(p.img || []).map(a => ({ a, p: k })))), dev: w.dev, devimgs: w.devimgs,
+  // Videos/animaciones (opcionales): del caso, de cada pregunta y de la devolución. Casos sin videos: listas vacías.
+  vids: (w.videos || []).map(a => ({ a, p: 0 })).concat(w.preguntas.flatMap((p, k) => [].concat(p.video || []).map(a => ({ a, p: k })))), devvideos: w.devvideos || [] });
 const S = window.SEMANA ? mkSemana(window.SEMANA) : null;
 // Los casos de semanas anteriores pasan al banco como Fascículo A, B, C… (10 por letra, del más viejo al más nuevo).
 // Conservan su id ("semana-AAAA-MM-DD"), así no se pierde el progreso de nadie al cambiar de letra o de número.
@@ -576,6 +580,8 @@ async function bajarOffline(lista) {
 }
 
 const imgs = (arr) => arr.length ? `<div class="imgs">${arr.map(i => `<img src="${i.includes('/') ? i : 'imagenes_web/' + i}" loading="lazy" alt="Trazado" onclick="zoom(this)">`).join('')}</div>` : '';
+// Videos/animaciones (MP4/WebM) del caso de la semana: reproductor con controles, en bucle y sin sonido; en el celular se reproduce en la misma página.
+const vids = (arr) => arr && arr.length ? `<div class="vids">${arr.map(v => `<video src="${v.includes('/') ? v : 'videos_semana/' + v}" controls playsinline muted loop preload="metadata" aria-label="Animación del caso"></video>`).join('')}</div>` : '';
 // ---------- Visor de imágenes: pellizcar con dos dedos (o rueda del mouse) para ampliar, doble toque, arrastrar para moverse ----------
 const LB = { s: 1, x: 0, y: 0, ptrs: new Map(), d: 0, mid: null, movido: false, tToque: 0 };
 const lbEl = document.getElementById('lb'), lbImg = lbEl.querySelector('img');
@@ -761,7 +767,8 @@ function detail(id) {
   let body = '';
   c.preguntas.forEach((q, k) => {
     body += `<section class="paso" data-k="${k}">` + (k === 0 ? imgsT(c.imgs.filter(m => m.p == 0), gl)
-      : (q.ctx ? `<p class="ctx">${gl(q.ctx)}</p>` : '') + imgsT(c.imgs.filter(m => m.p == k), gl));
+      : (q.ctx ? `<p class="ctx">${gl(q.ctx)}</p>` : '') + imgsT(c.imgs.filter(m => m.p == k), gl))
+      + vids((c.vids || []).filter(m => m.p == k).map(m => m.a));
     body += `<div class="q"><h4>Pregunta ${k + 1}${q.enun ? ' · ' + gl(q.enun) : ''}</h4>
       ${q.multi ? '<div class="hint">Se puede elegir más de una opción.</div>' : ''}
       ${q.opc.length ? q.opc.map(o => `<label class="opt"><input type="${q.multi ? 'checkbox' : 'radio'}" name="q${k}" data-l="${o.l}"><span><b>${o.l}.</b> ${gl(o.t)}</span></label>`).join('') : '<div class="hint">Las opciones están en la imagen.</div>'}<div class="fb" id="fb${k}"></div><div id="ex${k}"></div></div>`
@@ -782,7 +789,7 @@ function detail(id) {
     <div class="nav"><button class="primary" id="chk">Comprobar mis respuestas</button><button class="ghost" id="rev">Ver devolución del caso</button>
       <button class="ghost" id="reset">Empezar de nuevo</button>
       <span class="hint" id="mk" style="align-self:center"${seen[c.id] ? '' : ' hidden'}>✓ Repasado</span></div>
-    <div id="dev" hidden><div class="dev"><h3>Devolución</h3>${dev}${imgs(c.devimgs)}${calcRel(c)}${recRel(c)}</div></div>
+    <div id="dev" hidden><div class="dev"><h3>Devolución</h3>${dev}${imgs(c.devimgs)}${vids(c.devvideos)}${calcRel(c)}${recRel(c)}</div></div>
     <div class="nav">${mismo(prev) ? `<a href="#${prev.id}"><button class="ghost">← Caso anterior</button></a>` : ''}${mismo(next) ? `<a href="#${next.id}"><button class="ghost" id="csig">Caso siguiente →</button></a>` : ''}</div></div>`;
   const pintarSel = () => app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
   const marcadas = k => [...app.querySelectorAll(`input[name="q${k}"]:checked`)].map(i => i.dataset.l);

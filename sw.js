@@ -1,7 +1,7 @@
 // Service worker del banco: permite instalarlo como app y que lo ya visto se pueda abrir sin conexión.
 // Solo funciona cuando el banco se sirve por HTTPS (o localhost); en un archivo abierto directamente (file://) no corre.
 // Si cambiás casos.js, index.html u otro archivo del "esqueleto", subí CACHE_VERSION para que se actualice en todos.
-const CACHE_VERSION = 'v137';
+const CACHE_VERSION = 'v138';
 const CACHE_ESQUELETO = 'banco-esqueleto-' + CACHE_VERSION;
 // Imágenes y otros archivos grandes: se guardan a medida que se ven, o todas juntas con "Usar sin internet" (Fascículos).
 // Su nombre NO lleva la versión: así lo descargado no se borra cada vez que se publica algo nuevo.
@@ -25,6 +25,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || !req.url.startsWith(self.location.origin)) return;
+  // Videos: el navegador los pide por tramos (Range) y esas respuestas parciales no se pueden guardar en la caché: los dejamos pasar directo.
+  if (req.headers.has('range') || /\.(mp4|webm)(\?|$)/i.test(req.url)) return;
   // El esqueleto (HTML/JS del banco): PRIMERO la red, así con internet siempre se ve lo último que se publicó; solo si
   // no hay conexión se usa la copia guardada. (Antes buscaba en la copia guardada sin fijarse la versión: por eso
   // podía quedar mostrando una versión vieja aunque CACHE_VERSION cambiara.)
