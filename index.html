@@ -205,6 +205,8 @@ details.dgsec>summary.dgcat{margin:8px 0}
 .ctx{color:var(--mute);font-style:italic;margin:14px 0 6px}
 .imgs{display:grid;gap:10px;margin:10px 0}
 .imgs img{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:zoom-in;display:block}
+.tqc video{width:100%;max-width:420px;max-height:75vh;margin:8px auto;border:1px solid var(--line);border-radius:8px;background:#000;display:block}
+.tqc h3{margin:0 0 4px}.tqc p{margin:4px 0}.tqc ul{margin:6px 0 0 18px;padding:0}.tqc li{margin:3px 0}
 .vids{display:grid;gap:10px;margin:10px 0}
 .vids video{width:100%;max-height:70vh;border:1px solid var(--line);border-radius:8px;background:#000;display:block}
 .q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
@@ -298,6 +300,7 @@ details.sec>summary .meta{font-weight:400;margin-left:auto}
   <nav class="topnav" id="topnav">
     <a class="navbtn" id="navCasos" href="#">Casos</a>
     <a class="navbtn" id="navHerramientas" href="#herramientas">Herramientas</a>
+    <a class="navbtn navlink" href="#taquicardias" data-t="taquicardias">Taquicardias</a>
     <a class="navbtn navlink" href="#recursos" data-t="recursos">Recursos</a>
     <a class="navbtn navlink" href="#glosario" data-t="glosario">Glosario</a>
   </nav>
@@ -318,6 +321,7 @@ details.sec>summary .meta{font-weight:400;margin-left:auto}
 <script src="patrones.js"></script>
 <script src="semana.js"></script>
 <script src="semana_archivo.js"></script>
+<script src="taquicardias.js"></script>
 <script>
 const C = window.CASOS;
 // Caso de la semana (semana.js) y casos de semanas anteriores (semana_archivo.js): ambos los genera publicar_semana.ps1
@@ -1603,7 +1607,19 @@ function pintarEstadisticas(d) {
     <h3>Por país</h3><div class="list">${d.por_pais.map(p => `<div class="card" style="cursor:default">${esc(p.pais)} · <b>${p.n}</b></div>`).join('')}</div>
     <p class="hint">Generado el ${new Date(d.generado).toLocaleString('es-AR')}. Los datos individuales (nombre, mail, ciudad) siguen solo en tu planilla de Google.</p>`;
 }
-const VISTAS = { herramientas, recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, drogas, endocarditis, estadisticas, fasciculos };
+// ---------- Taquicardias (taquicardias.js): una animación 3D en video por taquicardia ----------
+function taquicardias() {
+  const T = window.TAQUICARDIAS || [];
+  app.innerHTML = `<div class="case"><h2>Taquicardias</h2>
+    <p class="hint">Animación 3D del circuito o del foco de cada taquicardia: tocá ▶ para verla. El ciclo clave va en cámara lenta. Los tiempos y el sistema de conducción son esquemáticos.</p>
+    ${T.length ? T.map(g => `<details class="dgsec" open style="--k:${g.color}"><summary class="dgcat"><span>${esc(g.grupo)}</span><span class="dgn">${g.items.length}</span></summary><div class="list">${g.items.map(x => `<div class="card tqc" style="cursor:default">
+      <h3>${esc(x.t)}</h3><p>${esc(x.circ)}</p>
+      <video src="videos_taquicardias/${x.id}.mp4" poster="videos_taquicardias/${x.id}.jpg" controls playsinline muted loop preload="none" aria-label="Animación 3D: ${esc(x.t)}"></video>
+      <ul>${x.claves.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>`).join('')}</div></details>`).join('') : '<p class="hint">Todavía no se cargaron las taquicardias.</p>'}
+    <p class="hint">Corazón 3D: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 Japan (modificado).</p></div>`;
+  const vs = app.querySelectorAll('video'); vs.forEach(v => v.onplay = () => vs.forEach(o => { if (o !== v) o.pause(); }));
+}
+const VISTAS = { taquicardias, herramientas, recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, drogas, endocarditis, estadisticas, fasciculos };
 // Grupos de la nav de arriba, para resaltar "Casos"/"Herramientas" cuando la vista activa es una de las suyas.
 const NAV_GRUPOS = { Casos: ['fasciculos', 'diagnosticos', 'patrones', 'examen', 'progreso'], Herramientas: ['scores', 'parametrosZ', 'drogas', 'valores', 'endocarditis'] };
 function route() { const h = location.hash.slice(1); document.body.classList.toggle('portada', h === '');

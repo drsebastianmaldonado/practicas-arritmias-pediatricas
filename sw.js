@@ -1,7 +1,7 @@
 // Service worker del banco: permite instalarlo como app y que lo ya visto se pueda abrir sin conexión.
 // Solo funciona cuando el banco se sirve por HTTPS (o localhost); en un archivo abierto directamente (file://) no corre.
 // Si cambiás casos.js, index.html u otro archivo del "esqueleto", subí CACHE_VERSION para que se actualice en todos.
-const CACHE_VERSION = 'v141';
+const CACHE_VERSION = 'v142';
 const CACHE_ESQUELETO = 'banco-esqueleto-' + CACHE_VERSION;
 // Imágenes y otros archivos grandes: se guardan a medida que se ven, o todas juntas con "Usar sin internet" (Fascículos).
 // Su nombre NO lleva la versión: así lo descargado no se borra cada vez que se publica algo nuevo.
@@ -10,7 +10,7 @@ const CACHE_DATOS = 'banco-datos';
 const ESQUELETO = [
   './', './index.html', './manifest.json',
   './casos.js', './recursos.js', './valores.js', './scores.js', './parametros_z.js', './glosario.js',
-  './registro.js', './diagnosticos.js', './patrones.js', './semana.js', './semana_archivo.js', './drogas.js',
+  './registro.js', './diagnosticos.js', './patrones.js', './semana.js', './semana_archivo.js', './taquicardias.js', './drogas.js',
   './iconos/icon-192.png', './iconos/icon-512.png'
 ];
 
