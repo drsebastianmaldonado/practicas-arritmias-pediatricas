@@ -7,7 +7,7 @@ window.TAQUICARDIAS = [
     { id: 'trnavat', t: 'TRNAV atípica (rápida-lenta)', circ: 'Reentrada en el nodo AV al revés: baja por la vía rápida y sube por la vía lenta.',
       claves: ['Reentrada en el nodo AV al revés: baja por la vía rápida y sube por la lenta.', 'RP largo: la P cae cerca del QRS siguiente, negativa en las inferiores.', 'La A más precoz está cerca del ostium del seno coronario.', 'Suele ser más incesante que la típica.'] },
     { id: 'trav', t: 'TRAV ortodrómica', circ: 'Baja por el nodo AV y el His, y sube por una vía accesoria (acá, lateral izquierda).',
-      claves: ['Baja por el nodo AV y el His, y sube por una vía accesoria (acá, lateral izquierda).', 'QRS fino; la P retrógrada cae después del QRS (RP corto).', 'La A más precoz está en la pared lateral izquierda.', 'La vía puede ser manifiesta (WPW) u oculta.'] },
+      claves: ['Baja por el nodo AV y el His, y sube por una vía accesoria (acá, lateral izquierda).', 'QRS angosto. La aurícula se activa en serie con el ventrículo: RP > 80 ms (la P retrógrada cae después del QRS).', 'La A más precoz está en la pared lateral izquierda.', 'La vía puede ser manifiesta (WPW) u oculta.'] },
     { id: 'anti', t: 'TRAV antidrómica', circ: 'El circuito al revés: baja por la vía accesoria y sube por la rama derecha, el His y el nodo AV.',
       claves: ['Baja por la vía accesoria y sube por la rama derecha, el His y el nodo AV.', 'QRS ancho y preexcitado: se puede confundir con una TV.', 'Es poco frecuente; puede haber más de una vía.', 'En ritmo sinusal hay preexcitación (WPW).'] },
     { id: 'af', t: 'TRAV atriofascicular', circ: 'Baja por una vía atriofascicular, de la pared lateral de la AD a la rama derecha, y sube por la rama derecha, el His y el nodo AV.',
@@ -17,7 +17,7 @@ window.TAQUICARDIAS = [
     { id: 'ta', t: 'Taquicardia auricular focal', circ: 'Un foco auricular (acá, la vena pulmonar superior izquierda) dispara solo y la A conduce por el nodo AV.',
       claves: ['Un foco auricular (acá, la vena pulmonar superior izquierda) dispara solo.', 'P de morfología distinta de la sinusal.', 'Puede seguir con bloqueo AV: la aurícula no necesita al nodo.', 'No depende del ventrículo.'] },
     { id: 'jet', t: 'Taquicardia de la unión (JET)', circ: 'Un foco en la unión AV o el His activa los ventrículos por el sistema de conducción; la aurícula sigue en ritmo sinusal, disociada.',
-      claves: ['Foco en la unión AV o el His: activa los ventrículos por el sistema de conducción.', 'QRS fino y regular, con el His antes de cada V.', 'Disociación AV: la aurícula sigue en ritmo sinusal y las P no conducen.', 'Típica del posoperatorio de cirugía cardíaca. Con adenosina no se corta.'] }
+      claves: ['Foco en la unión AV o el His: activa los ventrículos por el sistema de conducción.', 'QRS angosto, igual al sinusal (puede ser ancho si hay un bloqueo de rama previo), con el His antes de cada V.', 'Disociación AV: la aurícula sigue en ritmo sinusal y las P no conducen.', 'Típica del posoperatorio de cirugía cardíaca. Con adenosina no se corta.'] }
   ] },
   { grupo: 'Ventriculares', color: '#e0584f', items: [
     { id: 'tvf', t: 'TV fascicular posterior', circ: 'Reentrada en el septum del VI: baja por P1 (miocardio septal de conducción lenta) y sube por el fascículo posterior (P2).',
