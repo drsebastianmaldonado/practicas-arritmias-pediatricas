@@ -144,6 +144,7 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
 .gopt small{display:block;font-weight:500;font-size:13px;color:var(--ink2);margin-top:2px}
 .gopt.si{border-color:color-mix(in srgb,var(--green) 55%,var(--line))}
 .gopt.no{border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
+.gopt.alt{border-style:dashed;font-size:15px;min-height:46px;margin-top:4px}
 .path{display:flex;flex-direction:column;gap:6px;padding:14px 16px 0}
 .path .pl{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
 .step{display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.35}
@@ -211,13 +212,13 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
   var INFOPC=[['neg','2 o 3 negativas','la onda delta es negativa en 2 o 3 derivaciones inferiores'],['p2','2 positivas','la onda delta es positiva en 2 derivaciones inferiores'],['p3','3 positivas','la onda delta es positiva en las 3 derivaciones inferiores']];
   /* nodos: yn = Sí/No · ch = elegir una opción · res = resultado */
   var N={
-    p1:{k:'yn',tag:'Paso 1',q:'¿Onda delta negativa en DI/aVL, o bien onda delta positiva o R>S en V1?',ayuda:'Cualquiera de las dos condiciones responde «Sí».',si:'zi',no:'p2',rs:'Onda delta negativa en DI/aVL, o positiva / R>S en V1',rn:'No cumple el Paso 1'},
+    p1:{k:'v1',tag:'Paso 1',q:'Seleccioná el hallazgo en V1',ayuda:'Si la onda delta es negativa en DI/aVL, elegí la última opción: es vía izquierda sin importar V1.',
+      o:[{t:'Onda delta positiva o R>S',s:'en V1',r:'Onda delta positiva / R>S',next:'zi'},{t:'Onda delta negativa',s:'en V1',r:'Onda delta negativa',next:'zs'},{t:'rS',s:'ausencia de onda delta en V1',r:'rS (ausencia de onda delta)',next:'tr'}],
+      alt:{t:'Onda delta negativa en DI/aVL',s:'vía izquierda, sea cual sea V1',p:'Onda delta en DI/aVL',r:'Negativa',next:'zi'}},
     zi:{k:'info',z:'izq',txt:'Vía izquierda',next:'inf_i'},
     inf_i:{k:'ch',tag:'Vía izquierda',q:'Evaluá la onda delta en la cara inferior',ayuda:INF,o:[['neg','izq_ps'],['p2','izq_pl'],['p3','izq_al']]},
-    p2:{k:'yn',tag:'Paso 2',q:'¿Onda delta negativa en V1?',ayuda:'',si:'zs',no:'p3',rs:'Onda delta negativa en V1',rn:'Onda delta no negativa en V1'},
     zs:{k:'info',z:'sep',txt:'Vía septal derecha',next:'inf_s'},
     inf_s:{k:'ch',tag:'Vía septal derecha',q:'Evaluá la onda delta en la cara inferior',ayuda:INF,o:[['neg','sd_ps'],['p2','sd_ms'],['p3','sd_as']]},
-    p3:{k:'one',tag:'Hallazgo en V1',q:'Seleccioná el hallazgo en V1',ayuda:'',next:'tr',r:'rS (ausencia de onda delta)'},
     tr:{k:'tr',tag:'Transición del QRS',q:'Evaluá la transición del QRS en las precordiales',ayuda:'Derivación donde el QRS pasa a ser predominantemente positivo.'},
     zl:{k:'info',z:'lat',txt:'Vía lateral derecha',next:'inf_l'},
     inf_l:{k:'ch',tag:'Vía lateral derecha',q:'Evaluá la onda delta en la cara inferior',ayuda:INF,o:[['neg','ld_pl'],['p2','ld_l'],['p3','ld_al']]}
@@ -233,15 +234,10 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
     while(x&&x.k==='info'){hist.push({p:null,r:x.txt,z:x.z});n=x.next;x=N[n];}   /* los nodos informativos solo suman al recorrido */
     cur=n;
   }
-  function answerYN(si){
-    var x=N[cur]; pushStack();
-    hist.push({p:x.q.replace(/^¿|\?$/g,''),r:si?'Sí':'No'});
-    goto(si?x.si:x.no);
-  }
-  function answerOne(){
-    var x=N[cur]; pushStack();
-    hist.push({p:'Hallazgo en V1',r:x.r});
-    goto(x.next);
+  function answerV1(i){
+    var x=N[cur], o=i<3?x.o[i]:x.alt; pushStack();
+    hist.push({p:i<3?'Hallazgo en V1':o.p,r:o.r});
+    goto(o.next);
   }
   function answerCh(i){
     var x=N[cur]; pushStack();
@@ -290,8 +286,7 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
       var x=N[cur];
       {
         h+='<div class="gq"><div class="gtag">'+esc(x.tag)+'</div><h2>'+esc(x.q)+'</h2>'+(x.ayuda?'<p>'+esc(x.ayuda)+'</p>':'')+'</div>';
-        if(x.k==='one') h+='<div class="gopts"><button class="gopt" type="button" data-one="1">rS en V1<small>ausencia de onda delta</small></button></div>';
-        else if(x.k==='yn') h+='<div class="gopts two"><button class="gopt si" type="button" data-yn="1">Sí</button><button class="gopt no" type="button" data-yn="0">No</button></div>';
+        if(x.k==='v1') h+='<div class="gopts">'+x.o.map(function(o,i){return '<button class="gopt" type="button" data-v1="'+i+'">'+esc(o.t)+'<small>'+esc(o.s)+'</small></button>';}).join('')+'<button class="gopt alt" type="button" data-v1="3">'+esc(x.alt.t)+'<small>'+esc(x.alt.s)+'</small></button></div>';
         else if(x.k==='ch') h+='<div class="gopts">'+x.o.map(function(o,i){return '<button class="gopt" type="button" data-ch="'+i+'">'+NOMBRE[o[0]]+'</button>';}).join('')+'</div>';
         else if(x.k==='tr') h+='<div class="gopts two"><button class="gopt" type="button" data-tr="0">≤ V3<small>transición hasta V3</small></button><button class="gopt" type="button" data-tr="1">&gt; V3<small>transición después de V3</small></button></div>';
         h+=pathHtml();
@@ -306,7 +301,7 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
       zone('izq',[['2 o 3 inferiores negativas',LOC.izq_ps.n],['2 inferiores positivas',LOC.izq_pl.n],['3 inferiores positivas',LOC.izq_al.n]])+
       zone('sep',[['2 o 3 inferiores negativas',LOC.sd_ps.n],['2 inferiores positivas',LOC.sd_ms.n],['3 inferiores positivas',LOC.sd_as.n]])+
       zone('lat',[['2 o 3 inferiores negativas',LOC.ld_pl.n],['2 inferiores positivas',LOC.ld_l.n],['3 inferiores positivas',LOC.ld_al.n]])+
-      '<p class="note"><b>Izquierda:</b> Paso 1 «Sí». <b>Septal derecha:</b> Paso 2 «Sí», o rS en V1 con transición ≤ V3. <b>Lateral derecha:</b> rS en V1 con transición &gt; V3. Cara inferior: DII, DIII y aVF.</p></article>';
+      '<p class="note"><b>Izquierda:</b> onda delta positiva o R&gt;S en V1, o negativa en DI/aVL. <b>Septal derecha:</b> onda delta negativa en V1, o rS en V1 con transición ≤ V3. <b>Lateral derecha:</b> rS en V1 con transición &gt; V3. Cara inferior: DII, DIII y aVF.</p></article>';
   }
   /* ---------- modo práctica: casos armados con las reglas del algoritmo ---------- */
   var BASE=[
@@ -380,8 +375,7 @@ h1{font-size:clamp(28px,7.5vw,36px);line-height:1.08;letter-spacing:-.02em;margi
       return;
     }
     if(e.target.closest('[data-ej]')){exOpen=!exOpen;render();return;}
-    if(e.target.closest('[data-one]')){answerOne();render();return;}
-    if((t=e.target.closest('[data-yn]'))){answerYN(t.getAttribute('data-yn')==='1');render();return;}
+    if((t=e.target.closest('[data-v1]'))){answerV1(+t.getAttribute('data-v1'));render();return;}
     if((t=e.target.closest('[data-ch]'))){answerCh(+t.getAttribute('data-ch'));render();return;}
     if((t=e.target.closest('[data-tr]'))){answerTr(t.getAttribute('data-tr')==='1');render();return;}
     if(e.target.closest('[data-back]')){back();render();return;}
