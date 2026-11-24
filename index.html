@@ -206,6 +206,7 @@ details.dgsec>summary.dgcat{margin:8px 0}
 .imgs{display:grid;gap:10px;margin:10px 0}
 .imgs img{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:zoom-in;display:block}
 .tqc video{width:100%;max-width:420px;max-height:75vh;margin:8px auto;border:1px solid var(--line);border-radius:8px;background:#000;display:block}
+.tqgrupo{margin-top:14px}.tqgt{font-weight:700;font-size:.9rem;padding-left:9px;border-left:4px solid var(--k)}
 .tqc h3{margin:0 0 4px}.tqc p{margin:4px 0}.tqc ul{margin:6px 0 0 18px;padding:0}.tqc li{margin:3px 0}
 .vids{display:grid;gap:10px;margin:10px 0}
 .vids video{width:100%;max-height:70vh;border:1px solid var(--line);border-radius:8px;background:#000;display:block}
@@ -1607,17 +1608,19 @@ function pintarEstadisticas(d) {
     <h3>Por país</h3><div class="list">${d.por_pais.map(p => `<div class="card" style="cursor:default">${esc(p.pais)} · <b>${p.n}</b></div>`).join('')}</div>
     <p class="hint">Generado el ${new Date(d.generado).toLocaleString('es-AR')}. Los datos individuales (nombre, mail, ciudad) siguen solo en tu planilla de Google.</p>`;
 }
-// ---------- Taquicardias (taquicardias.js): una animación 3D en video por taquicardia ----------
+// ---------- Taquicardias (taquicardias.js): una etiqueta por taquicardia; al elegirla se abre solo su animación 3D ----------
+const TQ = { sel: '' };
 function taquicardias() {
-  const T = window.TAQUICARDIAS || [];
+  const T = window.TAQUICARDIAS || [], todas = T.flatMap(g => g.items), x = todas.find(i => i.id === TQ.sel);
   app.innerHTML = `<div class="case"><h2>Taquicardias</h2>
-    <p class="hint">Animación 3D del circuito o del foco de cada taquicardia: tocá ▶ para verla. El ciclo clave va en cámara lenta. Los tiempos y el sistema de conducción son esquemáticos.</p>
-    ${T.length ? T.map(g => `<details class="dgsec" open style="--k:${g.color}"><summary class="dgcat"><span>${esc(g.grupo)}</span><span class="dgn">${g.items.length}</span></summary><div class="list">${g.items.map(x => `<div class="card tqc" style="cursor:default">
-      <h3>${esc(x.t)}</h3><p>${esc(x.circ)}</p>
-      <video src="videos_taquicardias/${x.id}.mp4" poster="videos_taquicardias/${x.id}.jpg" controls playsinline muted loop preload="none" aria-label="Animación 3D: ${esc(x.t)}"></video>
-      <ul>${x.claves.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>`).join('')}</div></details>`).join('') : '<p class="hint">Todavía no se cargaron las taquicardias.</p>'}
+    <p class="hint">Elegí una taquicardia para ver su animación 3D, con el ciclo clave en cámara lenta. Los tiempos y el sistema de conducción son esquemáticos.</p>
+    ${T.length ? T.map(g => `<div class="tqgrupo" style="--k:${g.color}"><div class="tqgt">${esc(g.grupo)}</div><div class="chips">${g.items.map(i => `<button type="button" class="chip${i.id === TQ.sel ? ' on' : ''}" data-tq="${i.id}">${esc(i.c || i.t)}</button>`).join('')}</div></div>`).join('') : '<p class="hint">Todavía no se cargaron las taquicardias.</p>'}
+    ${x ? `<div class="card tqc" id="tqCard" style="cursor:default"><h3>${esc(x.t)}</h3><p>${esc(x.circ)}</p>
+      <video src="videos_taquicardias/${x.id}.mp4" poster="videos_taquicardias/${x.id}.jpg" controls playsinline muted loop preload="metadata" aria-label="Animación 3D: ${esc(x.t)}"></video>
+      <ul>${x.claves.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>` : ''}
     <p class="hint">Corazón 3D: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 Japan (modificado).</p></div>`;
-  const vs = app.querySelectorAll('video'); vs.forEach(v => v.onplay = () => vs.forEach(o => { if (o !== v) o.pause(); }));
+  app.querySelectorAll('button[data-tq]').forEach(b => b.onclick = () => { TQ.sel = TQ.sel === b.dataset.tq ? '' : b.dataset.tq; taquicardias();
+    const v = app.querySelector('#tqCard video'); if (v) { const p = v.play(); if (p && p.catch) p.catch(() => {}); } });
 }
 const VISTAS = { taquicardias, herramientas, recursos, examen, valores, patrones, scores, diagnosticos, progreso, parametrosZ, glosario, drogas, endocarditis, estadisticas, fasciculos };
 // Grupos de la nav de arriba, para resaltar "Casos"/"Herramientas" cuando la vista activa es una de las suyas.
