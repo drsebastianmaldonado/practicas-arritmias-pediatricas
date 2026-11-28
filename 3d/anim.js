@@ -846,6 +846,72 @@
     return done(200 + (NC - 1) * CJ + 200, 'Foco de la unión: His y V', 'La P no conduce: disociación AV', m => m.f + 30);
   }
 
+  // ---------- FA, aleteo auricular y bloqueos AV (sección "Taquicardias") ----------
+  function tqSc2(kind) {
+    const sc = newSc({ title: '', cats: [] }), M = [];
+    const fin = (end, w0, w1, l1, l2, split, slow) => Object.assign(sc, { stimEnd: 0, win: [[M[w0].t0, split(M[w1]), M[w1].t1, l1, l2]], slow: slow || .2, resp: '', verdictT: end });
+    const pSinus = (a, extra, tc) => W_(sc, 'ante', [[G.sn, a - 30], [G.ra, a + 5], [G.aSep, a + 35], [G.node, a + 70]].concat(extra || []), tc);
+    const cond = (a, PR) => { const h = a + PR - HVT; pSinus(a, [[G.his, h]]); E(sc, 'AD', a, 'A'); E(sc, 'His', h, 'H'); down(sc, h); Vs(sc, h); return h; };
+    const bloq = (a, lvl) => { const tag = { tag: 'P bloqueada', tagUp: true };   // lvl: 'nodo' o 'his' (debajo del His)
+      if (lvl === 'his') { pSinus(a, [[G.his, a + 135], [G.rb1, a + 175]], a + 150); E(sc, 'AD', a, 'A', tag); E(sc, 'His', a + 135, 'H', { nov: true, tag: 'H sin V' }); }
+      else { pSinus(a, [[G.his, a + 170]], a + 100); E(sc, 'AD', a, 'A', tag); } };
+    if (kind === 'bav1') {
+      sc.title = 'BAV de 1.er grado'; const CL = 700, PR = 300; let a = 150;
+      for (let k = 0; k < 8; k++) { const h = cond(a, PR); M.push({ t0: a - 20, a, t1: h + HVT + 170 }); a += CL; }
+      brk(sc, 'VD', M[3].a, M[3].a + PR, 'PR ' + PR, { hot: 1 });
+      return fin(a, 3, 3, 'La P llega al nodo AV', 'Conduce lento: PR largo', m => m.a + 90);
+    }
+    if (kind === 'mob1') {
+      sc.title = 'BAV de 2.º grado Mobitz I (Wenckebach)'; const CL = 640, PRS = [170, 250, 330]; let a = 150;
+      for (let k = 0; k < 12; k++, a += CL) { const g = k % 4;
+        if (g < 3) { const h = cond(a, PRS[g]); if (k >= 4 && k <= 6) brk(sc, 'VD', a, a + PRS[g], 'PR ' + PRS[g], { hot: g === 2 }); M.push({ t0: a - 20, a, t1: h + HVT + 170 }); }
+        else { bloq(a, 'nodo'); M.push({ t0: a - 20, a, t1: a + 300 }); } }
+      return fin(a, 6, 7, 'PR cada vez más largo', 'Una P no conduce', m => m.a + 40);
+    }
+    if (kind === 'mob2') {
+      sc.title = 'BAV de 2.º grado Mobitz II'; const CL = 640, PR = 180; let a = 150;
+      for (let k = 0; k < 12; k++, a += CL) { const g = k % 4;
+        if (g < 3) { const h = cond(a, PR); if (k >= 4 && k <= 6) brk(sc, 'VD', a, a + PR, 'PR ' + PR, { hot: k === 6 }); M.push({ t0: a - 20, a, t1: h + HVT + 170 }); }
+        else { bloq(a, 'his'); M.push({ t0: a - 20, a, t1: a + 300 }); } }
+      return fin(a, 6, 7, 'PR constante: conduce', 'Bloqueo debajo del His', m => m.a + 60);
+    }
+    if (kind === 'bav21') {
+      sc.title = 'BAV 2:1'; const CL = 520, PR = 230; let a = 150;
+      for (let k = 0; k < 14; k++, a += CL) { if (k % 2 === 0) { const h = cond(a, PR); M.push({ t0: a - 20, a, t1: h + HVT + 170 }); } else { bloq(a, 'nodo'); M.push({ t0: a - 20, a, t1: a + 300 }); } }
+      brk(sc, 'VD', M[4].a, M[4].a + PR, 'PR ' + PR, { hot: 1 });
+      return fin(a, 4, 5, 'La P conduce (PR largo)', 'La siguiente no conduce', m => m.a + 40);
+    }
+    if (kind === 'bavc') {
+      Object.assign(sc, { focus: true, focusPt: G.jx, focusLab: 'escape (unión AV)', diss: true, title: 'BAV completo (3.er grado)' }); const CA = 500, CV = 1150, F = [];
+      for (let a = 120; a < 5600; a += CA) { E(sc, 'AD', a, 'A'); pSinus(a, [[G.his, a + 170]], a + 85); }
+      for (let f = 420; f < 5600; f += CV) { E(sc, 'His', f, 'H'); W_(sc, 'focus', [[G.jx, f - 12], [G.his, f]]); down(sc, f); Vs(sc, f); F.push(f); }
+      brk(sc, 'AD', 2620, 3120, 'AA 500', { hot: 1 }); brk(sc, 'VD', F[1] + HVT, F[2] + HVT, 'VV ' + CV, { hot: 1 });
+      M.push({ t0: F[2] - 300, f: F[2], t1: F[2] + 450 });
+      return fin(5600, 0, 0, 'Las P no conducen (✕)', 'Escape: V a su ritmo', m => m.f - 30);
+    }
+    if (kind === 'fa') {
+      sc.title = 'Fibrilación auricular'; let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647, END = 4800;
+      const ORI = [G.focus, [430, 160], G.hra, [350, 200], G.la, [300, 130], G.ra, [200, 150], [470, 230], [160, 240]], VT = [];
+      for (let h = 420; h < END - 300; h += Math.round(300 + rnd() * 420)) VT.push(h);
+      let n = 0;
+      for (let t = 60; t < END; t += Math.round(105 + rnd() * 70), n++) { const o = ORI[Math.floor(rnd() * ORI.length)];
+        E(sc, 'AD', t, 'f'); W_(sc, 'focus', [[o, t], [[(o[0] + G.aSep[0]) / 2, (o[1] + G.aSep[1]) / 2], t + 35], [G.aSep, t + 70]]);
+        if (n % 4 === 2 && !VT.some(h => Math.abs(t + 100 - (h - 55)) < 90)) W_(sc, 'ante', [[G.aSep, t + 70], [G.node, t + 110]], t + 100); }
+      VT.forEach(h => { W_(sc, 'ante', [[G.aSep, h - 110], [G.node, h - 55], [G.his, h]]); E(sc, 'His', h, 'H'); down(sc, h); Vs(sc, h); });
+      M.push({ t0: 1500, t1: 2500 });
+      return fin(END, 0, 0, 'Aurícula caótica', 'El nodo AV filtra', () => 1750, .25);
+    }
+    // aleteo auricular típico con conducción 2:1: el frente gira alrededor del anillo tricuspídeo
+    const NR = 16, CL = 200, NC = 20, rk = i => [900 + i, 120 + Math.round(70 * Math.sin(i / NR * Math.PI * 2))]; sc.flut = NR; sc.title = 'Aleteo auricular típico (conducción 2:1)';
+    for (let c = 0; c < NC; c++) { const tc = 100 + c * CL, pts = [];
+      for (let i = 0; i <= NR; i++) pts.push([rk(i % NR), tc + Math.round(i * CL / NR)]);
+      W_(sc, 'focus', pts); E(sc, 'AD', tc + 4 * CL / NR, 'F'); sc.flA.push(tc + 12 * CL / NR);
+      if (c % 2 === 0) { const h = tc + 140; W_(sc, 'ante', [[rk(0), tc], [G.aSep, tc + 30], [G.node, tc + 65], [G.his, h]]); E(sc, 'His', h, 'H'); down(sc, h); Vs(sc, h); }
+      else W_(sc, 'ante', [[rk(0), tc], [G.aSep, tc + 30], [G.node, tc + 65]], tc + 55);
+      M.push({ t0: tc - 20, tc, t1: tc + CL + 100 }); }
+    return fin(100 + NC * CL + 200, 6, 7, 'El frente gira por la AD', 'Conduce 1 de cada 2', m => m.tc);
+  }
+
   // TV fascicular posterior: baja por P1 (miocardio septal de conducción lenta) y sube por el fascículo posterior (P2)
   function tvfSc(kind) {
     const sc = newSc({ title: kind === 'vera' ? 'TV fascicular posterior: verapamilo' : kind === 'abl' ? 'TV fascicular posterior: ablación en P2' : 'TV fascicular posterior (P1 y P2)', fasc: true, cats: kind === 'abl' ? ['abl'] : [] });
@@ -1091,6 +1157,20 @@
         [3330, '<b>Taquicardia ventricular</b>: cada latido nace en el foco, y la aurícula se activa por <b>retroconducción 1 a 1</b>.']] },
     tq_tsvd: { t: 'Taquicardia ventricular del tracto de salida del VD', n: 'TV del tracto de salida del VD', panels: [() => tqSc('tsvd')],
       fases: [[0, 'Un <b>foco en el tracto de salida del VD</b> (anterior, debajo de la válvula pulmonar) activa los ventrículos: QRS ancho.'], [1000, 'La aurícula sigue en <b>ritmo sinusal</b> y la P no conduce: <b>disociación AV</b>. Otras veces hay retroconducción 1:1.']] },
+    tq_fa: { t: 'Fibrilación auricular', n: 'Fibrilación auricular', panels: [() => tqSc2('fa')],
+      fases: [[0, 'Fibrilación auricular: la aurícula se activa en <b>frentes caóticos</b>, muy rápidos y sin un ciclo regular.'], [1600, 'El <b>nodo AV filtra</b> y solo conduce algunos: respuesta ventricular <b>irregularmente irregular</b>.']] },
+    tq_flutter: { t: 'Aleteo auricular', n: 'Aleteo auricular', panels: [() => tqSc2('flutter')],
+      fases: [[0, 'Aleteo auricular típico: un frente <b>gira por la aurícula derecha</b> alrededor del anillo tricuspídeo.'], [1300, 'El nodo AV deja pasar <b>una de cada dos</b> vueltas: conducción <b>2:1</b>.']] },
+    tq_bav1: { t: 'Bloqueo AV de 1.er grado', n: 'BAV de 1.er grado', panels: [() => tqSc2('bav1')],
+      fases: [[0, '<b>Bloqueo AV de 1.er grado</b>: todas las P conducen, pero el nodo AV las demora.'], [1900, 'Cada P va seguida de un QRS, con un <b>PR largo</b>.']] },
+    tq_mob1: { t: 'Bloqueo AV de 2.º grado Mobitz I (Wenckebach)', n: 'Mobitz I', panels: [() => tqSc2('mob1')],
+      fases: [[0, '<b>Mobitz I</b>: el PR se alarga latido a latido, hasta que una P no conduce.'], [3000, 'Después de la pausa el PR vuelve a ser corto y el ciclo se repite.']] },
+    tq_mob2: { t: 'Bloqueo AV de 2.º grado Mobitz II', n: 'Mobitz II', panels: [() => tqSc2('mob2')],
+      fases: [[0, '<b>Mobitz II</b>: el PR no cambia y, de golpe, una P no conduce.'], [3000, 'El bloqueo está <b>debajo del His</b>: se ve un His sin V.']] },
+    tq_bav21: { t: 'Bloqueo AV 2:1', n: 'BAV 2:1', panels: [() => tqSc2('bav21')],
+      fases: [[0, '<b>Bloqueo AV 2:1</b>: una P conduce y la siguiente no, en forma alternante.'], [2300, 'Con solo dos P por cada QRS no se puede distinguir un Mobitz I de un Mobitz II.']] },
+    tq_bavc: { t: 'Bloqueo AV completo', n: 'BAV completo', panels: [() => tqSc2('bavc')],
+      fases: [[0, '<b>BAV completo</b>: ninguna P llega al ventrículo. La aurícula sigue en ritmo sinusal.'], [2300, 'Los ventrículos se activan por un <b>escape</b> más lento, sin relación con las P.']] },
     tq_trnav: { t: 'Taquicardia por reentrada nodal típica', n: 'TRNAV típica', panels: [() => tqSc('trnav')],
       fases: [[0, 'Reentrada en el nodo AV: baja por la <b>vía lenta</b> y sube por la <b>vía rápida</b>.'], [1500, 'La A y el V salen casi juntos: <b>RP corto</b>.']] },
     tq_trnavat: { t: 'Taquicardia por reentrada nodal atípica', n: 'TRNAV atípica', panels: [() => tqSc('trnavat')],

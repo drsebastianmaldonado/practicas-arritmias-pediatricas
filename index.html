@@ -1614,11 +1614,11 @@ function pintarEstadisticas(d) {
 const TQ = { sel: '' };
 function taquicardias() {
   const T = window.TAQUICARDIAS || [], todas = T.flatMap(g => g.items), x = todas.find(i => i.id === TQ.sel);
-  app.innerHTML = `<div class="case"><h2>Taquicardias</h2>
-    <p class="hint">Elegí una taquicardia para ver su animación 3D. Girá el corazón con el dedo y pellizcá para acercar. El ciclo clave va en cámara lenta. Los tiempos y el sistema de conducción son esquemáticos.</p>
+  app.innerHTML = `<div class="case"><h2>Taquicardias y bloqueos AV</h2>
+    <p class="hint">Elegí una arritmia para ver su animación 3D. Girá el corazón con el dedo y pellizcá para acercar. El ciclo clave va en cámara lenta. Los tiempos y el sistema de conducción son esquemáticos.</p>
     ${T.length ? T.map(g => `<div class="tqgrupo" style="--k:${g.color}"><div class="tqgt">${esc(g.grupo)}</div><div class="chips">${g.items.map(i => `<button type="button" class="chip${i.id === TQ.sel ? ' on' : ''}" data-tq="${i.id}">${esc(i.c || i.t)}</button>`).join('')}</div></div>`).join('') : '<p class="hint">Todavía no se cargaron las taquicardias.</p>'}
     ${x ? `<div class="card tqc" id="tqCard" style="cursor:default"><h3>${esc(x.t)}</h3><p>${esc(x.circ)}</p>
-      <iframe id="tqFrame" src="3d/ver.html?a=tq_${x.id}&embed=1&v=146" title="Animación 3D: ${esc(x.t)}" scrolling="no" style="width:100%;height:900px;border:0;border-radius:12px;background:#000;display:block;margin-top:8px"></iframe></div>` : ''}
+      <iframe id="tqFrame" src="3d/ver.html?a=tq_${x.id}&embed=1&v=149" title="Animación 3D: ${esc(x.t)}" scrolling="no" style="width:100%;height:900px;border:0;border-radius:12px;background:#000;display:block;margin-top:8px"></iframe></div>` : ''}
     <p class="hint">Corazón 3D: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 Japan (modificado).</p></div>`;
   app.querySelectorAll('button[data-tq]').forEach(b => b.onclick = () => { TQ.sel = TQ.sel === b.dataset.tq ? '' : b.dataset.tq; taquicardias(); });
 }

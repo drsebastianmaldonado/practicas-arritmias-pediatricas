@@ -55,7 +55,7 @@ body.emb .wrap{padding:6px 6px 12px;gap:8px}body.emb .stage{max-height:none}
   <div class="ver" id="ver"></div>
   <p class="note">Naranja: anterógrado · violeta: retrógrado · rojo: foco y estímulo. En cámara lenta y con la cámara cerca: el último latido estimulado y el primero de retorno (o el extraestímulo y el latido siguiente). Corazón: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 Japan (modificado). Sistema de conducción y tiempos esquemáticos e ilustrativos.</p>
 </div>
-<script src="./anim.js?v=146"></script>
+<script src="./anim.js?v=149"></script>
 <script>setTimeout(function () { var l = document.getElementById('load'); if (l && !window.__ready) l.textContent = 'No se pudo abrir la animación 3D. Si tu celular tiene un iOS o un navegador viejo (anterior a iOS 16.4), actualizalo.'; }, 15000);</script>
 <script type="module">
 import * as THREE from 'three';
@@ -153,7 +153,7 @@ const condMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
       gl_FragColor = vec4(vec3(1.,.62,.18)*(.16*vw + gF*(.5+.6*vw*vw) + gW*.12), 1.); }` });
 
 // ---------- modelo y correspondencia del esquema 2D de la app con el corazón 3D
-let LES = null, FV = null, FASC = null, RFM = null, TW3 = null, TWIN = null, KOCH = null, NODAL = null, BBBL = [], LBX = null, ready = false, M2 = null, LAB = [], ON = null, WV3 = [], COLS = [], ST3 = [], FOCUS = [], AP3 = null, FOC3 = null, FOCM = null, APM = null;
+let LES = null, FV = null, FASC = null, RFM = null, TW3 = null, TWIN = null, KOCH = null, NODAL = null, BBBL = [], LBX = null, ready = false, M2 = null, LAB = [], ON = null, WV3 = [], COLS = [], ST3 = [], FOCUS = [], AP3 = null, FOC3 = null, FOCM = null, APM = null, FLR = null;
 const map2 = p => V(M2[0][0] * p[0] + M2[0][1] * p[1] + M2[0][2], M2[1][0] * p[0] + M2[1][1] * p[1] + M2[1][2], M2[2][0] * p[0] + M2[2][1] * p[1] + M2[2][2]);
 function fit(pairs) {   // mínimos cuadrados: [x, y, 1] → X, Y, Z
   const A3 = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], b = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
@@ -255,6 +255,12 @@ function build(parts) {
   const APP = new Set([[226, 304], [276, 376], [282, 380], G.apV, G.apA, G.aSep, [231, 262], [237, 318], [232, 268], [236, 312], [250, 362], [264, 272], [240, 356], [212, 288], [92, 272], [178, 512], G.afA, G.afV, G.jx, G.cso].map(key));
   // vía atriofascicular: los puntos intermedios del frente van exactamente sobre el tubo de la vía, así se ve viajar la corriente
   if (sc.ap === 'af') { const afc = new THREE.CatmullRomCurve3(APD.af.map(map2)); [[[86, 360], .34], [[118, 460], .67]].forEach(([pt, f]) => { ANC.set(key(pt), afc.getPoint(f)); APP.add(key(pt)); }); }
+  // aleteo auricular: anillo alrededor de la válvula tricúspide; el punto 0 es el más cercano al nodo AV (istmo)
+  if (sc.flut) { const NR = sc.flut, tgp = parts.tv.geometry.attributes.position; let rr = 0; for (let i = 0; i < tgp.count; i++) rr += V(tgp.getX(i), tgp.getY(i), tgp.getZ(i)).distanceTo(tvC); rr = rr / tgp.count * 1.1;
+    const C0 = tvC.clone().add(ax.clone().multiplyScalar(.1)); let ring = []; for (let i = 0; i < NR; i++) { const th = i / NR * Math.PI * 2; ring.push(C0.clone().add(sn.clone().multiplyScalar(Math.cos(th) * rr)).add(up.clone().multiplyScalar(Math.sin(th) * rr))); }
+    let k0 = 0, bd = 1e9; ring.forEach((p_, i) => { const d = p_.distanceTo(AVN); if (d < bd) { bd = d; k0 = i; } }); ring = ring.slice(k0).concat(ring.slice(0, k0)); FLR = ring;
+    ring.forEach((p_, i) => ANC.set(key([900 + i, 120 + Math.round(70 * Math.sin(i / NR * Math.PI * 2))]), p_));
+    heart.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ring, true), 80, .028, 8, true), new THREE.MeshBasicMaterial({ color: 0x66e0ff, transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false }))); }
   // región del triángulo de Koch agrandada (como en la animación de la TRNAV): las vías lenta y rápida se leen mejor
   const N0 = map2(G.node), KZ = sc.nodal ? 4.2 : 1;
   // en la cara septal de la AD: e1 del ostium del SC hacia el His, e2 hacia la aurícula (arriba en el esquema 2D)
@@ -272,7 +278,7 @@ function build(parts) {
   FOCUS = WIN.map(w => { const c = V(0, 0, 0); let k = 0; WV3.forEach(x => { if (!x.hi) return; const t0 = x.pts[0].t; if (t0 >= w[0] && t0 <= w[2]) x.pts.forEach(p => { c.add(p.P); k++; }); }); return k ? c.multiplyScalar(1 / k) : V(0, 0, 0); });
   // activaciones de la pared: aurícula desde donde llega el frente; ventrículo por el His, desde el estímulo o desde donde llega el frente
   const ptAt = (t, test) => { let best = null, bd = 40; for (const w of sc.wv) for (const [p, tt] of w.pts) if (test(p[1]) && Math.abs(tt - t) < bd) { bd = Math.abs(tt - t); best = p; } return best; };
-  const His = sc.ev.filter(e => (e.ch === 'His' || e.ch === 'HisP') && e.l === 'H' && !e.inv).map(e => e.ch === 'HisP' ? e.t + 10 : e.t);
+  const His = sc.ev.filter(e => (e.ch === 'His' || e.ch === 'HisP') && e.l === 'H' && !e.inv && !e.nov).map(e => e.ch === 'HisP' ? e.t + 10 : e.t);
   ON = { a: [], v: [], h: [] };
   // activaciones auriculares: las del escenario y las A de cualquier canal (SC, His), la más precoz de cada latido
   const aTimes = [...sc.flA, ...sc.ev.filter(e => e.l === 'A').map(e => e.t)].sort((a, b) => a - b), aOn = [];
@@ -290,6 +296,7 @@ function build(parts) {
   LAB = [['AD', RAc.clone().add(sn.clone().multiplyScalar(-.6))], ['AI', LAc.clone().add(ax.clone().multiplyScalar(.6)).add(sn.clone().multiplyScalar(.6)).add(V(0, 0, -.3))], ['VD', sept(.6, -3.4, .5)], ['VI', sept(.5, 3.2, 0)], [sc.twin ? 'nodo anterior' : 'nodo AV', AVN.clone().add(sc.twin ? V(-.55, .22, .1) : V(.05, -.2, .1))], ['His', HIS.clone().add(V(.1, .25, .2))], ...(AP3 ? [[AP3.n, AP3.p.clone().add(V(.25, .25, .25)), 'ap']] : []), ...(FOC3 ? [[sc.vf ? 'foco TV (TSVD anterior)' : sc.focusLab ? sc.focusLab : sc.focusPt ? 'foco' : 'foco (VPSI)', FOC3.clone().add(V(.2, .25, 0)), 'cat']] : []), ...(NODAL ? NODAL.map(([t, p]) => [t, p, t.includes('lenta') ? 'sp' : 'fp']) : []), ...(TWIN || []), ...(FASC ? FASC.map(([t, p]) => [t, p, t.startsWith('P1') ? 'sp' : t.startsWith('cat') ? 'cat' : 'fp']) : [])]
     .map(([t, p, c]) => { const d = document.createElement('div'); d.className = 'lab ' + (c || ''); d.textContent = t; $('labs').appendChild(d); return { d, p }; });
   if (sc.vf) { for (const [t_, p_] of [['arteria pulmonar', centroid(parts.pa.geometry).add(V(.15, .35, 0))]]) { const d = document.createElement('div'); d.className = 'lab'; d.textContent = t_; $('labs').appendChild(d); LAB.push({ d, p: p_ }); } }
+  if (FLR) { [['circuito del aleteo', FLR[Math.floor(FLR.length / 4)].clone().add(V(.15, .75, 0)), ''], ['istmo cavotricuspídeo', FLR[0].clone().add(V(-.5, -.55, .1)), 'cat']].forEach(([t_, p_, c_]) => { const d = document.createElement('div'); d.className = 'lab ' + c_; d.textContent = t_; $('labs').appendChild(d); LAB.push({ d, p: p_ }); }); }
   if (sc.vf || sc.diss) {
     const d2 = document.createElement('div'); d2.className = 'lab sp'; d2.style.fontSize = '13px'; d2.textContent = 'nodo sinusal (P)'; $('labs').appendChild(d2); LAB.push({ d: d2, p: SAN.clone().add(V(.5, .05, .1)), when: [[sc.win[0][0], sc.win[0][2]]] }); }
   if (sc.diss) { const d = document.createElement('div'); d.className = 'lab cat'; d.style.fontSize = '15px'; d.textContent = 'disociación AV'; $('labs').appendChild(d); LAB.push({ d, p: AVN.clone().add(V(.5, -.45, .3)), when: [[sc.win[0][0] + 130, sc.win[0][2]]] }); }
