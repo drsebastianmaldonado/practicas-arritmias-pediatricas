@@ -765,6 +765,9 @@ function detail(id) {
   const i = esS ? -1 : C.findIndex(c => c.id == id); if (i < 0 && !esS) return list();
   const c = esS ? S : C[i], prev = esS ? null : C[i - 1], next = esS ? null : C[i + 1];
   const mismo = x => x && x.f === c.f;
+  // En el caso de la semana: botón al caso de la semana anterior (el último del archivo), arriba y al final
+  const semAnt = esS ? C.filter(x => x.archivado && x.fecha).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0] : null;
+  const btnAnt = semAnt ? `<a href="#${semAnt.id}"><button class="ghost" type="button">← Caso de la semana anterior</button></a>` : '';
   const n = c.preguntas.length, usados = new Set(), gl = t => glosar(esc(t), usados);
   const vineta = gl(c.vineta);
   // Cada pregunta va en su "paso" (con su texto previo e imágenes): se muestran de a una con "Siguiente pregunta".
@@ -781,7 +784,7 @@ function detail(id) {
   const dev = c.dev.map(p => /^respuestas?\s*n/i.test(p) ? `<p class="rh">${esc(p)}</p>` : `<p>${gl(p)}</p>`).join('');
   const porPreg = devPorPregunta(c);
   app.innerHTML = `<div class="case" id="caso">
-    <p><a href="#">← Volver al banco</a></p>
+    <p style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><a href="#">← Volver al banco</a>${btnAnt}</p>
     <div class="meta">${c.semana ? 'Caso de la semana' + (c.fecha ? ' · ' + fechaCorta(c.fecha) : '') : `Fascículo ${c.f} · Caso ${c.n}${c.archivado && c.fecha ? ' · caso de la semana del ' + fechaCorta(c.fecha) : ''}`}</div><h2>${esc(c.titulo)}</h2>
     ${c.borrador ? '<div class="warn">Este fascículo todavía es un borrador: el contenido puede cambiar.</div>' : ''}
     <div class="vineta">${vineta || '<i>Ver imágenes.</i>'}</div>
@@ -794,7 +797,7 @@ function detail(id) {
       <button class="ghost" id="reset">Empezar de nuevo</button>
       <span class="hint" id="mk" style="align-self:center"${seen[c.id] ? '' : ' hidden'}>✓ Repasado</span></div>
     <div id="dev" hidden><div class="dev"><h3>Devolución</h3>${dev}${imgs(c.devimgs)}${vids(c.devvideos)}${calcRel(c)}${recRel(c)}</div></div>
-    <div class="nav">${mismo(prev) ? `<a href="#${prev.id}"><button class="ghost">← Caso anterior</button></a>` : ''}${mismo(next) ? `<a href="#${next.id}"><button class="ghost" id="csig">Caso siguiente →</button></a>` : ''}</div></div>`;
+    <div class="nav">${btnAnt}${mismo(prev) ? `<a href="#${prev.id}"><button class="ghost">← Caso anterior</button></a>` : ''}${mismo(next) ? `<a href="#${next.id}"><button class="ghost" id="csig">Caso siguiente →</button></a>` : ''}</div></div>`;
   const pintarSel = () => app.querySelectorAll('.opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
   const marcadas = k => [...app.querySelectorAll(`input[name="q${k}"]:checked`)].map(i => i.dataset.l);
   // De a una pregunta por vez (salvo que la persona elija verlas todas juntas, o el caso tenga una sola pregunta).
